@@ -1,0 +1,36 @@
+animations:
+  pulse-slow:
+    intent: idle_waiting
+    description: System is idle but healthy
+    loop: true
+    intensity: low
+
+  spin:
+    intent: active_processing
+    description: Engine is actively collecting or working
+    loop: true
+    intensity: medium
+
+  glow:
+    intent: success_complete
+    description: Task completed successfully
+    loop: false
+    intensity: medium
+
+  shake:
+    intent: error_attention
+    description: Error requires human attention
+    loop: false
+    intensity: high
+
+  slide-in:
+    intent: new_information
+    description: New signal or data arrived
+    loop: false
+    intensity: medium
+
+  dim:
+    intent: inactivity
+    description: No changes detected
+    loop: true
+    intensity: low
