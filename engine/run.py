@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
 from pathlib import Path
+from engine.resolve_animation import resolve_animation
+
 
 import yaml
 
