@@ -1,0 +1,15 @@
+panels:
+  engine_status:
+    source: engine/state.json
+    states: [idle, collecting, done, error]
+    animation_map:
+      idle: pulse-slow
+      collecting: spin
+      done: glow
+      error: shake
+
+  signal_activity:
+    source: engine/log.json
+    animation_map:
+      new_signal: slide-in
+      no_change: dim
