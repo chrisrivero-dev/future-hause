@@ -2,6 +2,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+import yaml
+
+
 CONFIG_PATH = Path("config/future_hause.yaml")
 STATE_PATH = Path("engine/state.json")
 LOG_PATH = Path("engine/log.json")
@@ -30,12 +33,30 @@ def log_event(message):
     LOG_PATH.write_text(json.dumps(logs, indent=2))
 
 
+def load_config():
+    if not CONFIG_PATH.exists():
+        raise FileNotFoundError("Missing config/future_hause.yaml")
+
+    with open(CONFIG_PATH, "r") as f:
+        return yaml.safe_load(f)
+
+
 def run():
     write_state("collecting")
     log_event("Future Hause run started")
 
-    # Stub: no collection yet
-    log_event("No collectors enabled in v0.1")
+    config = load_config()
+    fh_config = config.get("future_hause", {})
+
+    version = fh_config.get("version", "unknown")
+    scope = fh_config.get("scope", {})
+
+    log_event(f"Loaded config version: {version}")
+    log_event(f"Collection scope: {scope.get('collect', {})}")
+    log_event(f"Analysis enabled: {scope.get('analyze', False)}")
+    log_event(f"Draft outputs enabled: {scope.get('draft_outputs', False)}")
+
+    log_event("No collectors executed (v0.1 stub)")
 
     write_state("done")
     log_event("Future Hause run completed")
