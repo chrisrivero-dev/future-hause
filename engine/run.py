@@ -64,13 +64,25 @@ def run_reddit_collector_stub():
 
 
 def run():
-    write_state("collecting")
-    log_event("Future Hause run started")
+   current_state = "collecting"
 
-    config = load_config()
-    fh_config = config.get("future_hause", {})
-    scope = fh_config.get("scope", {})
-    collect_scope = scope.get("collect", {})
+current_animation = resolve_animation(
+    panel_name="engine_status",
+    engine_state=current_state
+)
+
+write_state({
+    "state": current_state,
+    "current_animation": current_animation
+})
+
+log_event("Future Hause run started")
+
+config = load_config()
+fh_config = config.get("future_hause", {})
+scope = fh_config.get("scope", {})
+collect_scope = scope.get("collect", {})
+
 
     log_event(f"Loaded config version: {fh_config.get('version', 'unknown')}")
     log_event(f"Collection scope: {collect_scope}")
