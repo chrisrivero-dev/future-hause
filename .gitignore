@@ -28,3 +28,8 @@ build/
 
 # ---- Logs ----
 *.log
+# Runtime engine outputs
+engine/status.json
+engine/state.json
+engine/log.json
+data/raw/
