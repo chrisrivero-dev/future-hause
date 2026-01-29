@@ -1,0 +1,30 @@
+future_hause:
+  version: "0.1"
+
+  mode: local_only
+
+  scope:
+    collect:
+      reddit: true
+      tickets: false
+      websites: false
+
+    analyze: false
+    draft_outputs: false
+    publish: false
+
+  state_machine:
+    enabled: true
+    allowed_states:
+      - idle
+      - collecting
+      - done
+
+  logging:
+    enabled: true
+    level: info
+
+  safety:
+    human_in_loop_required: true
+    auto_actions: false
+    store_raw_data: true
