@@ -1,0 +1,38 @@
+body {
+  margin: 0;
+  background: #0f1117;
+  color: #e5e7eb;
+  font-family: system-ui, sans-serif;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: #111827;
+  padding: 16px;
+}
+
+.board {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 16px;
+}
+
+.column {
+  background: #1f2937;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.card {
+  background: #111827;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 8px;
+}
