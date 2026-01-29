@@ -41,22 +41,33 @@ def load_config():
         return yaml.safe_load(f)
 
 
+def run_reddit_collector_stub():
+    """
+    Stub collector for Reddit.
+    This does NOT make network calls.
+    It exists only to prove config-gated execution.
+    """
+    log_event("Reddit collector stub executed (no data collected)")
+
+
 def run():
     write_state("collecting")
     log_event("Future Hause run started")
 
     config = load_config()
     fh_config = config.get("future_hause", {})
-
-    version = fh_config.get("version", "unknown")
     scope = fh_config.get("scope", {})
+    collect_scope = scope.get("collect", {})
 
-    log_event(f"Loaded config version: {version}")
-    log_event(f"Collection scope: {scope.get('collect', {})}")
-    log_event(f"Analysis enabled: {scope.get('analyze', False)}")
-    log_event(f"Draft outputs enabled: {scope.get('draft_outputs', False)}")
+    log_event(f"Loaded config version: {fh_config.get('version', 'unknown')}")
+    log_event(f"Collection scope: {collect_scope}")
 
-    log_event("No collectors executed (v0.1 stub)")
+    if collect_scope.get("reddit", False):
+        run_reddit_collector_stub()
+    else:
+        log_event("Reddit collector disabled by config")
+
+    log_event("No analysis or drafting executed (v0.1 scope)")
 
     write_state("done")
     log_event("Future Hause run completed")
