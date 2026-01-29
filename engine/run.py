@@ -8,6 +8,7 @@ import yaml
 CONFIG_PATH = Path("config/future_hause.yaml")
 STATE_PATH = Path("engine/state.json")
 LOG_PATH = Path("engine/log.json")
+RAW_REDDIT_PATH = Path("data/raw/reddit_stub.json")
 
 
 def write_state(state):
@@ -44,10 +45,20 @@ def load_config():
 def run_reddit_collector_stub():
     """
     Stub collector for Reddit.
-    This does NOT make network calls.
-    It exists only to prove config-gated execution.
+    Writes a placeholder raw data file.
+    No network calls.
     """
-    log_event("Reddit collector stub executed (no data collected)")
+    RAW_REDDIT_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    stub_payload = {
+        "source": "reddit",
+        "type": "stub",
+        "collected_at": datetime.utcnow().isoformat(),
+        "posts": []
+    }
+
+    RAW_REDDIT_PATH.write_text(json.dumps(stub_payload, indent=2))
+    log_event("Reddit raw data stub written to data/raw/reddit_stub.json")
 
 
 def run():
