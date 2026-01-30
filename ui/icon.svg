@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  id="future-hause-icon"
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 200 200"
+  width="200"
+  height="200"
+  role="img"
+  aria-label="Future Hause Assistant Icon"
+>
+
+  <!-- 1. Background circle (static) -->
+  <g class="background-circle">
+    <circle
+      cx="100"
+      cy="100"
+      r="95"
+      fill="#0d1025"
+    />
+  </g>
+
+  <!-- 2. Outer ring (animated: pulse / spin / glow) -->
+  <g class="outer-ring">
+    <circle
+      cx="100"
+      cy="100"
+      r="80"
+      fill="none"
+      stroke="#ffffff"
+      stroke-width="3"
+      opacity="0.9"
+    />
+  </g>
+
+  <!-- 3. Face geometry (wireframe facets, mostly static) -->
+  <g class="face-geometry" stroke="#ffffff" stroke-width="2" fill="none">
+    <!-- Simplified placeholder geometry -->
+    <polygon points="60,80 100,50 140,80 120,130 80,130" />
+  </g>
+
+  <!-- 4. Left eye (animated on glow) -->
+  <g class="left-eye">
+    <ellipse
+      cx="80"
+      cy="95"
+      rx="10"
+      ry="6"
+      fill="url(#leftEyeGradient)"
+    />
+  </g>
+
+  <!-- 5. Right eye (animated on glow) -->
+  <g class="right-eye">
+    <ellipse
+      cx="120"
+      cy="95"
+      rx="10"
+      ry="6"
+      fill="url(#rightEyeGradient)"
+    />
+  </g>
+
+  <!-- 6. Nose (static) -->
+  <g class="nose">
+    <polygon
+      points="100,105 95,115 105,115"
+      fill="#ffffff"
+    />
+  </g>
+
+  <!-- 7. Mouth (static) -->
+  <g class="mouth">
+    <rect
+      x="85"
+      y="125"
+      width="30"
+      height="6"
+      rx="3"
+      fill="#ffffff"
+    />
+  </g>
+
+  <!-- 8. Sparkles (optional / decorative) -->
+  <g class="sparkles" fill="#ffffff" opacity="0.8">
+    <circle cx="40" cy="40" r="2" />
+    <circle cx="160" cy="50" r="1.5" />
+    <circle cx="150" cy="160" r="2" />
+  </g>
+
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="leftEyeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7efcff"/>
+      <stop offset="100%" stop-color="#b3f0ff"/>
+    </linearGradient>
+
+    <linearGradient id="rightEyeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c77dff"/>
+      <stop offset="100%" stop-color="#e0b3ff"/>
+    </linearGradient>
+  </defs>
+
+</svg>
