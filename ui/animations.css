@@ -135,3 +135,28 @@
   filter: none !important;
   opacity: 1;
 }
+/* Enhanced glow state - amplify filter effects */
+.state-glow .outer-ring circle:first-child {
+  stroke-width: 8;
+  opacity: 0.4;
+}
+
+.state-glow .left-eye ellipse:first-child,
+.state-glow .right-eye ellipse:first-child {
+  opacity: 0.7;
+}
+
+/* Sparkle subtle pulse during idle */
+.state-pulse-slow .sparkles {
+  animation: sparkle-twinkle 4s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Dim state - reduce filter intensity */
+.state-dim .outer-ring circle:first-child {
+  opacity: 0.1;
+}
