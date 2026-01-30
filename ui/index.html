@@ -1,34 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Future Hause Dashboard (Visual Test)</title>
-
-  <!-- Base styles (optional) -->
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Animation spec (JUST COMMITTED) -->
-  <link rel="stylesheet" href="animations.css" />
-
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at top, #1b1f3b, #0b0e1a);
-      font-family: system-ui, sans-serif;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Hause - Animated Icon Demo</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="animations.css">
 </head>
 <body>
+  <div class="container">
+    <h1>Future Hause</h1>
+    <p class="subtitle">System Status Indicator</p>
 
-  <!-- 🔁 CHANGE THE STATE CLASS HERE TO TEST -->
-  <div class="future-hause-icon state-pulse-slow">
-    <!-- Inline SVG -->
-    <!-- Paste icon.svg contents here -->
+    <div class="icon-stage">
+      <div class="future-hause-icon state-pulse-slow" id="assistant-icon">
+        <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background Circle -->
+          <circle class="background-circle" cx="400" cy="400" r="350" fill="#2d3561"/>
+          
+          <!-- Outer Ring -->
+          <g class="outer-ring">
+            <circle cx="400" cy="400" r="300" fill="none" stroke="#5a6698" stroke-width="2" opacity="0.3"/>
+          </g>
+          
+          <!-- Main Geometric Face Structure -->
+          <g class="face-geometry">
+            <!-- Top facets -->
+            <polygon points="400,180 330,220 280,240 250,280 240,330 250,360 280,380 330,390 400,400" 
+                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+            <polygon points="400,180 470,220 520,240 550,280 560,330 550,360 520,380 470,390 400,400" 
+                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+            
+            <!-- Side facets -->
+            <polygon points="240,330 220,400 230,470 260,520" 
+                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+            <polygon points="560,330 580,400 570,470 540,520" 
+                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+            
+            <!-- Bottom structure -->
+            <polygon points="260,520 290,560 340,590 400,600 460,590 510,560 540,520" 
+                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
+            
+            <!-- Central connecting lines -->
+            <line x1="280" y1="380" x2="400" y2="400" stroke="white" stroke-width="2" opacity="0.8"/>
+            <line x1="520" y1="380" x2="400" y2="400" stroke="white" stroke-width="2" opacity="0.8"/>
+            <line x1="400" y1="400" x2="400" y2="500" stroke="white" stroke-width="2" opacity="0.8"/>
+          </g>
+          
+          <!-- Left Eye -->
+          <g class="left-eye">
+            <ellipse cx="320" cy="340" rx="50" ry="30" fill="url(#cyanGradient)"/>
+            <rect x="295" y="325" width="50" height="30" fill="url(#cyanGradient)" opacity="0.8"/>
+          </g>
+          
+          <!-- Right Eye -->
+          <g class="right-eye">
+            <ellipse cx="480" cy="340" rx="50" ry="30" fill="url(#purpleGradient)"/>
+            <rect x="455" y="325" width="50" height="30" fill="url(#purpleGradient)" opacity="0.8"/>
+          </g>
+          
+          <!-- Nose -->
+          <polygon class="nose" points="400,400 385,420 415,420" fill="white" opacity="0.7"/>
+          
+          <!-- Mouth -->
+          <rect class="mouth" x="370" y="480" width="60" height="25" fill="none" stroke="white" stroke-width="3" opacity="0.8"/>
+          
+          <!-- Decorative sparkles -->
+          <g class="sparkles" opacity="0.6">
+            <circle cx="250" cy="250" r="4" fill="white"/>
+            <circle cx="320" cy="200" r="3" fill="white"/>
+            <circle cx="400" cy="180" r="3" fill="white"/>
+            <circle cx="480" cy="200" r="3" fill="white"/>
+            <circle cx="550" cy="250" r="4" fill="white"/>
+            <circle cx="580" cy="340" r="3" fill="white"/>
+            <circle cx="560" cy="430" r="3" fill="white"/>
+            <circle cx="480" cy="520" r="3" fill="white"/>
+            <circle cx="320" cy="520" r="3" fill="white"/>
+            <circle cx="240" cy="430" r="3" fill="white"/>
+            <circle cx="220" cy="340" r="3" fill="white"/>
+          </g>
+          
+          <!-- Gradients -->
+          <defs>
+            <linearGradient id="cyanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#00f5ff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#4dd9e8;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#b19cff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#8b7dcc;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="control-btn active" data-state="pulse-slow">
+        <div>pulse-slow</div>
+        <div class="label">idle_waiting</div>
+      </button>
+      <button class="control-btn" data-state="spin">
+        <div>spin</div>
+        <div class="label">active_processing</div>
+      </button>
+      <button class="control-btn" data-state="glow">
+        <div>glow</div>
+        <div class="label">success_complete</div>
+      </button>
+      <button class="control-btn" data-state="shake">
+        <div>shake</div>
+        <div class="label">error_attention</div>
+      </button>
+      <button class="control-btn" data-state="slide-in">
+        <div>slide-in</div>
+        <div class="label">new_information</div>
+      </button>
+      <button class="control-btn" data-state="dim">
+        <div>dim</div>
+        <div class="label">inactivity</div>
+      </button>
+    </div>
+
+    <div class="info-panel">
+      <h3>Current State: <span class="current-state" id="current-state">pulse-slow</span></h3>
+      <p id="state-description">
+        Idle waiting — The system is ready and monitoring for activity. Subtle breathing animation indicates readiness.
+      </p>
+    </div>
   </div>
 
+  <script>
+    const descriptions = {
+      'pulse-slow': 'Idle waiting — The system is ready and monitoring for activity. Subtle breathing animation indicates readiness.',
+      'spin': 'Active processing — The system is currently working on a task. Continuous rotation shows ongoing activity.',
+      'glow': 'Success complete — A task has finished successfully. The icon brightens with satisfaction.',
+      'shake': 'Error attention — Something requires attention. Quick vibration alerts the user to an issue.',
+      'slide-in': 'New information — Fresh data or updates have arrived. The icon slides into view with new content.',
+      'dim': 'Inactivity — The system has been idle for an extended period. Reduced opacity indicates low activity.'
+    };
+
+    const iconContainer = document.getElementById('assistant-icon');
+    const buttons = document.querySelectorAll('.control-btn');
+    const currentStateEl = document.getElementById('current-state');
+    const stateDescEl = document.getElementById('state-description');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const state = button.dataset.state;
+        
+        // Update active button
+        buttons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update icon animation
+        iconContainer.className = `future-hause-icon state-${state}`;
+        
+        // Update info panel
+        currentStateEl.textContent = state;
+        stateDescEl.textContent = descriptions[state];
+      });
+    });
+  </script>
 </body>
 </html>
