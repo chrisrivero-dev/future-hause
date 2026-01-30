@@ -1,6 +1,11 @@
-/* ============================================================
-   Base Icon Container
-   ============================================================ */
+/* ============================================================================
+   FUTURE HAUSE — STATE-DRIVEN ANIMATIONS (CSS ONLY)
+   Phase 4: State-Aware Visual Accents
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   BASE ICON SETUP
+   ---------------------------------------------------------------------------- */
 
 .future-hause-icon {
   width: 200px;
@@ -8,32 +13,31 @@
   position: relative;
   transform-origin: center;
   will-change: transform, opacity;
+  display: block;
 }
 
-/* ============================================================
-   SVG TRANSFORM CONTEXT (CRITICAL FIX)
-   ============================================================ */
-
+/* Ensure SVG layers can be animated */
 .outer-ring,
 .face-geometry,
 .left-eye,
 .right-eye {
-  transform-box: fill-box;
   transform-origin: center;
+  transform-box: fill-box;
 }
 
-/* ============================================================
-   STATE: pulse-slow (idle)
-   ============================================================ */
+/* ----------------------------------------------------------------------------
+   STATE 1: pulse-slow (idle_waiting)
+   Visual Accent: Gentle breathing, subtle sparkle pulse
+   ---------------------------------------------------------------------------- */
 
 @keyframes pulse-ring {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.9;
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.9; 
   }
-  50% {
-    transform: scale(1.03);
-    opacity: 1;
+  50% { 
+    transform: scale(1.03); 
+    opacity: 1; 
   }
 }
 
@@ -50,9 +54,25 @@
   animation: fade-subtle 3s ease-in-out infinite;
 }
 
-/* ============================================================
-   STATE: spin (collecting)
-   ============================================================ */
+/* State accent: Sparkles gently twinkle during idle */
+.state-pulse-slow .sparkles {
+  animation: sparkle-twinkle 4s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* State accent: Outer ring has soft white glow */
+.state-pulse-slow .outer-ring circle:first-child {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 2: spin (active_processing)
+   Visual Accent: Cyan-biased glow, brighter ring, active sparkles
+   ---------------------------------------------------------------------------- */
 
 @keyframes spin-ring {
   from { transform: rotate(0deg); }
@@ -63,14 +83,49 @@
   animation: spin-ring 4s linear infinite;
 }
 
-/* ============================================================
-   STATE: glow (done)
-   ============================================================ */
+/* State accent: Processing state gets cyan-tinted glow */
+.state-spin .outer-ring circle:first-child {
+  stroke: #00f5ff;
+  stroke-opacity: 0.6;
+  filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.5));
+}
+
+/* State accent: Eyes pulse during processing */
+.state-spin .left-eye,
+.state-spin .right-eye {
+  animation: eye-pulse-active 2s ease-in-out infinite;
+}
+
+@keyframes eye-pulse-active {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* State accent: Sparkles more visible and active */
+.state-spin .sparkles {
+  opacity: 1;
+  animation: sparkle-active 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle-active {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* State accent: Face geometry stays fully visible during processing */
+.state-spin .face-geometry {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 3: glow (success_complete)
+   Visual Accent: Intense multi-color glow, maximum brightness
+   ---------------------------------------------------------------------------- */
 
 @keyframes glow-eyes {
-  to {
+  to { 
     opacity: 1;
-    filter: drop-shadow(0 0 8px currentColor);
+    filter: drop-shadow(0 0 12px currentColor);
   }
 }
 
@@ -79,14 +134,49 @@
   animation: glow-eyes 1.5s ease-out forwards;
 }
 
+/* State accent: Outer ring gets intense white glow on success */
 .state-glow .outer-ring {
-  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.6));
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.8));
   transition: filter 1.5s ease-out;
 }
 
-/* ============================================================
-   STATE: shake (error) — FIXED TARGET
-   ============================================================ */
+.state-glow .outer-ring circle:first-child {
+  stroke-width: 8;
+  stroke-opacity: 0.5;
+}
+
+/* State accent: Eye glow halos intensify */
+.state-glow .left-eye ellipse:first-child {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 10px #00f5ff);
+}
+
+.state-glow .right-eye ellipse:first-child {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 10px #b19cff);
+}
+
+/* State accent: Sparkles reach maximum brightness */
+.state-glow .sparkles {
+  opacity: 1;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+}
+
+/* State accent: Face geometry brightens */
+.state-glow .face-geometry {
+  opacity: 1;
+  stroke: #ffffff;
+}
+
+/* State accent: Background gets subtle radial glow */
+.state-glow .background-circle circle:first-child {
+  filter: brightness(1.2);
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 4: shake (error_attention)
+   Visual Accent: Red-tinted warning glow, urgent sparkles
+   ---------------------------------------------------------------------------- */
 
 @keyframes shake-horizontal {
   0%, 100% { transform: translateX(0); }
@@ -94,69 +184,232 @@
   20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
 
-.state-shake {
+.state-shake .future-hause-icon {
   animation: shake-horizontal 0.4s ease-in-out;
 }
 
-/* ============================================================
-   STATE: slide-in (new signal) — FIXED TARGET
-   ============================================================ */
+/* State accent: Error state gets red-tinted outer ring */
+.state-shake .outer-ring circle:first-child {
+  stroke: #ff4444;
+  stroke-opacity: 0.7;
+  filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.6));
+}
+
+/* State accent: Eyes flash briefly with concern */
+.state-shake .left-eye,
+.state-shake .right-eye {
+  filter: brightness(1.3);
+}
+
+/* State accent: Sparkles flash urgently */
+.state-shake .sparkles {
+  opacity: 1;
+  filter: drop-shadow(0 0 2px rgba(255, 68, 68, 0.5));
+}
+
+/* State accent: Face geometry gets slight red tint */
+.state-shake .face-geometry {
+  stroke: #ffdddd;
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 5: slide-in (new_information)
+   Visual Accent: Purple-biased glow, welcoming brightness
+   ---------------------------------------------------------------------------- */
 
 @keyframes slide-from-top {
-  from {
-    transform: translateY(-20px);
+  from { 
+    transform: translateY(-20px); 
     opacity: 0.5;
   }
-  to {
-    transform: translateY(0);
+  to { 
+    transform: translateY(0); 
     opacity: 1;
   }
 }
 
-.state-slide-in {
+.state-slide-in .future-hause-icon {
   animation: slide-from-top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* ============================================================
-   STATE: dim (no change) — FIXED TARGET
-   ============================================================ */
+/* State accent: New info state gets purple-tinted glow */
+.state-slide-in .outer-ring circle:first-child {
+  stroke: #b19cff;
+  stroke-opacity: 0.6;
+  filter: drop-shadow(0 0 8px rgba(177, 156, 255, 0.5));
+}
 
-.state-dim {
+/* State accent: Right eye (purple) emphasizes during new info */
+.state-slide-in .right-eye {
+  filter: brightness(1.2) drop-shadow(0 0 6px #b19cff);
+}
+
+/* State accent: Sparkles welcome new information */
+.state-slide-in .sparkles {
+  opacity: 0.95;
+  animation: sparkle-welcome 1s ease-out;
+}
+
+@keyframes sparkle-welcome {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 0.95; transform: scale(1); }
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 6: dim (inactivity)
+   Visual Accent: Reduced brightness, minimal glow, subdued colors
+   ---------------------------------------------------------------------------- */
+
+.state-dim .future-hause-icon {
   opacity: 0.4;
   transition: opacity 0.8s ease-out;
 }
 
-/* ============================================================
-   OPTIONAL: reset (safe transition)
-   ============================================================ */
-
-.state-reset * {
-  animation: none !important;
-  filter: none !important;
-  opacity: 1;
+/* State accent: All glow effects reduced during inactivity */
+.state-dim .outer-ring circle:first-child {
+  opacity: 0.1;
+  filter: none;
 }
-/* Enhanced glow state - amplify filter effects */
-.state-glow .outer-ring circle:first-child {
-  stroke-width: 8;
+
+/* State accent: Eyes dim significantly */
+.state-dim .left-eye,
+.state-dim .right-eye {
+  opacity: 0.4;
+  filter: none;
+}
+
+/* State accent: Sparkles barely visible */
+.state-dim .sparkles {
+  opacity: 0.2;
+}
+
+/* State accent: Face geometry fades */
+.state-dim .face-geometry {
   opacity: 0.4;
 }
 
-.state-glow .left-eye ellipse:first-child,
-.state-glow .right-eye ellipse:first-child {
-  opacity: 0.7;
+/* State accent: Background slightly darker */
+.state-dim .background-circle {
+  filter: brightness(0.8);
 }
 
-/* Sparkle subtle pulse during idle */
-.state-pulse-slow .sparkles {
-  animation: sparkle-twinkle 4s ease-in-out infinite;
+/* ----------------------------------------------------------------------------
+   ACCESSIBILITY: REDUCED MOTION SUPPORT
+   ---------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations for accessibility */
+  .state-pulse-slow .outer-ring,
+  .state-pulse-slow .face-geometry,
+  .state-pulse-slow .sparkles,
+  .state-spin .outer-ring,
+  .state-spin .left-eye,
+  .state-spin .right-eye,
+  .state-spin .sparkles,
+  .state-glow .left-eye,
+  .state-glow .right-eye,
+  .state-shake .future-hause-icon,
+  .state-slide-in .future-hause-icon,
+  .state-slide-in .sparkles {
+    animation: none !important;
+  }
+  
+  /* Preserve state-specific visual accents (color/glow) without motion */
+  .state-pulse-slow .outer-ring { opacity: 1; transform: scale(1); }
+  .state-spin .outer-ring { transform: rotate(0deg); }
+  .state-shake .future-hause-icon { transform: translateX(0); }
+  .state-slide-in .future-hause-icon { transform: translateY(0); opacity: 1; }
+  
+  /* Keep dim state functional even without motion */
+  .state-dim .future-hause-icon {
+    opacity: 0.4;
+  }
 }
 
-@keyframes sparkle-twinkle {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+/* ----------------------------------------------------------------------------
+   ACCESSIBILITY: HIGH CONTRAST MODE SUPPORT
+   ---------------------------------------------------------------------------- */
+
+@media (prefers-contrast: high) {
+  /* Increase stroke widths for better visibility */
+  .outer-ring circle {
+    stroke-width: 4;
+  }
+  
+  .face-geometry {
+    stroke-width: 3;
+  }
+  
+  /* Ensure sparkles are visible */
+  .sparkles {
+    opacity: 1;
+  }
+  
+  /* Boost glow visibility */
+  .state-glow .outer-ring,
+  .state-spin .outer-ring circle:first-child {
+    filter: drop-shadow(0 0 20px currentColor);
+  }
 }
 
-/* Dim state - reduce filter intensity */
-.state-dim .outer-ring circle:first-child {
-  opacity: 0.1;
+/* ----------------------------------------------------------------------------
+   PERFORMANCE OPTIMIZATIONS
+   ---------------------------------------------------------------------------- */
+
+/* Hardware acceleration hints for smooth animations */
+.future-hause-icon,
+.outer-ring,
+.face-geometry,
+.left-eye,
+.right-eye,
+.sparkles {
+  will-change: auto; /* Let browser decide */
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Only hint will-change during active states */
+.state-spin .outer-ring,
+.state-shake .future-hause-icon,
+.state-slide-in .future-hause-icon {
+  will-change: transform;
+}
+
+.state-glow .left-eye,
+.state-glow .right-eye,
+.state-glow .outer-ring {
+  will-change: filter, opacity;
+}
+
+.state-dim .future-hause-icon {
+  will-change: opacity;
+}
+
+/* ----------------------------------------------------------------------------
+   THEME VARIANTS (OPTIONAL — FOR FUTURE USE)
+   ---------------------------------------------------------------------------- */
+
+/* Light theme adjustments (if needed) */
+@media (prefers-color-scheme: light) {
+  .background-circle circle:first-child {
+    filter: brightness(1.5);
+  }
+  
+  .outer-ring circle {
+    stroke-opacity: 0.7;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   STATE COLOR REFERENCE (FOR DOCUMENTATION)
+   ---------------------------------------------------------------------------- 
+   
+   pulse-slow (idle):        White glow, neutral
+   spin (processing):        Cyan-biased (#00f5ff)
+   glow (success):           White + multi-color eyes (cyan + purple)
+   shake (error):            Red-tinted (#ff4444)
+   slide-in (new info):      Purple-biased (#b19cff)
+   dim (inactive):           Desaturated, low opacity
+   
+   ---------------------------------------------------------------------------- */
