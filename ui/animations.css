@@ -11,6 +11,18 @@
 }
 
 /* ============================================================
+   SVG TRANSFORM CONTEXT (CRITICAL FIX)
+   ============================================================ */
+
+.outer-ring,
+.face-geometry,
+.left-eye,
+.right-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ============================================================
    STATE: pulse-slow (idle)
    ============================================================ */
 
@@ -32,7 +44,6 @@
 
 .state-pulse-slow .outer-ring {
   animation: pulse-ring 3s ease-in-out infinite;
-  transform-origin: center;
 }
 
 .state-pulse-slow .face-geometry {
@@ -50,7 +61,6 @@
 
 .state-spin .outer-ring {
   animation: spin-ring 4s linear infinite;
-  transform-origin: center;
 }
 
 /* ============================================================
@@ -75,7 +85,7 @@
 }
 
 /* ============================================================
-   STATE: shake (error)
+   STATE: shake (error) — FIXED TARGET
    ============================================================ */
 
 @keyframes shake-horizontal {
@@ -84,12 +94,12 @@
   20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
 
-.state-shake .future-hause-icon {
+.state-shake {
   animation: shake-horizontal 0.4s ease-in-out;
 }
 
 /* ============================================================
-   STATE: slide-in (new signal)
+   STATE: slide-in (new signal) — FIXED TARGET
    ============================================================ */
 
 @keyframes slide-from-top {
@@ -103,15 +113,25 @@
   }
 }
 
-.state-slide-in .future-hause-icon {
+.state-slide-in {
   animation: slide-from-top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ============================================================
-   STATE: dim (no change)
+   STATE: dim (no change) — FIXED TARGET
    ============================================================ */
 
-.state-dim .future-hause-icon {
+.state-dim {
   opacity: 0.4;
   transition: opacity 0.8s ease-out;
+}
+
+/* ============================================================
+   OPTIONAL: reset (safe transition)
+   ============================================================ */
+
+.state-reset * {
+  animation: none !important;
+  filter: none !important;
+  opacity: 1;
 }
