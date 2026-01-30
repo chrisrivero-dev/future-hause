@@ -8,6 +8,17 @@
   role="img"
   aria-label="Future Hause Assistant Icon"
 >
+  <!-- Gradients (must be defined before use) -->
+  <defs>
+    <linearGradient id="leftEyeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7efcff"/>
+      <stop offset="100%" stop-color="#b3f0ff"/>
+    </linearGradient>
+    <linearGradient id="rightEyeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c77dff"/>
+      <stop offset="100%" stop-color="#e0b3ff"/>
+    </linearGradient>
+  </defs>
 
   <!-- 1. Background circle (static) -->
   <g class="background-circle">
@@ -86,18 +97,4 @@
     <circle cx="160" cy="50" r="1.5" />
     <circle cx="150" cy="160" r="2" />
   </g>
-
-  <!-- Gradients -->
-  <defs>
-    <linearGradient id="leftEyeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#7efcff"/>
-      <stop offset="100%" stop-color="#b3f0ff"/>
-    </linearGradient>
-
-    <linearGradient id="rightEyeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#c77dff"/>
-      <stop offset="100%" stop-color="#e0b3ff"/>
-    </linearGradient>
-  </defs>
-
 </svg>
