@@ -2,36 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Future Hause Dashboard</title>
+  <title>Future Hause Dashboard (Visual Test)</title>
+
+  <!-- Base styles (optional) -->
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Animation spec (JUST COMMITTED) -->
+  <link rel="stylesheet" href="animations.css" />
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #1b1f3b, #0b0e1a);
+      font-family: system-ui, sans-serif;
+    }
+  </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <h2>Future Hause</h2>
-      <p>Status: Idle</p>
-    </aside>
 
-    <main class="board">
-      <section class="column todo">
-        <h3>To Do</h3>
-        <div class="card">Fix PDF page breaks</div>
-      </section>
-
-      <section class="column progress">
-        <h3>In Progress</h3>
-        <div class="card">Reddit monitoring</div>
-      </section>
-
-      <section class="column done">
-        <h3>Done</h3>
-        <div class="card">Initial config</div>
-      </section>
-
-      <section class="column archived">
-        <h3>Archived</h3>
-      </section>
-    </main>
+  <!-- 🔁 CHANGE THE STATE CLASS HERE TO TEST -->
+  <div class="future-hause-icon state-pulse-slow">
+    <!-- Inline SVG -->
+    <!-- Paste icon.svg contents here -->
   </div>
+
 </body>
 </html>
