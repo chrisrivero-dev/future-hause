@@ -3,164 +3,251 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Future Hause - Animated Icon Demo</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Future Hause — System Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="animations.css">
 </head>
-<body>
-  <div class="container">
-    <h1>Future Hause</h1>
-    <p class="subtitle">System Status Indicator</p>
-
-    <div class="icon-stage">
-      <div class="future-hause-icon state-pulse-slow" id="assistant-icon">
-        <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg">
-          <!-- Background Circle -->
-          <circle class="background-circle" cx="400" cy="400" r="350" fill="#2d3561"/>
-          
-          <!-- Outer Ring -->
-          <g class="outer-ring">
-            <circle cx="400" cy="400" r="300" fill="none" stroke="#5a6698" stroke-width="2" opacity="0.3"/>
-          </g>
-          
-          <!-- Main Geometric Face Structure -->
-          <g class="face-geometry">
-            <!-- Top facets -->
-            <polygon points="400,180 330,220 280,240 250,280 240,330 250,360 280,380 330,390 400,400" 
-                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
-            <polygon points="400,180 470,220 520,240 550,280 560,330 550,360 520,380 470,390 400,400" 
-                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
-            
-            <!-- Side facets -->
-            <polygon points="240,330 220,400 230,470 260,520" 
-                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
-            <polygon points="560,330 580,400 570,470 540,520" 
-                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
-            
-            <!-- Bottom structure -->
-            <polygon points="260,520 290,560 340,590 400,600 460,590 510,560 540,520" 
-                     fill="none" stroke="white" stroke-width="3" opacity="0.9"/>
-            
-            <!-- Central connecting lines -->
-            <line x1="280" y1="380" x2="400" y2="400" stroke="white" stroke-width="2" opacity="0.8"/>
-            <line x1="520" y1="380" x2="400" y2="400" stroke="white" stroke-width="2" opacity="0.8"/>
-            <line x1="400" y1="400" x2="400" y2="500" stroke="white" stroke-width="2" opacity="0.8"/>
-          </g>
-          
-          <!-- Left Eye -->
-          <g class="left-eye">
-            <ellipse cx="320" cy="340" rx="50" ry="30" fill="url(#cyanGradient)"/>
-            <rect x="295" y="325" width="50" height="30" fill="url(#cyanGradient)" opacity="0.8"/>
-          </g>
-          
-          <!-- Right Eye -->
-          <g class="right-eye">
-            <ellipse cx="480" cy="340" rx="50" ry="30" fill="url(#purpleGradient)"/>
-            <rect x="455" y="325" width="50" height="30" fill="url(#purpleGradient)" opacity="0.8"/>
-          </g>
-          
-          <!-- Nose -->
-          <polygon class="nose" points="400,400 385,420 415,420" fill="white" opacity="0.7"/>
-          
-          <!-- Mouth -->
-          <rect class="mouth" x="370" y="480" width="60" height="25" fill="none" stroke="white" stroke-width="3" opacity="0.8"/>
-          
-          <!-- Decorative sparkles -->
-          <g class="sparkles" opacity="0.6">
-            <circle cx="250" cy="250" r="4" fill="white"/>
-            <circle cx="320" cy="200" r="3" fill="white"/>
-            <circle cx="400" cy="180" r="3" fill="white"/>
-            <circle cx="480" cy="200" r="3" fill="white"/>
-            <circle cx="550" cy="250" r="4" fill="white"/>
-            <circle cx="580" cy="340" r="3" fill="white"/>
-            <circle cx="560" cy="430" r="3" fill="white"/>
-            <circle cx="480" cy="520" r="3" fill="white"/>
-            <circle cx="320" cy="520" r="3" fill="white"/>
-            <circle cx="240" cy="430" r="3" fill="white"/>
-            <circle cx="220" cy="340" r="3" fill="white"/>
-          </g>
-          
-          <!-- Gradients -->
-          <defs>
-            <linearGradient id="cyanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#00f5ff;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#4dd9e8;stop-opacity:1" />
-            </linearGradient>
-            <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#b19cff;stop-opacity:1" />
-              <stop offset="100%" style="stop-color:#8b7dcc;stop-opacity:1" />
-            </linearGradient>
-          </defs>
-        </svg>
+<body class="state-pulse-slow">
+  
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <h1>Future Hause</h1>
+        <span class="version">v1.0</span>
       </div>
+      <nav class="header-nav">
+        <button class="nav-item" disabled>Settings</button>
+        <button class="nav-item" disabled>Help</button>
+      </nav>
     </div>
+  </header>
 
-    <div class="controls">
-      <button class="control-btn active" data-state="pulse-slow">
-        <div>pulse-slow</div>
-        <div class="label">idle_waiting</div>
-      </button>
-      <button class="control-btn" data-state="spin">
-        <div>spin</div>
-        <div class="label">active_processing</div>
-      </button>
-      <button class="control-btn" data-state="glow">
-        <div>glow</div>
-        <div class="label">success_complete</div>
-      </button>
-      <button class="control-btn" data-state="shake">
-        <div>shake</div>
-        <div class="label">error_attention</div>
-      </button>
-      <button class="control-btn" data-state="slide-in">
-        <div>slide-in</div>
-        <div class="label">new_information</div>
-      </button>
-      <button class="control-btn" data-state="dim">
-        <div>dim</div>
-        <div class="label">inactivity</div>
-      </button>
-    </div>
+  <!-- Main Dashboard Grid -->
+  <main class="dashboard-grid">
+    
+    <!-- Left Sidebar — Future Zone (Activity Feed) -->
+    <aside class="sidebar sidebar-left">
+      <div class="sidebar-header">
+        <h2>Activity Feed</h2>
+      </div>
+      <div class="sidebar-content">
+        <div class="empty-state">
+          <p class="empty-icon">📋</p>
+          <p class="empty-text">No recent activity</p>
+          <p class="empty-subtext">Events will appear here as they occur</p>
+        </div>
+        <!-- FUTURE: Real activity items go here -->
+        <!-- <div class="activity-item">...</div> -->
+      </div>
+    </aside>
 
-    <div class="info-panel">
-      <h3>Current State: <span class="current-state" id="current-state">pulse-slow</span></h3>
-      <p id="state-description">
-        Idle waiting — The system is ready and monitoring for activity. Subtle breathing animation indicates readiness.
-      </p>
+    <!-- Center Status Panel — Primary Focus -->
+    <section class="status-panel">
+      
+      <!-- Animated Icon Container -->
+      <div class="icon-container">
+        <div class="future-hause-icon state-pulse-slow" id="assistant-icon">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Gradients & Filters -->
+            <defs>
+              <linearGradient id="leftEyeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f5ff"/>
+                <stop offset="50%" stop-color="#7efcff"/>
+                <stop offset="100%" stop-color="#b3f0ff"/>
+              </linearGradient>
+              <linearGradient id="rightEyeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#b19cff"/>
+                <stop offset="50%" stop-color="#c77dff"/>
+                <stop offset="100%" stop-color="#e0b3ff"/>
+              </linearGradient>
+              <radialGradient id="bgGradient" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#1a1f3a"/>
+                <stop offset="100%" stop-color="#0d1025"/>
+              </radialGradient>
+              <filter id="outerGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feFlood flood-color="#ffffff" flood-opacity="0.6"/>
+                <feComposite in2="blur" operator="in"/>
+                <feMerge>
+                  <feMergeNode/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="eyeGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feFlood flood-color="currentColor" flood-opacity="0.7"/>
+                <feComposite in2="blur" operator="in"/>
+                <feMerge>
+                  <feMergeNode/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <g class="background-circle">
+              <circle cx="100" cy="100" r="95" fill="url(#bgGradient)"/>
+              <circle cx="100" cy="100" r="85" fill="none" stroke="#1a2547" stroke-width="1" opacity="0.3"/>
+              <circle cx="100" cy="100" r="75" fill="none" stroke="#1a2547" stroke-width="1" opacity="0.2"/>
+            </g>
+
+            <g class="outer-ring">
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.2" filter="url(#outerGlow)"/>
+              <circle cx="100" cy="100" r="80" fill="none" stroke="#ffffff" stroke-width="3" opacity="0.9"/>
+              <circle cx="100" cy="100" r="77" fill="none" stroke="#5a6698" stroke-width="1" opacity="0.5"/>
+            </g>
+
+            <g class="face-geometry" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.9">
+              <polygon points="100,50 85,60 75,75 70,90"/>
+              <polygon points="100,50 115,60 125,75 130,90"/>
+              <line x1="70" y1="90" x2="85" y2="95"/>
+              <line x1="130" y1="90" x2="115" y2="95"/>
+              <polygon points="60,80 100,50 140,80 120,110 80,110"/>
+              <line x1="100" y1="50" x2="100" y2="110"/>
+              <line x1="80" y1="110" x2="60" y2="130"/>
+              <line x1="120" y1="110" x2="140" y2="130"/>
+              <polygon points="80,130 100,140 120,130"/>
+              <line x1="60" y1="130" x2="70" y2="145"/>
+              <line x1="140" y1="130" x2="130" y2="145"/>
+              <line x1="70" y1="145" x2="80" y2="155"/>
+              <line x1="130" y1="145" x2="120" y2="155"/>
+              <polygon points="80,155 100,165 120,155"/>
+              <line x1="85" y1="95" x2="75" y2="105" stroke-width="1" opacity="0.5"/>
+              <line x1="115" y1="95" x2="125" y2="105" stroke-width="1" opacity="0.5"/>
+            </g>
+
+            <g class="left-eye">
+              <ellipse cx="80" cy="95" rx="12" ry="8" fill="url(#leftEyeGradient)" opacity="0.3" filter="url(#eyeGlow)"/>
+              <ellipse cx="80" cy="95" rx="10" ry="6" fill="url(#leftEyeGradient)"/>
+              <ellipse cx="78" cy="93" rx="3" ry="2" fill="#ffffff" opacity="0.6"/>
+            </g>
+
+            <g class="right-eye">
+              <ellipse cx="120" cy="95" rx="12" ry="8" fill="url(#rightEyeGradient)" opacity="0.3" filter="url(#eyeGlow)"/>
+              <ellipse cx="120" cy="95" rx="10" ry="6" fill="url(#rightEyeGradient)"/>
+              <ellipse cx="118" cy="93" rx="3" ry="2" fill="#ffffff" opacity="0.6"/>
+            </g>
+
+            <g class="nose">
+              <polygon points="100,105 95,115 105,115" fill="#ffffff" opacity="0.8"/>
+              <line x1="95" y1="115" x2="92" y2="110" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+              <line x1="105" y1="115" x2="108" y2="110" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+            </g>
+
+            <g class="mouth">
+              <rect x="85" y="125" width="30" height="6" rx="3" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8"/>
+              <line x1="90" y1="128" x2="110" y2="128" stroke="#ffffff" stroke-width="1" opacity="0.4"/>
+            </g>
+
+            <g class="sparkles" fill="#ffffff">
+              <circle cx="35" cy="35" r="2.5" opacity="0.9"/>
+              <circle cx="165" cy="45" r="2" opacity="0.8"/>
+              <circle cx="155" cy="165" r="2.5" opacity="0.85"/>
+              <circle cx="40" cy="160" r="2" opacity="0.75"/>
+              <circle cx="50" cy="60" r="1.5" opacity="0.7"/>
+              <circle cx="145" cy="70" r="1.5" opacity="0.65"/>
+              <circle cx="150" cy="135" r="1.5" opacity="0.7"/>
+              <circle cx="55" cy="140" r="1.5" opacity="0.6"/>
+              <circle cx="30" cy="100" r="1" opacity="0.5"/>
+              <circle cx="170" cy="105" r="1" opacity="0.5"/>
+              <circle cx="100" cy="30" r="1" opacity="0.6"/>
+              <circle cx="100" cy="175" r="1" opacity="0.5"/>
+              <g opacity="0.8">
+                <line x1="160" y1="40" x2="160" y2="50" stroke="#ffffff" stroke-width="1"/>
+                <line x1="155" y1="45" x2="165" y2="45" stroke="#ffffff" stroke-width="1"/>
+              </g>
+              <g opacity="0.7">
+                <line x1="45" y1="155" x2="45" y2="165" stroke="#ffffff" stroke-width="0.8"/>
+                <line x1="40" y1="160" x2="50" y2="160" stroke="#ffffff" stroke-width="0.8"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Status Language (Phase 7) -->
+      <div class="status-language">
+        <h2 class="status-headline" id="status-headline">System Ready</h2>
+        <p class="status-description" id="status-description">All systems operational. Waiting for instructions.</p>
+        <div class="status-action">
+          <button class="action-button" id="status-action" disabled>Start Task</button>
+        </div>
+      </div>
+
+      <!-- State-Aware Banners (Phase 6) -->
+      <div class="confirmation-banner" id="confirmation-banner">
+        <span class="banner-icon">✓</span>
+        <span class="banner-text">Operation completed successfully</span>
+      </div>
+
+      <div class="alert-banner" id="alert-banner">
+        <span class="banner-icon">⚠</span>
+        <span class="banner-text">Attention required — please review</span>
+      </div>
+
+      <div class="info-banner" id="info-banner">
+        <span class="banner-icon">ℹ</span>
+        <span class="banner-text">New information available</span>
+      </div>
+
+    </section>
+
+    <!-- Right Sidebar — Future Zone (Recent Actions) -->
+    <aside class="sidebar sidebar-right">
+      <div class="sidebar-header">
+        <h2>Recent Actions</h2>
+      </div>
+      <div class="sidebar-content">
+        <!-- Placeholder Items (Phase 8) -->
+        <div class="action-item placeholder">
+          <div class="action-time">--:--</div>
+          <div class="action-label">No actions yet</div>
+        </div>
+        <div class="action-item placeholder">
+          <div class="action-time">--:--</div>
+          <div class="action-label">Ready to begin</div>
+        </div>
+        <!-- FUTURE: Real action items go here -->
+        <!-- <div class="action-item">
+          <div class="action-time">14:32</div>
+          <div class="action-label">Task started</div>
+        </div> -->
+      </div>
+      
+      <!-- System Notes (Phase 8) -->
+      <div class="sidebar-section">
+        <h3>System Notes</h3>
+        <div class="note-card">
+          <p class="note-text">This dashboard monitors Future Hause operations in real-time.</p>
+        </div>
+        <div class="note-card">
+          <p class="note-text">State changes reflect system activity automatically.</p>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <span class="footer-text">Future Hause System v1.0</span>
+      <span class="footer-separator">•</span>
+      <span class="footer-text">Status: <span id="footer-status">Operational</span></span>
     </div>
+  </footer>
+
+  <!-- Demo Controls (Optional — for testing states) -->
+  <div class="demo-controls">
+    <div class="demo-header">Demo Controls</div>
+    <button class="demo-btn" data-state="pulse-slow">Idle</button>
+    <button class="demo-btn" data-state="spin">Processing</button>
+    <button class="demo-btn" data-state="glow">Success</button>
+    <button class="demo-btn" data-state="shake">Error</button>
+    <button class="demo-btn" data-state="slide-in">New Info</button>
+    <button class="demo-btn" data-state="dim">Inactive</button>
   </div>
 
-  <script>
-    const descriptions = {
-      'pulse-slow': 'Idle waiting — The system is ready and monitoring for activity. Subtle breathing animation indicates readiness.',
-      'spin': 'Active processing — The system is currently working on a task. Continuous rotation shows ongoing activity.',
-      'glow': 'Success complete — A task has finished successfully. The icon brightens with satisfaction.',
-      'shake': 'Error attention — Something requires attention. Quick vibration alerts the user to an issue.',
-      'slide-in': 'New information — Fresh data or updates have arrived. The icon slides into view with new content.',
-      'dim': 'Inactivity — The system has been idle for an extended period. Reduced opacity indicates low activity.'
-    };
-
-    const iconContainer = document.getElementById('assistant-icon');
-    const buttons = document.querySelectorAll('.control-btn');
-    const currentStateEl = document.getElementById('current-state');
-    const stateDescEl = document.getElementById('state-description');
-
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        const state = button.dataset.state;
-        
-        // Update active button
-        buttons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        
-        // Update icon animation
-        iconContainer.className = `future-hause-icon state-${state}`;
-        
-        // Update info panel
-        currentStateEl.textContent = state;
-        stateDescEl.textContent = descriptions[state];
-      });
-    });
-  </script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
