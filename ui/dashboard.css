@@ -261,7 +261,17 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   PRIMARY INTELLIGENCE SECTION — 4 COLUMNS
+   PRIMARY INTELLIGENCE SECTION — 4 COLUMNS (CSS GRID)
+
+   GRID STRUCTURE:
+   - Grid Parent: .intel-grid
+   - Grid Children: 4x .intel-column (direct siblings, no nesting)
+   - No central canvas or hero wrapper
+
+   RESPONSIVE BREAKPOINTS:
+   - Desktop (>1200px): 4 equal columns
+   - Tablet (768-1200px): 2 columns per row
+   - Mobile (<768px): Single stacked column
    ---------------------------------------------------------------------------- */
 
 .section-header {
@@ -279,18 +289,37 @@ body {
   color: var(--text-muted);
 }
 
+/* ==========================================================================
+   GRID PARENT: .intel-grid
+   - Direct container for 4 equal-width column children
+   - No intermediate wrapper or canvas element
+   ========================================================================== */
 .intel-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 1fr);  /* 4 equal-width columns */
+  grid-auto-rows: minmax(200px, 500px);   /* Consistent row height range */
   gap: var(--spacing-lg);
+  align-items: stretch;                    /* Equal height columns */
   margin-bottom: var(--spacing-2xl);
 }
 
-/* Intelligence Column */
+/* ==========================================================================
+   GRID CHILDREN: .intel-column
+   - First-class grid items (direct children of .intel-grid)
+   - Each column scrolls independently via .intel-column-content
+   - No column dominates height or width (all equal via 1fr)
+   ========================================================================== */
 .intel-column {
+  /* Grid item properties */
+  min-height: 0;                           /* Required for overflow scroll in grid */
+  min-width: 0;                            /* Prevent grid blowout from long content */
+
+  /* Visual styling (unchanged) */
   background: var(--bg-card);
   border: 1px solid var(--border-color-subtle);
   border-radius: 12px;
+
+  /* Internal flex layout for header + scrollable content */
   display: flex;
   flex-direction: column;
   max-height: 500px;
@@ -616,13 +645,17 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN — GRID BREAKPOINTS
    ---------------------------------------------------------------------------- */
 
-/* Tablet: 2 columns per row */
+/* ==========================================================================
+   TABLET: 2 columns per row (max-width: 1200px)
+   Grid changes from 4-column to 2-column layout
+   ========================================================================== */
 @media (max-width: 1200px) {
   .intel-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);  /* 2 equal-width columns */
+    grid-auto-rows: minmax(200px, 400px);
   }
 
   .intel-column {
@@ -630,14 +663,18 @@ body {
   }
 }
 
-/* Mobile: Fully stacked */
+/* ==========================================================================
+   MOBILE: Single stacked column (max-width: 768px)
+   Grid changes to single-column vertical stack
+   ========================================================================== */
 @media (max-width: 768px) {
   .dashboard-main {
     padding: var(--spacing-md);
   }
 
   .intel-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr;              /* Single column stack */
+    grid-auto-rows: minmax(150px, 350px);
   }
 
   .intel-column {
