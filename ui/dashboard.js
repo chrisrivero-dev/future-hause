@@ -509,9 +509,41 @@ function handleCardToggle(event) {
 }
 
 /* ----------------------------------------------------------------------------
+   ICON STATE MANAGEMENT
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Update dashboard icon state
+ * @param {string} iconState - One of: idle, processing, success, error
+ */
+function setIconState(iconState) {
+  const iconWrapper = document.getElementById('dashboard-icon');
+  if (iconWrapper) {
+    iconWrapper.setAttribute('data-state', iconState);
+  }
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadAllData();
+  // Set processing state while loading
+  setIconState('processing');
+
+  loadAllData().then(() => {
+    // Determine final state based on load results
+    const hasErrors = Object.values(state.loadStatus).some(s => s === 'error');
+    const allSuccess = Object.values(state.loadStatus).every(s => s === 'success');
+
+    if (hasErrors) {
+      setIconState('error');
+    } else if (allSuccess) {
+      setIconState('success');
+      // Return to idle after brief success indication
+      setTimeout(() => setIconState('idle'), 2000);
+    } else {
+      setIconState('idle');
+    }
+  });
 });
