@@ -4,6 +4,47 @@
    Read-only: No mutations, no writes, display only
    ============================================================================ */
 
+/* ============================================================================
+   SECTION SEMANTICS (CANONICAL DEFINITIONS)
+   ============================================================================
+
+   New Intel (intel_events.json)
+   → Raw, unclassified signals detected by the system
+   → No human action has been taken
+   → Source of truth for what the system observed
+
+   KB Opportunities (kb_opportunities.json)
+   → Evidence-backed documentation gaps
+   → Derived from intel analysis (future: v0.3+)
+   → Suggests where knowledge base could improve
+
+   Projects (projects.json)
+   → Human-approved initiatives derived from intelligence
+   → NOT auto-generated; requires explicit human promotion
+   → Tracks deliverables and milestones
+
+   Recent Recommendations (future)
+   → Advisory suggestions not yet acted on
+   → System-generated, human-reviewed
+   → May be promoted to Projects or dismissed
+
+   Action Log (action_log.json)
+   → Immutable audit trail explaining state changes
+   → Every promote, dismiss, accept action MUST be logged here
+   → Provides transparency and accountability
+
+   System Metadata
+   → Health + trust indicators for the system
+   → Schema versions, timestamps, load status
+   → No business logic, pure observability
+
+   STATE MUTATION RULES:
+   - Dashboard is READ-ONLY; no implicit state changes
+   - No auto-promotion between sections
+   - All state transitions require explicit engine action
+   - All actions must be logged to action_log.json
+   ============================================================================ */
+
 // Configuration
 const CONFIG = {
   outputsPath: '/outputs',
