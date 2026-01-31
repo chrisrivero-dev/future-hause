@@ -158,14 +158,9 @@ body {
    States: idle, processing, success, error
    ========================================================================== */
 
-/* Idle State (default): Subtle pulse opacity */
+/* Idle State (default): Static — no animation */
 .dashboard-icon-wrapper[data-state="idle"] {
-  animation: icon-idle-pulse 3s ease-in-out infinite;
-}
-
-@keyframes icon-idle-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.75; }
+  animation: none;
 }
 
 /* Processing State: Spin wrapper */
