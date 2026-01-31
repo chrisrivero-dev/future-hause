@@ -14,6 +14,28 @@ This document provides essential context for AI assistants working with the Futu
 
 ---
 
+## Output Contract (v0.1 — Frozen)
+
+Future Hause produces structured, read-only intelligence artifacts under the `/outputs/` directory.
+These artifacts are the sole source of truth for downstream analysis and UI rendering.
+
+The following output files are considered core for v0.1:
+
+- `intel_events.json` — Observed external signals and detected changes
+- `kb_opportunities.json` — Suggested knowledge base gaps or updates
+- `projects.json` — System-derived project state and deliverables (fully automatic)
+- `action_log.json` — Traceable recommendations and rationale
+
+Design rules:
+- Outputs are append-only and human-reviewable
+- Field names are explicit by design
+- Confidence scoring is intentionally excluded
+- Outputs may expand beyond these four files in future versions without breaking compatibility
+
+AI assistants must not alter schemas or introduce new output structures without explicit human approval.
+
+---
+
 ## Philosophy (CRITICAL)
 
 These principles MUST be respected in all contributions:
