@@ -367,7 +367,20 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   INTEL CARDS — Expand/Collapse
+   INTEL CARDS — Expand/Collapse Contract (v0.1)
+
+   CARD STATES:
+   - Collapsed (default): Title, timestamp, source/type, status visible
+   - Expanded: All fields visible including ID, description, metadata
+
+   BEHAVIORAL RULES:
+   - Only ONE card per column may be expanded at a time
+   - Expanding a card auto-collapses others in same column
+
+   ANIMATION:
+   - CSS-only transitions
+   - Properties: max-height, opacity, transform
+   - Duration: 200ms, ease-out
    ---------------------------------------------------------------------------- */
 
 .intel-card {
@@ -376,13 +389,14 @@ body {
   border-radius: 8px;
   margin-bottom: var(--spacing-sm);
   overflow: hidden;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease-out;
 }
 
 .intel-card:hover {
   border-color: var(--border-color);
 }
 
+/* Card Header — Interactive toggle button */
 .intel-card-header {
   padding: var(--spacing-sm) var(--spacing-md);
   cursor: pointer;
@@ -390,10 +404,17 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-sm);
+  /* Accessibility: focusable and interactive */
+  outline: none;
 }
 
 .intel-card-header:hover {
   background: rgba(255, 255, 255, 0.02);
+}
+
+.intel-card-header:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: -2px;
 }
 
 .intel-card-summary {
@@ -417,26 +438,42 @@ body {
   font-family: var(--font-mono);
 }
 
+/* Toggle indicator */
 .intel-card-toggle {
   color: var(--text-muted);
   font-size: 0.7rem;
-  transition: transform 0.2s ease;
   flex-shrink: 0;
+  transition: transform 200ms ease-out;
 }
 
 .intel-card.expanded .intel-card-toggle {
   transform: rotate(180deg);
 }
 
+/* ==========================================================================
+   EXPANDABLE DETAILS REGION
+   - Animated via max-height and opacity (CSS-only)
+   - Duration: 200ms, ease-out
+   ========================================================================== */
 .intel-card-details {
-  display: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-top: 1px solid var(--border-color-subtle);
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 var(--spacing-md);
+  border-top: 1px solid transparent;
   background: rgba(0, 0, 0, 0.2);
+  transition:
+    max-height 200ms ease-out,
+    opacity 200ms ease-out,
+    padding 200ms ease-out,
+    border-color 200ms ease-out;
 }
 
 .intel-card.expanded .intel-card-details {
-  display: block;
+  max-height: 300px;  /* Sufficient for expanded content */
+  opacity: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-top-color: var(--border-color-subtle);
 }
 
 .intel-detail-row {

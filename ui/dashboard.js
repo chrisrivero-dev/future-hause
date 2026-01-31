@@ -189,24 +189,19 @@ function renderIntelEvents() {
     return;
   }
 
-  container.innerHTML = displayEvents.map((event, index) => `
-    <div class="intel-card" data-index="${index}">
-      <div class="intel-card-header" tabindex="0" role="button" aria-expanded="false">
-        <div class="intel-card-summary">
-          <div class="intel-card-title">${escapeHtml(event.title || event.type || 'Event')}</div>
-          <div class="intel-card-meta">${formatTimestamp(event.detected_at || event.timestamp)}</div>
-        </div>
-        <span class="intel-card-toggle">▼</span>
-      </div>
-      <div class="intel-card-details">
-        ${event.id ? renderDetailRow('ID', event.id) : ''}
-        ${event.type ? renderDetailRow('Type', event.type) : ''}
-        ${event.source ? renderDetailRow('Source', event.source) : ''}
-        ${event.description ? renderDetailRow('Description', event.description) : ''}
-        ${event.url ? renderDetailRow('URL', event.url) : ''}
-      </div>
-    </div>
-  `).join('');
+  container.innerHTML = displayEvents.map((event, index) => renderCard({
+    columnId: 'intel',
+    index,
+    title: event.title || event.type || 'Event',
+    meta: formatTimestamp(event.detected_at || event.timestamp),
+    detailsHtml: `
+      ${event.id ? renderDetailRow('ID', event.id) : ''}
+      ${event.type ? renderDetailRow('Type', event.type) : ''}
+      ${event.source ? renderDetailRow('Source', event.source) : ''}
+      ${event.description ? renderDetailRow('Description', event.description) : ''}
+      ${event.url ? renderDetailRow('URL', event.url) : ''}
+    `
+  })).join('');
 
   attachExpandHandlers(container);
 }
@@ -231,24 +226,19 @@ function renderKbOpportunities() {
     return;
   }
 
-  container.innerHTML = displayOpportunities.map((opp, index) => `
-    <div class="intel-card" data-index="${index}">
-      <div class="intel-card-header" tabindex="0" role="button" aria-expanded="false">
-        <div class="intel-card-summary">
-          <div class="intel-card-title">${escapeHtml(opp.title || opp.topic || 'Opportunity')}</div>
-          <div class="intel-card-meta">${escapeHtml(opp.status || opp.priority || '')}</div>
-        </div>
-        <span class="intel-card-toggle">▼</span>
-      </div>
-      <div class="intel-card-details">
-        ${opp.id ? renderDetailRow('ID', opp.id) : ''}
-        ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
-        ${opp.suggested_action ? renderDetailRow('Suggested', opp.suggested_action) : ''}
-        ${opp.source_signals ? renderDetailRow('Signals', opp.source_signals) : ''}
-        ${opp.created_at ? renderDetailRow('Created', formatTimestamp(opp.created_at)) : ''}
-      </div>
-    </div>
-  `).join('');
+  container.innerHTML = displayOpportunities.map((opp, index) => renderCard({
+    columnId: 'kb',
+    index,
+    title: opp.title || opp.topic || 'Opportunity',
+    meta: escapeHtml(opp.status || opp.priority || ''),
+    detailsHtml: `
+      ${opp.id ? renderDetailRow('ID', opp.id) : ''}
+      ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
+      ${opp.suggested_action ? renderDetailRow('Suggested', opp.suggested_action) : ''}
+      ${opp.source_signals ? renderDetailRow('Signals', opp.source_signals) : ''}
+      ${opp.created_at ? renderDetailRow('Created', formatTimestamp(opp.created_at)) : ''}
+    `
+  })).join('');
 
   attachExpandHandlers(container);
 }
@@ -273,24 +263,19 @@ function renderProjects() {
     return;
   }
 
-  container.innerHTML = displayProjects.map((project, index) => `
-    <div class="intel-card" data-index="${index}">
-      <div class="intel-card-header" tabindex="0" role="button" aria-expanded="false">
-        <div class="intel-card-summary">
-          <div class="intel-card-title">${escapeHtml(project.name || project.title || 'Project')}</div>
-          <div class="intel-card-meta">${escapeHtml(project.status || '')}</div>
-        </div>
-        <span class="intel-card-toggle">▼</span>
-      </div>
-      <div class="intel-card-details">
-        ${project.id ? renderDetailRow('ID', project.id) : ''}
-        ${project.status ? renderDetailRow('Status', project.status) : ''}
-        ${project.deliverables ? renderDetailRow('Deliverables', Array.isArray(project.deliverables) ? project.deliverables.join(', ') : project.deliverables) : ''}
-        ${project.created_at ? renderDetailRow('Created', formatTimestamp(project.created_at)) : ''}
-        ${project.updated_at ? renderDetailRow('Updated', formatTimestamp(project.updated_at)) : ''}
-      </div>
-    </div>
-  `).join('');
+  container.innerHTML = displayProjects.map((project, index) => renderCard({
+    columnId: 'projects',
+    index,
+    title: project.name || project.title || 'Project',
+    meta: escapeHtml(project.status || ''),
+    detailsHtml: `
+      ${project.id ? renderDetailRow('ID', project.id) : ''}
+      ${project.status ? renderDetailRow('Status', project.status) : ''}
+      ${project.deliverables ? renderDetailRow('Deliverables', Array.isArray(project.deliverables) ? project.deliverables.join(', ') : project.deliverables) : ''}
+      ${project.created_at ? renderDetailRow('Created', formatTimestamp(project.created_at)) : ''}
+      ${project.updated_at ? renderDetailRow('Updated', formatTimestamp(project.updated_at)) : ''}
+    `
+  })).join('');
 
   attachExpandHandlers(container);
 }
@@ -315,23 +300,18 @@ function renderRecentRecommendations() {
     return;
   }
 
-  container.innerHTML = displayActions.map((action, index) => `
-    <div class="intel-card" data-index="${index}">
-      <div class="intel-card-header" tabindex="0" role="button" aria-expanded="false">
-        <div class="intel-card-summary">
-          <div class="intel-card-title">${escapeHtml(action.action || action.recommendation || 'Action')}</div>
-          <div class="intel-card-meta">${formatTimestamp(action.timestamp || action.created_at)}</div>
-        </div>
-        <span class="intel-card-toggle">▼</span>
-      </div>
-      <div class="intel-card-details">
-        ${action.id ? renderDetailRow('ID', action.id) : ''}
-        ${action.rationale ? renderDetailRow('Rationale', action.rationale) : ''}
-        ${action.status ? renderDetailRow('Status', action.status) : ''}
-        ${action.source ? renderDetailRow('Source', action.source) : ''}
-      </div>
-    </div>
-  `).join('');
+  container.innerHTML = displayActions.map((action, index) => renderCard({
+    columnId: 'recommendations',
+    index,
+    title: action.action || action.recommendation || 'Action',
+    meta: formatTimestamp(action.timestamp || action.created_at),
+    detailsHtml: `
+      ${action.id ? renderDetailRow('ID', action.id) : ''}
+      ${action.rationale ? renderDetailRow('Rationale', action.rationale) : ''}
+      ${action.status ? renderDetailRow('Status', action.status) : ''}
+      ${action.source ? renderDetailRow('Source', action.source) : ''}
+    `
+  })).join('');
 
   attachExpandHandlers(container);
 }
@@ -482,14 +462,85 @@ function renderDetailRow(label, value) {
 }
 
 /* ----------------------------------------------------------------------------
-   EXPAND/COLLAPSE FUNCTIONALITY
+   EXPAND/COLLAPSE CONTRACT (v0.1)
+
+   BEHAVIORAL RULES:
+   - Only ONE card per column may be expanded at a time
+   - Expanding a card auto-collapses any other expanded card in same column
+   - Links inside expanded content do NOT collapse the card
+   - Focus remains on card after toggle
+
+   ACCESSIBILITY:
+   - Card header: role="button", tabindex="0", aria-expanded, aria-controls
+   - Details region: role="region", aria-labelledby
+   - Enter/Space toggles expand/collapse
+
+   INTERACTION:
+   - Click on card header toggles state
+   - Keyboard: Enter or Space triggers toggle
    ---------------------------------------------------------------------------- */
 
+/**
+ * Generate unique card ID for ARIA relationships
+ * @param {string} columnId - Column identifier
+ * @param {number} index - Card index within column
+ * @returns {object} Object with headerId and detailsId
+ */
+function generateCardIds(columnId, index) {
+  return {
+    headerId: `card-header-${columnId}-${index}`,
+    detailsId: `card-details-${columnId}-${index}`
+  };
+}
+
+/**
+ * Render a card with proper ARIA attributes
+ * @param {object} params - Card parameters
+ * @returns {string} HTML string
+ */
+function renderCard({ columnId, index, title, meta, detailsHtml }) {
+  const { headerId, detailsId } = generateCardIds(columnId, index);
+
+  return `
+    <div class="intel-card" data-index="${index}">
+      <div
+        class="intel-card-header"
+        id="${headerId}"
+        tabindex="0"
+        role="button"
+        aria-expanded="false"
+        aria-controls="${detailsId}"
+      >
+        <div class="intel-card-summary">
+          <div class="intel-card-title">${escapeHtml(title)}</div>
+          <div class="intel-card-meta">${meta}</div>
+        </div>
+        <span class="intel-card-toggle" aria-hidden="true">▼</span>
+      </div>
+      <div
+        class="intel-card-details"
+        id="${detailsId}"
+        role="region"
+        aria-labelledby="${headerId}"
+      >
+        ${detailsHtml}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Attach expand/collapse handlers to cards in a container
+ * @param {HTMLElement} container - The column content container
+ */
 function attachExpandHandlers(container) {
   const headers = container.querySelectorAll('.intel-card-header');
 
   headers.forEach(header => {
+    // Click handler
     header.addEventListener('click', handleCardToggle);
+
+    // Keyboard handler (Enter/Space)
     header.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -497,15 +548,74 @@ function attachExpandHandlers(container) {
       }
     });
   });
+
+  // Prevent link clicks inside details from collapsing the card
+  const links = container.querySelectorAll('.intel-card-details a');
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  });
 }
 
+/**
+ * Handle card expand/collapse toggle
+ * Enforces single-card-per-column rule
+ * @param {Event} event - Click or keyboard event
+ */
 function handleCardToggle(event) {
-  const card = this.closest('.intel-card');
+  const header = this;
+  const card = header.closest('.intel-card');
   if (!card) return;
 
+  const column = card.closest('.intel-column-content');
+  if (!column) return;
+
   const isExpanded = card.classList.contains('expanded');
-  card.classList.toggle('expanded');
-  this.setAttribute('aria-expanded', !isExpanded);
+
+  // If expanding, collapse any other expanded card in this column first
+  if (!isExpanded) {
+    const expandedCards = column.querySelectorAll('.intel-card.expanded');
+    expandedCards.forEach(expandedCard => {
+      if (expandedCard !== card) {
+        collapseCard(expandedCard);
+      }
+    });
+  }
+
+  // Toggle this card
+  if (isExpanded) {
+    collapseCard(card);
+  } else {
+    expandCard(card);
+  }
+
+  // Ensure focus remains on the header after toggle
+  header.focus();
+}
+
+/**
+ * Expand a card and update ARIA state
+ * @param {HTMLElement} card - The card element
+ */
+function expandCard(card) {
+  card.classList.add('expanded');
+  const header = card.querySelector('.intel-card-header');
+  if (header) {
+    header.setAttribute('aria-expanded', 'true');
+  }
+}
+
+/**
+ * Collapse a card and update ARIA state
+ * @param {HTMLElement} card - The card element
+ */
+function collapseCard(card) {
+  card.classList.remove('expanded');
+  const header = card.querySelector('.intel-card-header');
+  if (header) {
+    header.setAttribute('aria-expanded', 'false');
+  }
 }
 
 /* ----------------------------------------------------------------------------
