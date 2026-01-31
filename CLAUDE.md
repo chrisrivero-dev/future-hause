@@ -101,7 +101,8 @@ future-hause/
 │   ├── animations.css          # State-driven CSS animations
 │   ├── dashboard.css           # Layout and styling
 │   ├── styles.css              # Base styles
-│   └── icon.svg                # Assistant icon (inline SVG)
+│   └── assets/
+│       └── future-hause-icon.svg   # Dashboard icon (FROZEN)
 ├── README.md                   # Project overview
 └── CLAUDE.md                   # This file
 ```
@@ -190,7 +191,7 @@ This will:
 
 - Semantic markup: `<header>`, `<main>`, `<aside>`, `<section>`
 - ARIA labels for accessibility
-- Inline SVG for animation hooks
+- External SVG via `<img>` for icons (no inline SVG)
 
 ---
 
@@ -244,6 +245,30 @@ From `docs/UI_LOCK.md`:
 
 ---
 
+## Dashboard Icon (FROZEN)
+
+**Single source of truth:** `ui/assets/future-hause-icon.svg`
+
+Verification hash: `APPROVED_FH_ICON_v1_SHA: 7d3c9e1`
+
+Rules:
+1. **No inline SVG** — The icon MUST be loaded via `<img src="./assets/future-hause-icon.svg">`
+2. **No redesign** — Do not regenerate, approximate, or substitute the SVG
+3. **Wrapper-only animations** — CSS animations target `.dashboard-icon-wrapper`, not SVG internals
+4. **Fail silently** — Animations must degrade gracefully when `prefers-reduced-motion` is set
+
+Animation states (applied to wrapper):
+| State | Animation | Effect |
+|-------|-----------|--------|
+| `idle` | `icon-idle-pulse` | Subtle opacity pulse |
+| `processing` | `icon-processing-spin` | Full rotation |
+| `success` | `icon-success-glow` | Green drop-shadow |
+| `error` | `icon-error-shake` | Horizontal shake + red glow |
+
+AI assistants must NOT modify the icon SVG without explicit human approval.
+
+---
+
 ## Development Guidelines
 
 ### DO
@@ -293,6 +318,7 @@ These are ideas, not commitments.
 | Engine state | `engine/state.json` (runtime) |
 | Event log | `engine/log.json` (runtime) |
 | UI entry point | `ui/index.html` |
+| Dashboard icon | `ui/assets/future-hause-icon.svg` (FROZEN) |
 | Animation defs | `docs/animation_states.yaml` |
 | State contract | `docs/ui_state_contract.md` |
 
@@ -305,3 +331,4 @@ These are ideas, not commitments.
 3. **Don't modify the UI arbitrarily** — Check `UI_LOCK.md` first
 4. **Don't add external API calls in v0.1** — Local-only scope
 5. **Don't infer state in UI** — Always read from engine state files
+6. **Don't modify or inline the icon** — Use `ui/assets/future-hause-icon.svg` via `<img>` only

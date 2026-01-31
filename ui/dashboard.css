@@ -125,129 +125,85 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   DASHBOARD ICON — SVG with CSS Animation States
+   DASHBOARD ICON — Wrapper-Based CSS Animation States
+   Source: ui/assets/future-hause-icon.svg (APPROVED_FH_ICON_v1_SHA: 7d3c9e1)
    Positioned top-left, next to Activity Feed section title
+
+   IMPORTANT: Animations apply to WRAPPER only, not SVG internals.
+   The icon is loaded via <img> tag, so internal SVG elements are inaccessible.
    ---------------------------------------------------------------------------- */
 
 .dashboard-icon-wrapper {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Performance optimization for animations */
+  will-change: transform, filter, opacity;
+  backface-visibility: hidden;
 }
 
 .dashboard-icon {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   display: block;
+  /* Inherit animations from wrapper */
+  pointer-events: none;
 }
 
-/* Icon Animation States — CSS Only */
+/* ==========================================================================
+   ICON ANIMATION STATES — CSS Only, Wrapper-Level
+   States: idle, processing, success, error
+   ========================================================================== */
 
-/* Idle State (default): Subtle pulse on outer ring and eyes */
-.dashboard-icon-wrapper[data-state="idle"] .outer-ring {
-  animation: icon-idle-ring 3s ease-in-out infinite;
-  transform-origin: center;
+/* Idle State (default): Subtle pulse opacity */
+.dashboard-icon-wrapper[data-state="idle"] {
+  animation: icon-idle-pulse 3s ease-in-out infinite;
 }
 
-.dashboard-icon-wrapper[data-state="idle"] .eye {
-  animation: icon-idle-eye 3s ease-in-out infinite;
-}
-
-@keyframes icon-idle-ring {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 0.7; }
-}
-
-@keyframes icon-idle-eye {
+@keyframes icon-idle-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
+  50% { opacity: 0.75; }
 }
 
-/* Processing State: Spin outer ring, pulse eyes faster */
-.dashboard-icon-wrapper[data-state="processing"] .outer-ring {
-  animation: icon-processing-ring 1.5s linear infinite;
-  transform-origin: center;
+/* Processing State: Spin wrapper */
+.dashboard-icon-wrapper[data-state="processing"] {
+  animation: icon-processing-spin 1.5s linear infinite;
 }
 
-.dashboard-icon-wrapper[data-state="processing"] .eye {
-  animation: icon-processing-eye 0.8s ease-in-out infinite;
-}
-
-.dashboard-icon-wrapper[data-state="processing"] .sparkles {
-  animation: icon-processing-sparkle 1s ease-in-out infinite;
-}
-
-@keyframes icon-processing-ring {
+@keyframes icon-processing-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-@keyframes icon-processing-eye {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+/* Success State: Glow effect via filter */
+.dashboard-icon-wrapper[data-state="success"] {
+  animation: icon-success-glow 2s ease-in-out infinite;
 }
 
-@keyframes icon-processing-sparkle {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 0.4; }
+@keyframes icon-success-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px var(--accent-success));
+    opacity: 1;
+  }
+  50% {
+    filter: drop-shadow(0 0 8px var(--accent-success));
+    opacity: 0.9;
+  }
 }
 
-/* Success State: Glow effect on eyes and skull */
-.dashboard-icon-wrapper[data-state="success"] .eye {
-  animation: icon-success-eye 2s ease-in-out infinite;
-  filter: drop-shadow(0 0 4px var(--accent-success));
-}
-
-.dashboard-icon-wrapper[data-state="success"] .skull {
-  animation: icon-success-skull 2s ease-in-out infinite;
-}
-
-.dashboard-icon-wrapper[data-state="success"] .outer-ring {
-  filter: drop-shadow(0 0 3px var(--accent-success));
-}
-
-@keyframes icon-success-eye {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.85; }
-}
-
-@keyframes icon-success-skull {
-  0%, 100% { opacity: 0.9; }
-  50% { opacity: 1; }
-}
-
-/* Error State: Shake skull, red tint on eyes */
-.dashboard-icon-wrapper[data-state="error"] .skull {
+/* Error State: Shake wrapper with red glow */
+.dashboard-icon-wrapper[data-state="error"] {
   animation: icon-error-shake 0.5s ease-in-out infinite;
-  transform-origin: center;
-}
-
-.dashboard-icon-wrapper[data-state="error"] .eye {
   filter: drop-shadow(0 0 4px var(--accent-error));
-  animation: icon-error-eye 0.8s ease-in-out infinite;
-}
-
-.dashboard-icon-wrapper[data-state="error"] .mouth {
-  animation: icon-error-mouth 0.8s ease-in-out infinite;
 }
 
 @keyframes icon-error-shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
-}
-
-@keyframes icon-error-eye {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-@keyframes icon-error-mouth {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 0.5; }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
 }
 
 /* ----------------------------------------------------------------------------
@@ -748,14 +704,14 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .dashboard-icon {
-    width: 32px;
-    height: 32px;
+  .dashboard-icon-wrapper {
+    width: 40px;
+    height: 40px;
   }
 
-  .dashboard-icon-wrapper {
-    width: 32px;
-    height: 32px;
+  .dashboard-icon {
+    width: 40px;
+    height: 40px;
   }
 }
 
