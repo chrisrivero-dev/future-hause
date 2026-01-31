@@ -759,10 +759,70 @@ window.mockThinking = mockThinking;
 window.setIconState = setIconState;
 
 /* ----------------------------------------------------------------------------
+   THEME TOGGLE — Dark/Light Mode
+   - Persists to localStorage (theme preference only)
+   - Dark mode is default
+   ---------------------------------------------------------------------------- */
+
+const THEME_STORAGE_KEY = 'future-hause-theme';
+
+/**
+ * Get current theme from localStorage or default to 'dark'
+ * @returns {'dark' | 'light'}
+ */
+function getStoredTheme() {
+  return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+}
+
+/**
+ * Apply theme to document and update toggle button text
+ * @param {'dark' | 'light'} theme
+ */
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+
+  const toggleBtn = document.getElementById('theme-toggle');
+  if (toggleBtn) {
+    toggleBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
+  }
+}
+
+/**
+ * Toggle between dark and light themes
+ */
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+  applyTheme(newTheme);
+  localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+}
+
+/**
+ * Initialize theme toggle button
+ */
+function initThemeToggle() {
+  const toggleBtn = document.getElementById('theme-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleTheme);
+  }
+
+  // Apply stored theme on load
+  applyTheme(getStoredTheme());
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize theme from localStorage
+  initThemeToggle();
+
   // Ensure icon starts in idle state
   setIconState('idle');
 

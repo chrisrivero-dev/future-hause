@@ -24,6 +24,9 @@
       <div class="header-status">
         <span class="header-status-dot"></span>
         <span>Read-Only Dashboard</span>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode">
+          Dark
+        </button>
       </div>
     </div>
   </header>
@@ -64,13 +67,19 @@
 
       <div class="intel-grid">
 
-        <!-- Column 1: New Intel -->
-        <div class="intel-column" aria-label="New Intel">
+        <!--
+          Column 1: New Intel
+          NAVIGATION CONTRACT:
+          - Click Target: Modal or drawer showing full intel detail
+          - Route: /intel/:id (future)
+          - Data Passed: { id, type, source, timestamp, raw_content }
+        -->
+        <div class="intel-column" aria-label="New Intel" data-section="intel-events">
           <div class="intel-column-header">
             <h3 class="intel-column-title">New Intel</h3>
             <span id="intel-events-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="intel-events-content" class="intel-column-content">
+          <div id="intel-events-content" class="intel-column-content" data-target="intel-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -78,13 +87,19 @@
           </div>
         </div>
 
-        <!-- Column 2: KB Opportunities -->
-        <div class="intel-column" aria-label="KB Opportunities">
+        <!--
+          Column 2: KB Opportunities
+          NAVIGATION CONTRACT:
+          - Click Target: Modal showing opportunity + linked evidence
+          - Route: /kb/:id (future)
+          - Data Passed: { id, gap_type, evidence_ids[], suggested_action }
+        -->
+        <div class="intel-column" aria-label="KB Opportunities" data-section="kb-opportunities">
           <div class="intel-column-header">
             <h3 class="intel-column-title">KB Opportunities</h3>
             <span id="kb-opportunities-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="kb-opportunities-content" class="intel-column-content">
+          <div id="kb-opportunities-content" class="intel-column-content" data-target="kb-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -92,13 +107,19 @@
           </div>
         </div>
 
-        <!-- Column 3: Projects -->
-        <div class="intel-column" aria-label="Projects">
+        <!--
+          Column 3: Projects
+          NAVIGATION CONTRACT:
+          - Click Target: Project detail page or drawer
+          - Route: /projects/:id (future)
+          - Data Passed: { id, name, status, deliverables[], source_intel_id }
+        -->
+        <div class="intel-column" aria-label="Projects" data-section="projects">
           <div class="intel-column-header">
             <h3 class="intel-column-title">Projects</h3>
             <span id="projects-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="projects-content" class="intel-column-content">
+          <div id="projects-content" class="intel-column-content" data-target="project-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -106,13 +127,20 @@
           </div>
         </div>
 
-        <!-- Column 4: Recent Recommendations -->
-        <div class="intel-column" aria-label="Recent Recommendations">
+        <!--
+          Column 4: Recent Recommendations
+          NAVIGATION CONTRACT:
+          - Click Target: Modal with accept/dismiss actions (future)
+          - Route: /recommendations/:id (future)
+          - Data Passed: { id, recommendation_type, rationale, source_intel_ids[] }
+          - Actions: promote_to_project, dismiss, defer
+        -->
+        <div class="intel-column" aria-label="Recent Recommendations" data-section="recommendations">
           <div class="intel-column-header">
             <h3 class="intel-column-title">Recent Recommendations</h3>
             <span id="recommendations-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="recommendations-content" class="intel-column-content">
+          <div id="recommendations-content" class="intel-column-content" data-target="recommendation-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -128,8 +156,15 @@
          ========================= -->
     <div class="secondary-sections">
 
-      <!-- Action Log -->
-      <section class="secondary-section" aria-label="Action Log">
+      <!--
+        Action Log
+        NAVIGATION CONTRACT:
+        - Click Target: Expand row to show full rationale (in-place)
+        - Route: None (read-only audit trail, no navigation)
+        - Data Passed: { id, timestamp, action_type, rationale, actor }
+        - Purpose: Immutable record, no actions allowed
+      -->
+      <section class="secondary-section" aria-label="Action Log" data-section="action-log">
         <div class="secondary-section-header">
           <h2 class="secondary-section-title">Action Log</h2>
         </div>
@@ -154,8 +189,15 @@
         </div>
       </section>
 
-      <!-- System Metadata -->
-      <section class="secondary-section" aria-label="System Metadata">
+      <!--
+        System Metadata
+        NAVIGATION CONTRACT:
+        - Click Target: None (informational display only)
+        - Route: None
+        - Data Passed: { schema_versions, load_status, timestamps }
+        - Purpose: Health + trust indicators, pure observability
+      -->
+      <section class="secondary-section" aria-label="System Metadata" data-section="metadata">
         <div class="secondary-section-header">
           <h2 class="secondary-section-title">System Metadata</h2>
         </div>

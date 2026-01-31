@@ -14,15 +14,15 @@
 }
 
 :root {
-  /* Color Palette — Dark Mode */
+  /* Color Palette — Dark Mode (Default) */
   --bg-primary: #0a0e27;
   --bg-secondary: #1a1f3a;
   --bg-tertiary: #14182d;
   --bg-card: rgba(20, 25, 45, 0.6);
   --bg-card-hover: rgba(30, 35, 55, 0.8);
   --text-primary: #e0e6ff;
-  --text-secondary: #a0a9c8;   /* Improved contrast */
-  --text-muted: #7a88b0;       /* Improved contrast */
+  --text-secondary: #a0a9c8;
+  --text-muted: #7a88b0;
   --accent-cyan: #00f5ff;
   --accent-purple: #b19cff;
   --accent-success: #4ade80;
@@ -46,6 +46,25 @@
   /* Layout */
   --header-height: 60px;
   --max-width: 1600px;
+}
+
+/* Light Mode Theme */
+[data-theme="light"] {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #e8ecf2;
+  --bg-tertiary: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-card-hover: rgba(240, 243, 248, 0.95);
+  --text-primary: #1a1f3a;
+  --text-secondary: #4a5578;
+  --text-muted: #6b7599;
+  --accent-cyan: #0891b2;
+  --accent-purple: #7c3aed;
+  --accent-success: #16a34a;
+  --accent-error: #dc2626;
+  --accent-warning: #d97706;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --border-color-subtle: rgba(0, 0, 0, 0.05);
 }
 
 body {
@@ -122,6 +141,30 @@ body {
 @keyframes status-dot-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  margin-left: var(--spacing-md);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
 }
 
 /* ----------------------------------------------------------------------------
@@ -235,10 +278,11 @@ body {
 
 .section-title {
   font-size: 0.75rem;
-  font-weight: 600;            /* Improved legibility */
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-muted);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);  /* Subtle depth */
 }
 
 /* ==========================================================================
@@ -290,6 +334,7 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);  /* Subtle depth */
 }
 
 .intel-column-count {
@@ -493,6 +538,7 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);  /* Subtle depth */
 }
 
 .secondary-section-content {
