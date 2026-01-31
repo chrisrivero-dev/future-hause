@@ -634,10 +634,95 @@ function setIconState(iconState) {
 }
 
 /* ----------------------------------------------------------------------------
+   ICON EVENT WIRING — Interactive State Triggers
+
+   States and Triggers:
+   - idle:       Default, restored after interactions
+   - processing: Hover, or call mockProcessing()
+   - success:    Click (brief), or call mockThinking() completion
+   - error:      Reserved for actual errors
+
+   To disable: Set ICON_EVENTS_ENABLED = false
+   ---------------------------------------------------------------------------- */
+
+const ICON_EVENTS_ENABLED = true;
+
+/**
+ * Wire up icon hover and click events
+ * Called once on DOMContentLoaded
+ */
+function wireIconEvents() {
+  if (!ICON_EVENTS_ENABLED) return;
+
+  const iconWrapper = document.getElementById('dashboard-icon');
+  if (!iconWrapper) return;
+
+  let previousState = 'idle';
+
+  // Hover: Show processing state
+  iconWrapper.addEventListener('mouseenter', () => {
+    previousState = iconWrapper.getAttribute('data-state') || 'idle';
+    setIconState('processing');
+  });
+
+  iconWrapper.addEventListener('mouseleave', () => {
+    setIconState(previousState);
+  });
+
+  // Click: Brief success flash
+  iconWrapper.addEventListener('click', () => {
+    setIconState('success');
+    previousState = 'idle';
+    setTimeout(() => setIconState('idle'), 600);
+  });
+}
+
+/**
+ * Mock processing state (for testing)
+ * @param {number} durationMs - Duration in milliseconds (default 2000)
+ * @returns {Promise} Resolves when complete
+ */
+function mockProcessing(durationMs = 2000) {
+  setIconState('processing');
+  return new Promise(resolve => {
+    setTimeout(() => {
+      setIconState('idle');
+      resolve();
+    }, durationMs);
+  });
+}
+
+/**
+ * Mock thinking state (processing → success → idle)
+ * @param {number} thinkMs - Thinking duration (default 1500)
+ * @returns {Promise} Resolves when complete
+ */
+function mockThinking(thinkMs = 1500) {
+  setIconState('processing');
+  return new Promise(resolve => {
+    setTimeout(() => {
+      setIconState('success');
+      setTimeout(() => {
+        setIconState('idle');
+        resolve();
+      }, 500);
+    }, thinkMs);
+  });
+}
+
+// Expose mock functions for console testing
+window.mockProcessing = mockProcessing;
+window.mockThinking = mockThinking;
+window.setIconState = setIconState;
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Wire up icon interactive events
+  wireIconEvents();
+
   // Set processing state while loading
   setIconState('processing');
 
