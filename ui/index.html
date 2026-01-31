@@ -38,16 +38,27 @@
          ========================= -->
     <section class="primary-intelligence" aria-label="Primary Intelligence">
       <div class="section-header">
-        <!-- Icon Source: ui/assets/future-hause-icon.svg (APPROVED_FH_ICON_v1_SHA: 7d3c9e1) -->
+
+        <!--
+          Dashboard Icon
+          Source of Truth: ui/icon.svg
+          RULES:
+          - Do NOT inline SVG
+          - Do NOT regenerate or replace artwork
+          - Animations apply ONLY to .dashboard-icon-wrapper
+        -->
         <div class="dashboard-icon-wrapper" id="dashboard-icon" data-state="idle">
           <img
-            src="./assets/future-hause-icon.svg"
+            src="./icon.svg"
             class="dashboard-icon"
             alt="Future Hause Assistant Icon"
             width="56"
             height="56"
+            loading="eager"
+            decoding="async"
           />
         </div>
+
         <h2 class="section-title">Activity Feed</h2>
       </div>
 
@@ -117,7 +128,7 @@
          ========================= -->
     <div class="secondary-sections">
 
-      <!-- Action Log (Chronological, Full List) -->
+      <!-- Action Log -->
       <section class="secondary-section" aria-label="Action Log">
         <div class="secondary-section-header">
           <h2 class="secondary-section-title">Action Log</h2>
@@ -156,7 +167,6 @@
       </section>
 
     </div>
-
   </main>
 
   <!-- =========================
