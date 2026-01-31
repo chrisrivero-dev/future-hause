@@ -657,47 +657,49 @@ function wireIconEvents() {
   const iconWrapper = document.getElementById('dashboard-icon');
   if (!iconWrapper) return;
 
-  let previousState = 'idle';
-
   // Hover: Show processing state
   iconWrapper.addEventListener('mouseenter', () => {
-    previousState = iconWrapper.getAttribute('data-state') || 'idle';
     setIconState('processing');
   });
 
+  // Mouseleave: Always return to idle
   iconWrapper.addEventListener('mouseleave', () => {
-    setIconState(previousState);
+    setIconState('idle');
   });
 
-  // Click: Brief success flash
+  // Click: Brief success flash, then idle
   iconWrapper.addEventListener('click', () => {
     setIconState('success');
-    previousState = 'idle';
     setTimeout(() => setIconState('idle'), 600);
   });
 }
 
+// Safety guard: Maximum processing duration (10 seconds)
+const MAX_PROCESSING_MS = 10000;
+
 /**
  * Mock processing state (for testing)
- * @param {number} durationMs - Duration in milliseconds (default 2000)
+ * @param {number} durationMs - Duration in milliseconds (default 2000, max 10000)
  * @returns {Promise} Resolves when complete
  */
 function mockProcessing(durationMs = 2000) {
+  const safeDuration = Math.min(durationMs, MAX_PROCESSING_MS);
   setIconState('processing');
   return new Promise(resolve => {
     setTimeout(() => {
       setIconState('idle');
       resolve();
-    }, durationMs);
+    }, safeDuration);
   });
 }
 
 /**
  * Mock thinking state (processing → success → idle)
- * @param {number} thinkMs - Thinking duration (default 1500)
+ * @param {number} thinkMs - Thinking duration (default 1500, max 10000)
  * @returns {Promise} Resolves when complete
  */
 function mockThinking(thinkMs = 1500) {
+  const safeDuration = Math.min(thinkMs, MAX_PROCESSING_MS);
   setIconState('processing');
   return new Promise(resolve => {
     setTimeout(() => {
@@ -706,7 +708,7 @@ function mockThinking(thinkMs = 1500) {
         setIconState('idle');
         resolve();
       }, 500);
-    }, thinkMs);
+    }, safeDuration);
   });
 }
 
@@ -723,22 +725,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire up icon interactive events
   wireIconEvents();
 
-  // Set processing state while loading
-  setIconState('processing');
+  // Icon starts idle — no processing state on load
+  // State only changes via hover, click, or explicit function calls
 
   loadAllData().then(() => {
-    // Determine final state based on load results
+    // Data loaded silently — icon remains idle unless error
     const hasErrors = Object.values(state.loadStatus).some(s => s === 'error');
-    const allSuccess = Object.values(state.loadStatus).every(s => s === 'success');
 
     if (hasErrors) {
       setIconState('error');
-    } else if (allSuccess) {
-      setIconState('success');
-      // Return to idle after brief success indication
-      setTimeout(() => setIconState('idle'), 2000);
-    } else {
-      setIconState('idle');
+      // Return to idle after showing error briefly
+      setTimeout(() => setIconState('idle'), 3000);
     }
+    // Success is silent — icon stays idle
   });
 });

@@ -21,8 +21,8 @@
   --bg-card: rgba(20, 25, 45, 0.6);
   --bg-card-hover: rgba(30, 35, 55, 0.8);
   --text-primary: #e0e6ff;
-  --text-secondary: #8892b5;
-  --text-muted: #5a6698;
+  --text-secondary: #a0a9c8;   /* Improved contrast */
+  --text-muted: #7a88b0;       /* Improved contrast */
   --accent-cyan: #00f5ff;
   --accent-purple: #b19cff;
   --accent-success: #4ade80;
@@ -234,7 +234,7 @@ body {
 
 .section-title {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;            /* Improved legibility */
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-muted);
@@ -375,7 +375,7 @@ body {
 
 .intel-card-title {
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;            /* Improved legibility */
   color: var(--text-primary);
   margin-bottom: 2px;
   white-space: nowrap;
