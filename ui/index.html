@@ -3,151 +3,153 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Future Hause — System Dashboard</title>
+  <title>Future Hause — Intelligence Dashboard</title>
 
   <!-- Core Styles -->
-  <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./animations.css" />
   <link rel="stylesheet" href="./dashboard.css" />
 </head>
 
-<body class="state-pulse-slow">
+<body>
 
   <!-- =========================
-       APP HEADER
+       APP HEADER WITH ANIMATED ICON
        ========================= -->
   <header class="app-header">
     <div class="header-content">
-      <div class="brand">
-        <h1>Future Hause</h1>
-        <span class="version">v1.0</span>
+      <div class="header-left">
+        <!-- Animated Icon (CSS-only, top-left) -->
+        <div class="header-icon" aria-label="Future Hause">
+          <div class="header-icon-inner"></div>
+        </div>
+        <span class="header-title">Future Hause</span>
+        <span class="header-version">v0.1</span>
       </div>
 
-      <nav class="header-nav">
-        <button class="nav-item" disabled>Settings</button>
-        <button class="nav-item" disabled>Help</button>
-      </nav>
+      <div class="header-status">
+        <span class="header-status-dot"></span>
+        <span>Read-Only Dashboard</span>
+      </div>
     </div>
   </header>
 
   <!-- =========================
-       MAIN DASHBOARD GRID
+       MAIN DASHBOARD CONTENT
        ========================= -->
-  <main class="dashboard-grid">
+  <main class="dashboard-main">
 
-    <!-- ===== LEFT SIDEBAR ===== -->
-    <aside class="sidebar sidebar-left">
-      <div class="sidebar-header">
-        <h2>Activity Feed</h2>
+    <!-- =========================
+         PRIMARY INTELLIGENCE — 4 COLUMNS
+         ========================= -->
+    <section class="primary-intelligence" aria-label="Primary Intelligence">
+      <div class="section-header">
+        <h2 class="section-title">Primary Intelligence</h2>
       </div>
 
-      <div class="sidebar-content">
-        <div class="empty-state">
-          <p class="empty-icon">📋</p>
-          <p class="empty-text">No recent activity</p>
-          <p class="empty-subtext">
-            Events will appear here as they occur
-          </p>
+      <div class="intel-grid">
+
+        <!-- Column 1: New Intel -->
+        <div class="intel-column" aria-label="New Intel">
+          <div class="intel-column-header">
+            <h3 class="intel-column-title">New Intel</h3>
+            <span id="intel-events-count" class="intel-column-count">0 total</span>
+          </div>
+          <div id="intel-events-content" class="intel-column-content">
+            <div class="intel-empty">
+              <div class="intel-empty-icon">—</div>
+              <div class="intel-empty-text">Loading...</div>
+            </div>
+          </div>
         </div>
-      </div>
-    </aside>
 
-    <!-- ===== CENTER STATUS PANEL ===== -->
-    <section class="status-panel">
-
-      <!-- Icon -->
-      <div class="icon-container">
-        <div
-          id="assistant-icon"
-          class="future-hause-icon state-pulse-slow"
-          aria-label="System status indicator"
-        >
-          <!-- INLINE SVG — intentional -->
-          <!-- (SVG content unchanged, verified safe) -->
-          <!-- KEEP AS-IS -->
-          <!-- 🔒 This preserves animations + CSS hooks -->
-
-          <!-- SVG OMITTED HERE FOR BREVITY IN EXPLANATION
-               (in your file, keep exactly what you pasted) -->
-
+        <!-- Column 2: KB Opportunities -->
+        <div class="intel-column" aria-label="KB Opportunities">
+          <div class="intel-column-header">
+            <h3 class="intel-column-title">KB Opportunities</h3>
+            <span id="kb-opportunities-count" class="intel-column-count">0 total</span>
+          </div>
+          <div id="kb-opportunities-content" class="intel-column-content">
+            <div class="intel-empty">
+              <div class="intel-empty-icon">—</div>
+              <div class="intel-empty-text">Loading...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- ===== STATUS LANGUAGE ===== -->
-      <div class="status-language">
-        <h2 id="status-headline" class="status-headline">
-          System Ready
-        </h2>
-
-        <p id="status-description" class="status-description">
-          All systems operational. Waiting for instructions.
-        </p>
-
-        <div class="status-action">
-          <button id="status-action" class="action-button" disabled>
-            Start Task
-          </button>
+        <!-- Column 3: Projects -->
+        <div class="intel-column" aria-label="Projects">
+          <div class="intel-column-header">
+            <h3 class="intel-column-title">Projects</h3>
+            <span id="projects-count" class="intel-column-count">0 total</span>
+          </div>
+          <div id="projects-content" class="intel-column-content">
+            <div class="intel-empty">
+              <div class="intel-empty-icon">—</div>
+              <div class="intel-empty-text">Loading...</div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- ===== STATE BANNERS ===== -->
-      <div id="confirmation-banner" class="confirmation-banner">
-        <span class="banner-icon">✓</span>
-        <span class="banner-text">
-          Operation completed successfully
-        </span>
-      </div>
+        <!-- Column 4: Recent Recommendations -->
+        <div class="intel-column" aria-label="Recent Recommendations">
+          <div class="intel-column-header">
+            <h3 class="intel-column-title">Recent Recommendations</h3>
+            <span id="recommendations-count" class="intel-column-count">0 total</span>
+          </div>
+          <div id="recommendations-content" class="intel-column-content">
+            <div class="intel-empty">
+              <div class="intel-empty-icon">—</div>
+              <div class="intel-empty-text">Loading...</div>
+            </div>
+          </div>
+        </div>
 
-      <div id="alert-banner" class="alert-banner">
-        <span class="banner-icon">⚠</span>
-        <span class="banner-text">
-          Attention required — please review
-        </span>
       </div>
-
-      <div id="info-banner" class="info-banner">
-        <span class="banner-icon">ℹ</span>
-        <span class="banner-text">
-          New information available
-        </span>
-      </div>
-
     </section>
 
-    <!-- ===== RIGHT SIDEBAR ===== -->
-    <aside class="sidebar sidebar-right">
-      <div class="sidebar-header">
-        <h2>Recent Actions</h2>
-      </div>
+    <!-- =========================
+         SECONDARY SECTIONS — STACKED FULL-WIDTH
+         ========================= -->
+    <div class="secondary-sections">
 
-      <div class="sidebar-content">
-        <div class="action-item placeholder">
-          <div class="action-time">--:--</div>
-          <div class="action-label">No actions yet</div>
+      <!-- Action Log (Chronological, Full List) -->
+      <section class="secondary-section" aria-label="Action Log">
+        <div class="secondary-section-header">
+          <h2 class="secondary-section-title">Action Log</h2>
         </div>
-
-        <div class="action-item placeholder">
-          <div class="action-time">--:--</div>
-          <div class="action-label">Ready to begin</div>
+        <div class="secondary-section-content">
+          <table class="action-log-table">
+            <thead>
+              <tr>
+                <th class="col-time">Timestamp</th>
+                <th class="col-id">ID</th>
+                <th class="col-action">Action</th>
+                <th class="col-rationale">Rationale</th>
+              </tr>
+            </thead>
+            <tbody id="action-log-table-body">
+              <tr>
+                <td colspan="4" class="intel-empty">
+                  <div class="intel-empty-text">Loading...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </section>
 
-      <div class="sidebar-section">
-        <h3>System Notes</h3>
-
-        <div class="note-card">
-          <p class="note-text">
-            This dashboard monitors Future Hause operations in real time.
-          </p>
+      <!-- System Metadata -->
+      <section class="secondary-section" aria-label="System Metadata">
+        <div class="secondary-section-header">
+          <h2 class="secondary-section-title">System Metadata</h2>
         </div>
-
-        <div class="note-card">
-          <p class="note-text">
-            State changes reflect system activity automatically.
-          </p>
+        <div id="metadata-content" class="secondary-section-content">
+          <div class="intel-empty">
+            <div class="intel-empty-text">Loading metadata...</div>
+          </div>
         </div>
-      </div>
-    </aside>
+      </section>
+
+    </div>
 
   </main>
 
@@ -156,33 +158,17 @@
        ========================= -->
   <footer class="app-footer">
     <div class="footer-content">
-      <span class="footer-text">Future Hause System v1.0</span>
-      <span class="footer-separator">•</span>
-      <span class="footer-text">
-        Status:
-        <span id="footer-status">Operational</span>
-      </span>
+      <span>Future Hause v0.1 — Read-Only Intelligence Dashboard</span>
+      <div class="footer-status">
+        <span>Output Contract: Frozen</span>
+      </div>
     </div>
   </footer>
 
   <!-- =========================
-       DEMO CONTROLS (DEV ONLY)
-       ========================= -->
-  <div class="demo-controls">
-    <div class="demo-header">Demo Controls</div>
-    <button class="demo-btn" data-state="pulse-slow">Idle</button>
-    <button class="demo-btn" data-state="spin">Processing</button>
-    <button class="demo-btn" data-state="glow">Success</button>
-    <button class="demo-btn" data-state="shake">Error</button>
-    <button class="demo-btn" data-state="slide-in">New Info</button>
-    <button class="demo-btn" data-state="dim">Inactive</button>
-  </div>
-
-  <!-- =========================
-       SCRIPTS (ORDER MATTERS)
+       SCRIPTS
        ========================= -->
   <script src="./dashboard.js"></script>
-  <script src="./status-renderer.js"></script>
 
 </body>
 </html>
