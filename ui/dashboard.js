@@ -722,10 +722,12 @@ window.setIconState = setIconState;
    ---------------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Ensure icon starts in idle state
+  setIconState('idle');
+
   // Wire up icon interactive events
   wireIconEvents();
 
-  // Icon starts idle — no processing state on load
   // State only changes via hover, click, or explicit function calls
 
   loadAllData().then(() => {

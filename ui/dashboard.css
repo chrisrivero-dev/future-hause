@@ -163,14 +163,15 @@ body {
   animation: none;
 }
 
-/* Processing State: Spin wrapper */
+/* Processing State: Horizontal shift (no rotation) */
 .dashboard-icon-wrapper[data-state="processing"] {
-  animation: icon-processing-spin 1.5s linear infinite;
+  animation: icon-processing-shift 1.2s ease-in-out infinite;
 }
 
-@keyframes icon-processing-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes icon-processing-shift {
+  0%   { transform: translateX(0); }
+  50%  { transform: translateX(6px); }
+  100% { transform: translateX(0); }
 }
 
 /* Success State: Glow effect via filter */
