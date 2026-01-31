@@ -6,11 +6,41 @@ This document provides essential context for AI assistants working with the Futu
 
 ## Project Overview
 
-**Future Hause** is a local support intelligence assistant that collects support signals (e.g., Reddit posts), logs what it did, and produces structured artifacts for human review.
+**Future Hause** is a local support intelligence and project analysis assistant.
 
-**Core principle:** Future Hause is an **analyst, not an actor**. It never talks to customers, makes decisions, or publishes content automatically.
+It observes public and internal signals related to a target company (currently: FutureBit), including:
+- Community discussions (e.g., Reddit)
+- Official websites and documentation
+- Release notes and announcements
+
+It synthesizes new or changed information and produces structured artifacts for human review, such as:
+- Knowledge base opportunities
+- Canned responses opportunities
+- Documentation gaps
+- Project status summaries
+- Action and insight logs
+
+Future Hause does not take autonomous action. It does not publish content, contact customers, modify production systems, or execute decisions.
+
+**Core principle:** Future Hause is an **analyst, not an actor**. A human is always the final decision-maker.
 
 **Current version:** v0.1 (in progress)
+## Scope Clarification
+
+v0.1 implements a limited subset of the long-term vision.
+
+Currently implemented:
+- Reddit signal collection
+- State logging and artifact generation
+
+Planned (not yet implemented):
+- Official website and documentation monitoring
+- Knowledge base gap detection
+- Project and deliverable tracking
+- Progress summaries and recommendations
+
+AI assistants must not assume planned features exist unless explicitly implemented.
+
 
 ---
 
