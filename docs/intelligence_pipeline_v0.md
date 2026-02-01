@@ -7,6 +7,8 @@ It describes how raw inputs become structured intelligence artifacts.
 
 **Core principle:** Humans decide. The system advises.
 
+**Terminology:** All pipeline outputs are *candidates*. Final artifacts (New Intel, KB Opportunity, Recommendation) only exist after human action, recorded via the Action Log.
+
 ---
 
 ## Pipeline Overview
@@ -16,9 +18,9 @@ Raw Inputs
     ↓
 [Stage 1: Local Inference]  →  Candidate New Intel
     ↓
-[Stage 2: Mid-Tier Synthesis]  →  Cleaned New Intel + Candidate KB Opportunities
+[Stage 2: Mid-Tier Synthesis]  →  Candidate New Intel + Candidate KB Opportunities
     ↓
-[Stage 3: Final Clarity Pass]  →  Explainable Recommendations
+[Stage 3: Final Clarity Pass]  →  Candidate Recommendations
     ↓
 Human Review
     ↓
@@ -81,10 +83,10 @@ Action Log (human actions only)
 - Project registry (read-only, for linking)
 
 **Outputs:**
-- Cleaned New Intel (ready for human review)
+- Candidate New Intel (ready for human review)
 - Candidate KB Opportunities
 
-**Contract fields populated (New Intel):**
+**Contract fields populated (Candidate New Intel):**
 - `id` — preserved from Stage 1
 - `source_type` — preserved
 - `summary` — normalized language, same meaning
@@ -129,14 +131,14 @@ Action Log (human actions only)
 **Role:** Explain and de-risk
 
 **Inputs:**
-- Cleaned New Intel from Stage 2
+- Candidate New Intel from Stage 2
 - Candidate KB Opportunities from Stage 2
 - Historical Action Log (read-only, for context)
 
 **Outputs:**
-- Explainable Recommendations (advisory only)
+- Candidate Recommendations (advisory only)
 
-**Contract fields populated (Recommendation):**
+**Contract fields populated (Candidate Recommendation):**
 - `id` — generated
 - `rationale` — human-readable explanation of why this matters
 - `source_intel_ids[]` — linked to originating intel
@@ -213,8 +215,8 @@ Action Log (human actions only)
 | Stage | Provider | Creates | Cannot Create |
 |-------|----------|---------|---------------|
 | 1 | Ollama/Mistral | Candidate New Intel | KB Opps, Recommendations |
-| 2 | OpenAI | Cleaned Intel, Candidate KB Opps | Recommendations |
-| 3 | Claude | Recommendations | New Intel, KB Opps |
+| 2 | OpenAI | Candidate New Intel, Candidate KB Opps | Recommendations |
+| 3 | Claude | Candidate Recommendations | New Intel, KB Opps |
 
 ---
 
