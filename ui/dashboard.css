@@ -309,8 +309,7 @@ body {
   align-items: center;
   gap: var(--spacing-lg);
   padding: var(--spacing-md) 0;
-  position: sticky;
-  top: calc(var(--header-height) + var(--spacing-lg));
+  /* Scrolls naturally with page — presence, not surveillance */
 
   /* Visual treatment: subtle, not dominant */
   background: transparent;
@@ -344,7 +343,11 @@ body {
   letter-spacing: 0.05em;
 }
 
-/* Feed placeholder — visual only, passive */
+/* Feed placeholder — visually inert
+   - No animation
+   - No pulsing
+   - No implied activity
+   - Static until pipeline Stage 1 activates */
 .presence-feed {
   flex: 1;
   width: 100%;
@@ -359,6 +362,8 @@ body {
   font-size: 0.7rem;
   color: var(--text-muted);
   opacity: 0.4;
+  /* Explicitly static — no animation */
+  animation: none;
 }
 
 /* ----------------------------------------------------------------------------
@@ -989,7 +994,6 @@ body {
     width: 100%;
     flex-direction: row;
     justify-content: center;
-    position: static;
     border-right: none;
     border-bottom: 1px solid var(--border-color-subtle);
     padding: var(--spacing-sm) var(--spacing-md);
