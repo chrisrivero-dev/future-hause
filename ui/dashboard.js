@@ -1079,15 +1079,84 @@ function checkPurposeDisclosure(userInput) {
   return null;
 }
 
+/* --------------------------------------
+   RESPONSE SCHEMA CONTRACT (LOCKED)
+
+   Required sections (always present):
+   - Status (Presence State, Mode, Side Effects)
+   - Summary
+   - What I did
+   - What I did NOT do
+
+   Optional sections:
+   - Next suggested step
+
+   Forbidden:
+   - Extra sections
+   - Free-form prose outside schema
+   - Missing "What I did NOT do"
+   -------------------------------------- */
+
+// Minimum guardrails that MUST appear in "What I did NOT do"
+const MANDATORY_GUARDRAILS = [
+  'No data was persisted',
+  'No external systems were modified'
+];
+
+/**
+ * Validate response parameters against schema contract
+ * @param {object} params - Response parameters
+ * @throws {Error} If required fields are missing or invalid
+ */
+function validateResponseSchema(params) {
+  const { presenceState, summary, whatIDid, whatIDidNot } = params;
+
+  // Required: presenceState must be valid
+  if (!presenceState || !Object.values(PRESENCE_STATES).includes(presenceState)) {
+    throw new Error('Schema violation: Invalid or missing presenceState');
+  }
+
+  // Required: summary must be non-empty string
+  if (!summary || typeof summary !== 'string' || summary.trim() === '') {
+    throw new Error('Schema violation: Missing or empty summary');
+  }
+
+  // Required: whatIDid must be non-empty array
+  if (!Array.isArray(whatIDid) || whatIDid.length === 0) {
+    throw new Error('Schema violation: "What I did" must be non-empty array');
+  }
+
+  // Required: whatIDidNot must be non-empty array
+  if (!Array.isArray(whatIDidNot) || whatIDidNot.length === 0) {
+    throw new Error('Schema violation: "What I did NOT do" must be non-empty array');
+  }
+}
+
 /**
  * Format response according to mandatory schema
+ * Enforces contract: all required sections present, no extra content
  * @param {object} params - Response parameters
  * @returns {string} Formatted response
  */
 function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextStep }) {
+  // Validate schema compliance
+  validateResponseSchema({ presenceState, summary, whatIDid, whatIDidNot });
+
+  // Ensure mandatory guardrails are included in "What I did NOT do"
+  const guardrails = [...whatIDidNot];
+  MANDATORY_GUARDRAILS.forEach(guardrail => {
+    const alreadyIncluded = guardrails.some(item =>
+      item.toLowerCase().includes(guardrail.toLowerCase().replace('no ', ''))
+    );
+    if (!alreadyIncluded) {
+      guardrails.push(guardrail);
+    }
+  });
+
+  // Build response in strict schema order
   const lines = [
     'Status:',
-    `• Presence State: ${PRESENCE_LABELS[presenceState] || 'Observing'}`,
+    `• Presence State: ${PRESENCE_LABELS[presenceState]}`,
     '• Mode: Draft / Advisory',
     '• Side Effects: None',
     '',
@@ -1098,10 +1167,11 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
     ...whatIDid.map(item => `• ${item}`),
     '',
     'What I did NOT do:',
-    ...whatIDidNot.map(item => `• ${item}`)
+    ...guardrails.map(item => `• ${item}`)
   ];
 
-  if (nextStep) {
+  // Optional: Next step (only if provided)
+  if (nextStep && typeof nextStep === 'string' && nextStep.trim() !== '') {
     lines.push('', 'Next suggested step (optional):', `• ${nextStep}`);
   }
 
