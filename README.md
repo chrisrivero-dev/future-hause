@@ -7,6 +7,10 @@ It runs quietly in the background to collect support signals, track recurring is
 Future Hause does **not** talk to customers, make decisions, or publish content automatically.
 
 ---
+## LLM Routing Contract
+
+LLM routing rules are defined in `docs/llm-routing.md`.  
+All code must conform to that contract. No implicit actions.
 
 ## Core Philosophy
 
