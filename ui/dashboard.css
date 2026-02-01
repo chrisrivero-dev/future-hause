@@ -197,120 +197,154 @@ body {
 }
 
 /* ==========================================================================
-   ICON ANIMATION STATES — CSS Only, Wrapper-Level
-   Motion Spec: Source-Translated Presence Animations
+   ICON ANIMATION STATES — Video Reference Spec
+   Source: Presence icon animation from reference video
 
-   States: idle, thinking, processing, observing, success, error
+   Core animations:
+   - Rotation: Slow continuous rotation (12s idle, 8s thinking)
+   - Glow: Breathing neon glow effect (2.5s)
+   - Ambient: Background halo pulse (6s)
+
+   State mapping controls intensity, not animation existence.
 
    GUARDRAILS:
-   - No animation implies work occurred
-   - Idle must never look busy
-   - Processing must be short-lived
-   - Observing must feel "done, waiting"
+   - Animation is presence, not feedback
+   - Should feel alive, ambient, and trustworthy, not busy
+   - No particles, no randomness, no text animation
    ========================================================================== */
 
 /* --------------------------------------
-   IDLE — "Waiting, no analysis"
-   Intent: Calm, available, not busy
-   User: "Nothing is happening, and that's correct."
+   BASE WRAPPER — Ambient Energy Halo
+   Optional container-level background pulse
    -------------------------------------- */
-.dashboard-icon-wrapper[data-state="idle"] {
-  animation: fh-idle-breathe 3.8s ease-in-out infinite;
+.dashboard-icon-wrapper {
+  position: relative;
 }
 
-@keyframes fh-idle-breathe {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
+.dashboard-icon-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  z-index: -1;
+  animation: fh-ambient-halo 6s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes fh-ambient-halo {
+  from {
+    background: radial-gradient(
+      circle at center,
+      rgba(0, 255, 255, 0.08),
+      transparent 70%
+    );
   }
-  50% {
-    transform: scale(1.015);
-    opacity: 0.96;
+  to {
+    background: radial-gradient(
+      circle at center,
+      rgba(138, 43, 226, 0.12),
+      transparent 70%
+    );
   }
+}
+
+/* --------------------------------------
+   IDLE — "Waiting, no analysis"
+   Rotation (12s) + glow + ambient halo
+   Represents: alive but calm
+   -------------------------------------- */
+.dashboard-icon-wrapper[data-state="idle"] {
+  animation:
+    fh-rotate 12s linear infinite,
+    fh-glow 2.5s ease-in-out infinite alternate;
 }
 
 /* --------------------------------------
    THINKING — "Interpreting input"
-   Intent: Reflection, consideration
-   User: "Future Hause is actively reading and reasoning."
+   Faster rotation (8s) + glow
+   Represents: active reading and reasoning
    -------------------------------------- */
 .dashboard-icon-wrapper[data-state="thinking"] {
-  animation: fh-thinking 2.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
-}
-
-@keyframes fh-thinking {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-2px) scale(1.03);
-  }
-}
-
-/* --------------------------------------
-   PROCESSING — "Generating response"
-   Intent: Active execution (short-lived)
-   User: "Something is being produced right now."
-   -------------------------------------- */
-.dashboard-icon-wrapper[data-state="processing"] {
-  animation: fh-processing 1.2s linear infinite;
-}
-
-@keyframes fh-processing {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(2px); }
-  50%  { transform: translateX(0); }
-  75%  { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
+  animation:
+    fh-rotate 8s linear infinite,
+    fh-glow 2.5s ease-in-out infinite alternate;
 }
 
 /* --------------------------------------
    OBSERVING — "Draft ready, awaiting review"
-   Intent: Attention without urgency
-   User: "Future Hause is done and waiting on me."
+   Same speed as idle + glow remains active
+   Represents: done, waiting on human
    -------------------------------------- */
 .dashboard-icon-wrapper[data-state="observing"] {
-  animation: fh-observing 4.5s ease-in-out infinite;
+  animation:
+    fh-rotate 12s linear infinite,
+    fh-glow 2.5s ease-in-out infinite alternate;
 }
 
-@keyframes fh-observing {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
+/* --------------------------------------
+   PROCESSING — "Generating response"
+   Active execution (short-lived)
+   Fastest rotation + glow
+   -------------------------------------- */
+.dashboard-icon-wrapper[data-state="processing"] {
+  animation:
+    fh-rotate 4s linear infinite,
+    fh-glow 1.5s ease-in-out infinite alternate;
+}
+
+/* --------------------------------------
+   KEYFRAMES — Core Rotation
+   Continuous slow rotation
+   -------------------------------------- */
+@keyframes fh-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* --------------------------------------
+   KEYFRAMES — Breathing Glow
+   Neon glow effect (cyan base)
+   -------------------------------------- */
+@keyframes fh-glow {
+  from {
+    filter: drop-shadow(0 0 4px #00ffff) brightness(1);
+    opacity: 0.85;
   }
-  50% {
-    transform: scale(1.01);
-    opacity: 0.92;
+  to {
+    filter: drop-shadow(0 0 15px #00ffff) brightness(1.3);
+    opacity: 1;
   }
 }
 
 /* --------------------------------------
    SUCCESS — Completion glow (brief)
+   Green glow, no rotation
    -------------------------------------- */
 .dashboard-icon-wrapper[data-state="success"] {
-  animation: icon-success-glow 2s ease-in-out infinite;
+  animation: fh-success-glow 2s ease-in-out infinite;
 }
 
-@keyframes icon-success-glow {
+@keyframes fh-success-glow {
   0%, 100% {
     filter: drop-shadow(0 0 4px var(--accent-success));
     opacity: 1;
   }
   50% {
-    filter: drop-shadow(0 0 8px var(--accent-success));
+    filter: drop-shadow(0 0 12px var(--accent-success));
     opacity: 0.9;
   }
 }
 
 /* --------------------------------------
    ERROR — Attention needed (shake)
+   Red glow + shake, no rotation
    -------------------------------------- */
 .dashboard-icon-wrapper[data-state="error"] {
-  animation: icon-error-shake 0.5s ease-in-out infinite;
-  filter: drop-shadow(0 0 4px var(--accent-error));
+  animation: fh-error-shake 0.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px var(--accent-error));
 }
 
-@keyframes icon-error-shake {
+@keyframes fh-error-shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-3px); }
   75% { transform: translateX(3px); }
