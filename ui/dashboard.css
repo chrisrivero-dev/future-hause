@@ -280,6 +280,88 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   DASHBOARD LAYOUT — Flex Container for Rail + Content
+   ---------------------------------------------------------------------------- */
+
+.dashboard-layout {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: flex-start;
+}
+
+.dashboard-content {
+  flex: 1;
+  min-width: 0;  /* Prevent grid blowout from long content */
+}
+
+/* ----------------------------------------------------------------------------
+   PRESENCE RAIL — System Awareness Surface
+   - Narrow, passive, read-only
+   - Contains: icon (state-aware), status text, feed placeholder
+   - No controls, no mutations
+   ---------------------------------------------------------------------------- */
+
+.presence-rail {
+  width: 72px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+  position: sticky;
+  top: calc(var(--header-height) + var(--spacing-lg));
+
+  /* Visual treatment: subtle, not dominant */
+  background: transparent;
+  border-right: 1px solid var(--border-color-subtle);
+}
+
+/* Icon in rail — slightly smaller than original */
+.presence-rail .dashboard-icon-wrapper {
+  width: 48px;
+  height: 48px;
+}
+
+.presence-icon {
+  width: 48px;
+  height: 48px;
+  display: block;
+  pointer-events: none;
+}
+
+/* Status text — one line, muted */
+.presence-status {
+  text-align: center;
+  padding: 0 var(--spacing-xs);
+}
+
+.presence-status-text {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Feed placeholder — visual only, passive */
+.presence-feed {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-sm);
+  overflow: hidden;
+}
+
+.presence-feed-placeholder {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+/* ----------------------------------------------------------------------------
    PRIMARY INTELLIGENCE SECTION — 4 COLUMNS (CSS GRID)
 
    GRID STRUCTURE:
@@ -896,6 +978,40 @@ body {
 }
 
 /* ==========================================================================
+   TABLET: Presence Rail collapses to horizontal strip (max-width: 1024px)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+
+  .presence-rail {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color-subtle);
+    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .presence-feed {
+    display: none;  /* Hide feed placeholder on smaller screens */
+  }
+
+  .presence-rail .dashboard-icon-wrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .presence-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ==========================================================================
    MOBILE: Single stacked column (max-width: 768px)
    Grid changes to single-column vertical stack
    ========================================================================== */
@@ -943,14 +1059,14 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .dashboard-icon-wrapper {
-    width: 40px;
-    height: 40px;
+  .presence-rail .dashboard-icon-wrapper {
+    width: 32px;
+    height: 32px;
   }
 
-  .dashboard-icon {
-    width: 40px;
-    height: 40px;
+  .presence-icon {
+    width: 32px;
+    height: 32px;
   }
 }
 

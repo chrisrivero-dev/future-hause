@@ -35,13 +35,15 @@
        MAIN DASHBOARD CONTENT
        ========================= -->
   <main class="dashboard-main">
+    <div class="dashboard-layout">
 
-    <!-- =========================
-         PRIMARY INTELLIGENCE — 4 COLUMNS
-         ========================= -->
-    <section class="primary-intelligence" aria-label="Primary Intelligence">
-      <div class="section-header">
-
+      <!-- =========================
+           PRESENCE RAIL — System Awareness Surface
+           - Narrow, passive, read-only
+           - Contains: icon (state-aware), status text, feed placeholder
+           - No controls, no mutations
+           ========================= -->
+      <aside class="presence-rail" aria-label="System Presence">
         <!--
           Dashboard Icon
           Source of Truth: ui/icon.svg
@@ -53,17 +55,36 @@
         <div class="dashboard-icon-wrapper" id="dashboard-icon" data-state="idle">
           <img
             src="./icon.svg"
-            class="dashboard-icon"
-            alt="Future Hause Assistant Icon"
-            width="56"
-            height="56"
+            class="presence-icon"
+            alt="Future Hause"
+            width="48"
+            height="48"
             loading="eager"
             decoding="async"
           />
         </div>
 
-        <h2 class="section-title">Activity Feed</h2>
-      </div>
+        <div class="presence-status">
+          <span class="presence-status-text">Idle</span>
+        </div>
+
+        <div class="presence-feed" aria-label="Active Feed">
+          <div class="presence-feed-placeholder">—</div>
+        </div>
+      </aside>
+
+      <!-- =========================
+           DASHBOARD CONTENT — Main Intelligence Area
+           ========================= -->
+      <div class="dashboard-content">
+
+        <!-- =========================
+             PRIMARY INTELLIGENCE — 4 COLUMNS
+             ========================= -->
+        <section class="primary-intelligence" aria-label="Primary Intelligence">
+          <div class="section-header">
+            <h2 class="section-title">Activity Feed</h2>
+          </div>
 
       <div class="intel-grid">
 
@@ -208,7 +229,15 @@
         </div>
       </section>
 
+      </div>
+      <!-- closes secondary-sections -->
+
     </div>
+    <!-- closes dashboard-content -->
+
+  </div>
+  <!-- closes dashboard-layout -->
+
   </main>
 
   <!-- =========================
