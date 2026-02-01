@@ -1004,6 +1004,20 @@ const PRESENCE_STATES = {
   OBSERVING: 'observing'
 };
 
+// Presence state copy (exact strings, verbatim)
+const PRESENCE_COPY = {
+  [PRESENCE_STATES.IDLE]: 'Waiting for input. No analysis in progress.',
+  [PRESENCE_STATES.THINKING]: 'Interpreting your message and preparing a draft response. No actions are being taken.',
+  [PRESENCE_STATES.OBSERVING]: 'Draft prepared. Awaiting your review or next instruction.'
+};
+
+// Presence state labels (short form for UI)
+const PRESENCE_LABELS = {
+  [PRESENCE_STATES.IDLE]: 'Idle',
+  [PRESENCE_STATES.THINKING]: 'Thinking',
+  [PRESENCE_STATES.OBSERVING]: 'Observing'
+};
+
 /**
  * Update presence state (icon + status text)
  * @param {string} presenceState - One of PRESENCE_STATES
@@ -1015,20 +1029,16 @@ function setPresenceState(presenceState) {
     iconWrapper.setAttribute('data-state', presenceState);
   }
 
-  // Update status text
+  // Update status text (short label)
   const statusText = document.querySelector('.presence-status-text');
   if (statusText) {
-    const labels = {
-      [PRESENCE_STATES.IDLE]: 'Idle',
-      [PRESENCE_STATES.THINKING]: 'Thinking',
-      [PRESENCE_STATES.OBSERVING]: 'Observing'
-    };
-    statusText.textContent = labels[presenceState] || 'Idle';
+    statusText.textContent = PRESENCE_LABELS[presenceState] || 'Idle';
   }
 }
 
 /**
  * Purpose disclosure — explains Future Hause's role when asked
+ * Returns response in mandatory schema format
  * @param {string} userInput - User's input text
  * @returns {string|null} Disclosure text if triggered, null otherwise
  */
@@ -1049,27 +1059,59 @@ function checkPurposeDisclosure(userInput) {
   const triggered = purposeTriggers.some(trigger => lowered.includes(trigger));
 
   if (triggered) {
-    return `My role is to serve, assist, and support you.
-
-I provide:
-• Drafts and structured summaries
-• Explanations of observations and patterns
-• Recommendations for your consideration
-
-All decisions and actions remain under your control.
-I do not execute, submit, or persist anything automatically.
-
-This phase is intentionally limited.
-Safety, reversibility, and clarity take priority over capability.`;
+    return formatResponse({
+      presenceState: PRESENCE_STATES.OBSERVING,
+      summary: 'You asked about my purpose and capabilities.',
+      whatIDid: [
+        'Explained my role: to serve, assist, and support you',
+        'Clarified that I provide drafts, explanations, and recommendations',
+        'Confirmed all decisions remain under your control'
+      ],
+      whatIDidNot: [
+        'No data was persisted',
+        'No external systems were contacted',
+        'No actions were executed'
+      ],
+      nextStep: 'Share observations or context you would like me to consider.'
+    });
   }
 
   return null;
 }
 
 /**
+ * Format response according to mandatory schema
+ * @param {object} params - Response parameters
+ * @returns {string} Formatted response
+ */
+function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextStep }) {
+  const lines = [
+    'Status:',
+    `• Presence State: ${PRESENCE_LABELS[presenceState] || 'Observing'}`,
+    '• Mode: Draft / Advisory',
+    '• Side Effects: None',
+    '',
+    'Summary:',
+    `• ${summary}`,
+    '',
+    'What I did:',
+    ...whatIDid.map(item => `• ${item}`),
+    '',
+    'What I did NOT do:',
+    ...whatIDidNot.map(item => `• ${item}`)
+  ];
+
+  if (nextStep) {
+    lines.push('', 'Next suggested step (optional):', `• ${nextStep}`);
+  }
+
+  return lines.join('\n');
+}
+
+/**
  * Send notes to LLM and get response
  * @param {string} notes - User's notes
- * @returns {Promise<string>} LLM response
+ * @returns {Promise<string>} LLM response in mandatory schema format
  */
 async function sendToLLM(notes) {
   // Check for purpose disclosure first
@@ -1085,23 +1127,23 @@ async function sendToLLM(notes) {
   return new Promise((resolve) => {
     // Simulate LLM processing time
     setTimeout(() => {
-      const today = new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-
-      resolve(`Today I:
-• Received and considered your observations
-• Noted the patterns and context you shared
-• Prepared this acknowledgment for your review
-
-No actions were taken. No data was saved.
-This response is for your reference only.
-
-Timestamp: ${today}
-Status: Observation logged (in-memory only)`);
+      resolve(formatResponse({
+        presenceState: PRESENCE_STATES.OBSERVING,
+        summary: 'Received and interpreted your observations.',
+        whatIDid: [
+          'Read and parsed your input',
+          'Identified key themes and context',
+          'Prepared this acknowledgment for your review'
+        ],
+        whatIDidNot: [
+          'No data was saved or persisted',
+          'No Excel or Freshdesk writes',
+          'No API calls to external systems',
+          'No action log entries created',
+          'No assumptions made about hours or work'
+        ],
+        nextStep: 'Provide more detail, or ask me to draft a work log entry.'
+      }));
     }, 1500);
   });
 }
@@ -1179,6 +1221,38 @@ function wireNotesSubmit() {
         handleNotesSubmit();
       }
     });
+  }
+
+  // Wire up collapsible response panel
+  const responseHeader = document.getElementById('notes-response-header');
+  if (responseHeader) {
+    responseHeader.addEventListener('click', toggleResponsePanel);
+    responseHeader.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleResponsePanel();
+      }
+    });
+  }
+}
+
+/**
+ * Toggle response panel expand/collapse
+ */
+function toggleResponsePanel() {
+  const header = document.getElementById('notes-response-header');
+  const body = document.getElementById('notes-response-body');
+
+  if (!header || !body) return;
+
+  const isExpanded = body.classList.contains('expanded');
+
+  if (isExpanded) {
+    body.classList.remove('expanded');
+    header.setAttribute('aria-expanded', 'false');
+  } else {
+    body.classList.add('expanded');
+    header.setAttribute('aria-expanded', 'true');
   }
 }
 

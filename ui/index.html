@@ -220,11 +220,23 @@
               </button>
             </div>
 
-            <!-- Response Panel (hidden until response received) -->
+            <!-- Response Panel (collapsible, hidden until response received) -->
             <div id="notes-response-panel" class="notes-response-panel" hidden>
-              <div class="notes-response-header">Future Hause Response</div>
-              <div id="notes-response-content" class="notes-response-content"></div>
-              <div class="notes-response-footer">Nothing was committed.</div>
+              <div
+                class="notes-response-header"
+                id="notes-response-header"
+                role="button"
+                tabindex="0"
+                aria-expanded="true"
+                aria-controls="notes-response-body"
+              >
+                <span class="notes-response-title">Future Hause Response</span>
+                <span class="notes-response-toggle" aria-hidden="true">▼</span>
+              </div>
+              <div id="notes-response-body" class="notes-response-body expanded">
+                <div id="notes-response-content" class="notes-response-content"></div>
+                <div class="notes-response-footer">Nothing was committed.</div>
+              </div>
             </div>
           </div>
         </section>
