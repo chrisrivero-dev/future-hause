@@ -15,6 +15,10 @@ const CONFIG = {
     actionLog: 'action_log.json'
   }
 };
+/* ... existing header ... */
+
+// LLM routing rules are defined in docs/llm-routing.md
+// Code must conform to that contract. No implicit actions.
 
 // State for loaded data and metadata
 const state = {
