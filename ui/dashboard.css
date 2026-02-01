@@ -198,32 +198,95 @@ body {
 
 /* ==========================================================================
    ICON ANIMATION STATES — CSS Only, Wrapper-Level
-   States: idle, processing, thinking, success, error
+   Motion Spec: Source-Translated Presence Animations
 
-   idle       → Static, calm presence
-   processing → Active work (horizontal shift)
-   thinking   → Contemplation (soft breathe, slower)
-   success    → Completion glow
-   error      → Attention needed (shake)
+   States: idle, thinking, processing, observing, success, error
+
+   GUARDRAILS:
+   - No animation implies work occurred
+   - Idle must never look busy
+   - Processing must be short-lived
+   - Observing must feel "done, waiting"
    ========================================================================== */
 
-/* Idle State (default): Static — no animation */
+/* --------------------------------------
+   IDLE — "Waiting, no analysis"
+   Intent: Calm, available, not busy
+   User: "Nothing is happening, and that's correct."
+   -------------------------------------- */
 .dashboard-icon-wrapper[data-state="idle"] {
-  animation: none;
+  animation: fh-idle-breathe 3.8s ease-in-out infinite;
 }
 
-/* Processing State: Horizontal shift (no rotation) */
+@keyframes fh-idle-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.015);
+    opacity: 0.96;
+  }
+}
+
+/* --------------------------------------
+   THINKING — "Interpreting input"
+   Intent: Reflection, consideration
+   User: "Future Hause is actively reading and reasoning."
+   -------------------------------------- */
+.dashboard-icon-wrapper[data-state="thinking"] {
+  animation: fh-thinking 2.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+}
+
+@keyframes fh-thinking {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.03);
+  }
+}
+
+/* --------------------------------------
+   PROCESSING — "Generating response"
+   Intent: Active execution (short-lived)
+   User: "Something is being produced right now."
+   -------------------------------------- */
 .dashboard-icon-wrapper[data-state="processing"] {
-  animation: icon-processing-shift 1.2s ease-in-out infinite;
+  animation: fh-processing 1.2s linear infinite;
 }
 
-@keyframes icon-processing-shift {
+@keyframes fh-processing {
   0%   { transform: translateX(0); }
-  50%  { transform: translateX(6px); }
+  25%  { transform: translateX(2px); }
+  50%  { transform: translateX(0); }
+  75%  { transform: translateX(-2px); }
   100% { transform: translateX(0); }
 }
 
-/* Success State: Glow effect via filter */
+/* --------------------------------------
+   OBSERVING — "Draft ready, awaiting review"
+   Intent: Attention without urgency
+   User: "Future Hause is done and waiting on me."
+   -------------------------------------- */
+.dashboard-icon-wrapper[data-state="observing"] {
+  animation: fh-observing 4.5s ease-in-out infinite;
+}
+
+@keyframes fh-observing {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.01);
+    opacity: 0.92;
+  }
+}
+
+/* --------------------------------------
+   SUCCESS — Completion glow (brief)
+   -------------------------------------- */
 .dashboard-icon-wrapper[data-state="success"] {
   animation: icon-success-glow 2s ease-in-out infinite;
 }
@@ -239,7 +302,9 @@ body {
   }
 }
 
-/* Error State: Shake wrapper with red glow */
+/* --------------------------------------
+   ERROR — Attention needed (shake)
+   -------------------------------------- */
 .dashboard-icon-wrapper[data-state="error"] {
   animation: icon-error-shake 0.5s ease-in-out infinite;
   filter: drop-shadow(0 0 4px var(--accent-error));
@@ -249,24 +314,6 @@ body {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-3px); }
   75% { transform: translateX(3px); }
-}
-
-/* Thinking State: Softer, slower motion — distinct from processing
-   Suggests contemplation, awareness, "I'm here and listening" */
-.dashboard-icon-wrapper[data-state="thinking"] {
-  animation: icon-thinking-breathe 3s ease-in-out infinite;
-}
-
-@keyframes icon-thinking-breathe {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.85;
-    filter: drop-shadow(0 0 3px var(--accent-purple));
-  }
 }
 
 /* ----------------------------------------------------------------------------
