@@ -177,38 +177,71 @@
          ========================= -->
     <div class="secondary-sections">
 
-      <!--
-        Action Log
-        NAVIGATION CONTRACT:
-        - Click Target: Expand row to show full rationale (in-place)
-        - Route: None (read-only audit trail, no navigation)
-        - Data Passed: { id, timestamp, action_type, rationale, actor }
-        - Purpose: Immutable record, no actions allowed
-      -->
-      <section class="secondary-section" aria-label="Action Log" data-section="action-log">
-        <div class="secondary-section-header">
-          <h2 class="secondary-section-title">Action Log</h2>
-        </div>
-        <div class="secondary-section-content">
-          <table class="action-log-table">
-            <thead>
-              <tr>
-                <th class="col-time">Timestamp</th>
-                <th class="col-id">ID</th>
-                <th class="col-action">Action</th>
-                <th class="col-rationale">Rationale</th>
-              </tr>
-            </thead>
-            <tbody id="action-log-table-body">
-              <tr>
-                <td colspan="4" class="intel-empty">
-                  <div class="intel-empty-text">No actions logged yet</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <!-- =========================
+           NOTES + ACTION LOG ROW — Side by Side
+           ========================= -->
+      <div class="notes-log-row">
+
+        <!--
+          Notes to Future Hause
+          PURPOSE:
+          - Passive textarea for human observations
+          - No submit, no JS, no data binding
+          - Intent: "Here's what I'm noticing"
+          - Separates intent (notes) from outcomes (log)
+        -->
+        <section class="secondary-section notes-section" aria-label="Notes to Future Hause" data-section="notes">
+          <div class="secondary-section-header">
+            <h2 class="secondary-section-title">Notes to Future Hause</h2>
+          </div>
+          <div class="secondary-section-content notes-content">
+            <p class="notes-helper-text">
+              Observations, patterns, or context you want Future Hause to consider.
+              These notes are for your reference only.
+            </p>
+            <textarea
+              class="notes-textarea"
+              placeholder="What are you noticing?"
+              aria-label="Notes textarea"
+              rows="6"
+            ></textarea>
+          </div>
+        </section>
+
+        <!--
+          Action Log
+          NAVIGATION CONTRACT:
+          - Click Target: Expand row to show full rationale (in-place)
+          - Route: None (read-only audit trail, no navigation)
+          - Data Passed: { id, timestamp, action_type, rationale, actor }
+          - Purpose: Immutable record, no actions allowed
+        -->
+        <section class="secondary-section" aria-label="Action Log" data-section="action-log">
+          <div class="secondary-section-header">
+            <h2 class="secondary-section-title">Action Log</h2>
+          </div>
+          <div class="secondary-section-content">
+            <table class="action-log-table">
+              <thead>
+                <tr>
+                  <th class="col-time">Timestamp</th>
+                  <th class="col-id">ID</th>
+                  <th class="col-action">Action</th>
+                  <th class="col-rationale">Rationale</th>
+                </tr>
+              </thead>
+              <tbody id="action-log-table-body">
+                <tr>
+                  <td colspan="4" class="intel-empty">
+                    <div class="intel-empty-text">No actions logged yet</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
 
       <!--
         System Metadata

@@ -720,6 +720,68 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   NOTES + ACTION LOG ROW — Side by Side Layout
+   - Notes on left: passive input for human observations
+   - Action Log on right: read-only audit trail
+   - Separates intent (notes) from outcomes (log)
+   ---------------------------------------------------------------------------- */
+
+.notes-log-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--spacing-lg);
+}
+
+/* Notes Section — Passive textarea, no submit, no JS */
+.notes-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+.notes-helper-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.notes-textarea {
+  flex: 1;
+  min-height: 120px;
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color-subtle);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color 0.2s ease-out;
+}
+
+.notes-textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .notes-textarea {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ----------------------------------------------------------------------------
    EXPLANATION PANELS — Inline Expandable Intelligence Context
    Purpose: Provide plain-language explanations of each section
    Triggered: Click on section header
@@ -1012,6 +1074,11 @@ body {
   .presence-icon {
     width: 36px;
     height: 36px;
+  }
+
+  /* Stack Notes + Action Log vertically on tablet */
+  .notes-log-row {
+    grid-template-columns: 1fr;
   }
 }
 
