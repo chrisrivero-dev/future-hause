@@ -57,6 +57,74 @@ const CONFIG = {
   }
 };
 
+/* ----------------------------------------------------------------------------
+   SECTION EXPLANATIONS — Plain-Language Intelligence Context
+   Purpose: Help users understand what each section represents
+   ---------------------------------------------------------------------------- */
+
+const SECTION_EXPLANATIONS = {
+  'intel-events': {
+    title: 'What is New Intel?',
+    text: 'Signals, observations, or ideas the system has noticed. This is raw, uncommitted intelligence — nothing here has been acted upon yet.',
+    examples: [
+      'New FutureBit firmware updates or announcements',
+      'Reddit community discussions or support questions',
+      'Documentation gaps or user confusion patterns',
+      'Suggestions tied to current projects'
+    ]
+  },
+  'kb-opportunities': {
+    title: 'What are KB Opportunities?',
+    text: 'Places where documentation or canned responses could improve. These are evidence-backed suggestions derived from intel analysis.',
+    examples: [
+      'Frequently asked questions without clear answers',
+      'Common support issues that could be documented',
+      'Feature explanations that users struggle to find',
+      'Gaps between product capabilities and documentation'
+    ]
+  },
+  'projects': {
+    title: 'What are Projects?',
+    text: 'Human-approved initiatives you are actively working on. Projects are promoted from intel or recommendations — they represent committed work.',
+    examples: [
+      'Documentation improvements in progress',
+      'Support workflow optimizations',
+      'Knowledge base article drafts',
+      'Process improvements based on intel patterns'
+    ]
+  },
+  'recommendations': {
+    title: 'What are Recommendations?',
+    text: 'Actionable suggestions derived from intel and context. These are advisory only — a human must decide whether to act on them.',
+    examples: [
+      'Suggested KB articles based on support patterns',
+      'Proposed canned responses for common questions',
+      'Workflow improvements based on observed friction',
+      'Priority suggestions based on signal frequency'
+    ]
+  },
+  'action-log': {
+    title: 'What is the Action Log?',
+    text: 'An immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded here with timestamps and rationale.',
+    examples: [
+      'Intel promoted to project (with reason)',
+      'Recommendation accepted or dismissed',
+      'KB article published from opportunity',
+      'System state changes and their triggers'
+    ]
+  },
+  'metadata': {
+    title: 'What is System Metadata?',
+    text: 'Health and trust indicators for the system. This shows schema versions, load status, and timestamps — pure observability, no business logic.',
+    examples: [
+      'Schema version compatibility checks',
+      'Data freshness timestamps',
+      'Load status for each data source',
+      'System configuration state'
+    ]
+  }
+};
+
 // State for loaded data and metadata
 const state = {
   intelEvents: null,
@@ -369,21 +437,35 @@ function renderActionLogTable() {
   const actions = getNestedValue(state.actionLog, 'actions', []);
 
   if (actions.length === 0) {
+    // Meaningful placeholder explaining what will appear here
     container.innerHTML = `
       <tr>
-        <td colspan="4" class="intel-empty">
-          <div class="intel-empty-text">No actions logged yet</div>
+        <td colspan="4" class="action-log-empty">
+          <div class="action-log-empty-content">
+            <div class="action-log-empty-title">No actions recorded yet</div>
+            <div class="action-log-empty-text">
+              When you promote intel to projects, accept recommendations, or dismiss items,
+              those decisions will appear here with timestamps and rationale.
+            </div>
+            <div class="action-log-empty-hint">
+              This is your audit trail — every decision is logged for transparency.
+            </div>
+          </div>
         </td>
       </tr>
     `;
     return;
   }
 
+  // Render actual action log entries
   container.innerHTML = actions.map(action => `
-    <tr>
+    <tr class="action-log-row" data-action-id="${escapeHtml(action.id || '')}">
       <td class="col-time">${formatTimestamp(action.timestamp || action.created_at)}</td>
       <td class="col-id">${escapeHtml(action.id || '—')}</td>
-      <td class="col-action">${escapeHtml(action.action || action.recommendation || '—')}</td>
+      <td class="col-action">
+        <span class="action-type">${escapeHtml(action.action || action.type || '—')}</span>
+        ${action.target ? `<span class="action-target">→ ${escapeHtml(action.target)}</span>` : ''}
+      </td>
       <td class="col-rationale">${escapeHtml(action.rationale || '—')}</td>
     </tr>
   `).join('');
@@ -759,6 +841,87 @@ window.mockThinking = mockThinking;
 window.setIconState = setIconState;
 
 /* ----------------------------------------------------------------------------
+   EXPLANATION PANELS — Inline Expandable Intelligence Context
+   Purpose: Help users understand what each section represents
+   Triggered: Click on section header
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Create explanation panel HTML
+ * @param {string} sectionKey - Key from SECTION_EXPLANATIONS
+ * @returns {string} HTML string
+ */
+function createExplanationPanel(sectionKey) {
+  const explanation = SECTION_EXPLANATIONS[sectionKey];
+  if (!explanation) return '';
+
+  const examplesList = explanation.examples
+    .map(ex => `<li>${ex}</li>`)
+    .join('');
+
+  return `
+    <div class="explanation-panel" data-panel="${sectionKey}">
+      <div class="explanation-panel-title">${explanation.title}</div>
+      <div class="explanation-panel-text">${explanation.text}</div>
+      <ul class="explanation-panel-examples">${examplesList}</ul>
+    </div>
+  `;
+}
+
+/**
+ * Toggle explanation panel visibility
+ * @param {string} sectionKey - Key from SECTION_EXPLANATIONS
+ */
+function toggleExplanationPanel(sectionKey) {
+  const panel = document.querySelector(`[data-panel="${sectionKey}"]`);
+  if (panel) {
+    panel.classList.toggle('expanded');
+  }
+}
+
+/**
+ * Wire up explanation panel click handlers
+ * Called once on DOMContentLoaded
+ */
+function wireExplanationPanels() {
+  // Wire up intel columns
+  document.querySelectorAll('.intel-column[data-section]').forEach(column => {
+    const sectionKey = column.getAttribute('data-section');
+    const header = column.querySelector('.intel-column-header');
+    const content = column.querySelector('.intel-column-content');
+
+    if (header && content && SECTION_EXPLANATIONS[sectionKey]) {
+      // Insert explanation panel after header
+      header.insertAdjacentHTML('afterend', createExplanationPanel(sectionKey));
+
+      // Add click handler to header
+      header.addEventListener('click', (e) => {
+        // Don't trigger if clicking on count or other interactive elements
+        if (e.target.closest('.intel-column-count')) return;
+        toggleExplanationPanel(sectionKey);
+      });
+    }
+  });
+
+  // Wire up secondary sections
+  document.querySelectorAll('.secondary-section[data-section]').forEach(section => {
+    const sectionKey = section.getAttribute('data-section');
+    const header = section.querySelector('.secondary-section-header');
+    const content = section.querySelector('.secondary-section-content');
+
+    if (header && content && SECTION_EXPLANATIONS[sectionKey]) {
+      // Insert explanation panel after header
+      header.insertAdjacentHTML('afterend', createExplanationPanel(sectionKey));
+
+      // Add click handler to header
+      header.addEventListener('click', () => {
+        toggleExplanationPanel(sectionKey);
+      });
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------------
    THEME TOGGLE — Dark/Light Mode
    - Persists to localStorage (theme preference only)
    - Dark mode is default
@@ -828,6 +991,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Wire up icon interactive events
   wireIconEvents();
+
+  // Wire up explanation panels for section headers
+  wireExplanationPanels();
 
   // State only changes via hover, click, or explicit function calls
 
