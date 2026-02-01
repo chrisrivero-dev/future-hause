@@ -1,316 +1,178 @@
-# Presence Rail — Layout Proposal
+# Presence Column — Layout Proposal
 
-**Status:** Exploratory (not finalized)
-**Scope:** CSS + minimal HTML changes only
-**Reversibility:** Full (additive changes, no destructive edits)
-
----
-
-## Concept
-
-A narrow left-side rail dedicated to Future Hause's system presence.
-
-**Goals:**
-- Visually separate system awareness from intelligence content
-- Give the icon and status a clear, intentional home
-- Allow main dashboard columns to move up and breathe
-
-**Constraints:**
-- Passive only (no controls, no mutations, no navigation)
-- No new data fetching
-- No new logic
-- Narrow (~72px)
+**Status:** Proposal refinement (not finalized)
+**Scope:** Design direction only
+**Reference:** Klaus-style presence pattern
 
 ---
 
-## Current Layout
+## Design Intent
 
-```
-┌──────────────────────────────────────────────────────────┐
-│ HEADER                                                   │
-├──────────────────────────────────────────────────────────┤
-│                                                          │
-│  [icon] Activity Feed                                    │
-│                                                          │
-│  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐                 │
-│  │ Col1 │  │ Col2 │  │ Col3 │  │ Col4 │                 │
-│  │      │  │      │  │      │  │      │                 │
-│  └──────┘  └──────┘  └──────┘  └──────┘                 │
-│                                                          │
-│  [Action Log]                                            │
-│  [System Metadata]                                       │
-│                                                          │
-├──────────────────────────────────────────────────────────┤
-│ FOOTER                                                   │
-└──────────────────────────────────────────────────────────┘
-```
+**Metaphor:** A coworker standing beside the board.
+
+Future Hause should feel present — not as a tool, but as a quiet collaborator.
+The Presence Column gives the system a place to exist without demanding attention.
+
+**Feeling:** Calm, ambient, always visible.
 
 ---
 
-## Proposed Layout
+## What It IS
 
-```
-┌──────────────────────────────────────────────────────────┐
-│ HEADER                                                   │
-├────────┬─────────────────────────────────────────────────┤
-│        │                                                 │
-│ ┌────┐ │  Activity Feed                                  │
-│ │icon│ │                                                 │
-│ └────┘ │  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐        │
-│        │  │ Col1 │  │ Col2 │  │ Col3 │  │ Col4 │        │
-│ status │  │      │  │      │  │      │  │      │        │
-│  text  │  └──────┘  └──────┘  └──────┘  └──────┘        │
-│        │                                                 │
-│ ······ │  [Action Log]                                   │
-│ feed   │  [System Metadata]                              │
-│ ······ │                                                 │
-│        │                                                 │
-├────────┴─────────────────────────────────────────────────┤
-│ FOOTER                                                   │
-└──────────────────────────────────────────────────────────┘
-```
+- A left-side **Presence Column**
+- Avatar at top (the Future Hause icon)
+- Name + state beneath (e.g., "Idle", "Thinking", "Observing")
+- Subtle divider from main content
+- Always visible, never intrusive
+
+## What It Is NOT
+
+- **NOT navigation** — no links, no routing
+- **NOT a menu** — no dropdowns, no options
+- **NOT interactive** (yet) — no clicks, no toggles
+- **NOT a sidebar** — sidebars are for tools; this is for presence
 
 ---
 
-## HTML Structure Changes
+## Presence States
 
-**New wrapper inside `<main class="dashboard-main">`:**
+The column reflects Future Hause's current awareness:
 
-```html
-<main class="dashboard-main">
-  <div class="dashboard-layout">
+| State | Meaning | Visual Treatment |
+|-------|---------|------------------|
+| **Idle** | Waiting, at rest | Static, calm |
+| **Thinking** | Processing, contemplating | Soft breathe animation |
+| **Observing** | Actively watching signals | Subtle pulse |
 
-    <!-- NEW: Presence Rail -->
-    <aside class="presence-rail" aria-label="System Presence">
-      <div class="presence-icon-wrapper" id="dashboard-icon" data-state="idle">
-        <img src="./icon.svg" class="presence-icon" alt="Future Hause" width="48" height="48" />
-      </div>
-      <div class="presence-status">
-        <span class="presence-status-text">Idle</span>
-      </div>
-      <div class="presence-feed" aria-label="Active Feed (placeholder)">
-        <!-- Optional: visual activity indicator -->
-        <div class="presence-feed-empty">—</div>
-      </div>
-    </aside>
-
-    <!-- Existing content moves here -->
-    <div class="dashboard-content">
-      <section class="primary-intelligence">...</section>
-      <div class="secondary-sections">...</div>
-    </div>
-
-  </div>
-</main>
-```
-
-**Removed from current location:**
-- Icon wrapper moves from `.section-header` to `.presence-rail`
+State is read-only. It reflects engine status, not user input.
 
 ---
 
-## CSS Changes
+## Visual Structure
 
-### New: Dashboard Layout Container
-
-```css
-.dashboard-layout {
-  display: flex;
-  gap: var(--spacing-lg);
-  align-items: flex-start;
-}
-
-.dashboard-content {
-  flex: 1;
-  min-width: 0;  /* Prevent grid blowout */
-}
+```
+┌─────────────────────────────────────────────────────────────┐
+│ HEADER                                                      │
+├──────────┬──────────────────────────────────────────────────┤
+│          │                                                  │
+│  ┌────┐  │  Activity Feed                                   │
+│  │    │  │                                                  │
+│  │ FH │  │  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐         │
+│  │    │  │  │      │  │      │  │      │  │      │         │
+│  └────┘  │  │ Col1 │  │ Col2 │  │ Col3 │  │ Col4 │         │
+│          │  │      │  │      │  │      │  │      │         │
+│  Future  │  └──────┘  └──────┘  └──────┘  └──────┘         │
+│  Hause   │                                                  │
+│          │  [Action Log]                                    │
+│  Idle    │  [System Metadata]                               │
+│          │                                                  │
+│          │                                                  │
+│          │                                                  │
+├──────────┴──────────────────────────────────────────────────┤
+│ FOOTER                                                      │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### New: Presence Rail Styles
+**Column contents (top to bottom):**
+1. **Avatar** — Future Hause icon (state-aware)
+2. **Name** — "Future Hause" (static text)
+3. **State** — Current state label (Idle / Thinking / Observing)
+4. **Empty space** — Column extends down, ambient presence
 
-```css
-/* ----------------------------------------------------------------------------
-   PRESENCE RAIL — System Awareness Surface
-   - Narrow, passive, read-only
-   - Contains: icon (state-aware), status text, feed placeholder
-   - No controls, no mutations
-   ---------------------------------------------------------------------------- */
-
-.presence-rail {
-  width: 72px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-md) 0;
-
-  /* Visual treatment: subtle, not dominant */
-  background: transparent;
-  border-right: 1px solid var(--border-color-subtle);
-}
-
-/* Icon container — inherits existing animation states */
-.presence-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  will-change: transform, filter, opacity;
-  backface-visibility: hidden;
-}
-
-.presence-icon {
-  width: 48px;
-  height: 48px;
-  display: block;
-  pointer-events: none;
-}
-
-/* Status text — one line, muted */
-.presence-status {
-  text-align: center;
-  padding: 0 var(--spacing-xs);
-}
-
-.presence-status-text {
-  font-size: 0.65rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Feed placeholder — visual only */
-.presence-feed {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--spacing-sm);
-  overflow: hidden;
-}
-
-.presence-feed-empty {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
-/* Optional: subtle activity dots (visual only, no data) */
-.presence-feed-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  opacity: 0.3;
-  margin-bottom: var(--spacing-xs);
-}
-```
-
-### Responsive: Collapse on Mobile
-
-```css
-@media (max-width: 768px) {
-  .dashboard-layout {
-    flex-direction: column;
-  }
-
-  .presence-rail {
-    width: 100%;
-    flex-direction: row;
-    justify-content: center;
-    border-right: none;
-    border-bottom: 1px solid var(--border-color-subtle);
-    padding: var(--spacing-sm) var(--spacing-md);
-    gap: var(--spacing-md);
-  }
-
-  .presence-feed {
-    display: none;  /* Hide feed on mobile */
-  }
-
-  .presence-icon-wrapper {
-    width: 32px;
-    height: 32px;
-  }
-
-  .presence-icon {
-    width: 32px;
-    height: 32px;
-  }
-}
-```
+**Main content area:**
+- Shifts right to make room
+- Moves up (no icon in section header anymore)
+- Breathes with more vertical space
 
 ---
 
-## Section Header Adjustment
+## Column Specifications
 
-With icon moved to rail, simplify the section header:
-
-```css
-.section-header {
-  margin-bottom: var(--spacing-lg);
-  /* Remove flex layout if icon is gone */
-}
-
-.section-title {
-  /* Remains as-is */
-}
-```
+| Property | Value | Notes |
+|----------|-------|-------|
+| Width | ~80-96px | Narrow but readable |
+| Position | Sticky | Stays visible on scroll |
+| Background | Transparent or subtle | Not dominant |
+| Divider | 1px subtle border | Separates from content |
+| Avatar size | 48-56px | Prominent but not huge |
+| Name text | Small, muted | Secondary to avatar |
+| State text | Small, mono | Reflects current state |
 
 ---
 
-## Animation State Inheritance
+## Comparison: Before and After
 
-Existing icon animation states apply to `.presence-icon-wrapper`:
+**Before:**
+- Icon embedded in section header
+- Mixed with "Activity Feed" title
+- Feels like decoration
 
-| State | Animation | Notes |
-|-------|-----------|-------|
-| `idle` | none | Static |
-| `processing` | `icon-processing-shift` | Horizontal motion |
-| `thinking` | `icon-thinking-breathe` | Soft scale pulse |
-| `success` | `icon-success-glow` | Green drop-shadow |
-| `error` | `icon-error-shake` | Red shake |
+**After:**
+- Icon has dedicated home
+- Name and state clearly visible
+- Feels like a presence
 
-No changes to keyframes required.
+---
+
+## Animation Inheritance
+
+Existing icon animation states apply to avatar:
+
+| State | Animation | Duration |
+|-------|-----------|----------|
+| `idle` | None (static) | — |
+| `thinking` | Soft breathe | 3s ease-in-out |
+| `processing` | Horizontal shift | 1.2s ease-in-out |
+| `success` | Green glow | 2s ease-in-out |
+| `error` | Shake + red glow | 0.5s |
+
+No new animations required.
+
+---
+
+## Responsive Behavior
+
+| Breakpoint | Behavior |
+|------------|----------|
+| Desktop (>1024px) | Column on left, content on right |
+| Tablet (≤1024px) | Column collapses to horizontal strip |
+| Mobile (≤768px) | Minimal: avatar + state only |
+
+On smaller screens, the "coworker" steps back but remains visible.
 
 ---
 
 ## What This Proposal Does NOT Include
 
-- No new JavaScript logic
-- No new data sources
-- No fetch calls
-- No interactive controls
+- No implementation code
+- No CSS changes (yet)
+- No HTML changes (yet)
+- No JavaScript logic
+- No data fetching
+- No interactive behavior
 - No navigation
-- No mutations
-- No finalization
 
 ---
 
 ## Open Questions
 
-1. Should the feed placeholder show activity dots, or remain empty?
-2. Should status text reflect `data-state` (e.g., "Processing..." when active)?
-3. Should rail have a subtle background, or remain transparent?
-4. Should rail stick to viewport, or scroll with content?
+1. **Name visibility** — Should "Future Hause" text always show, or only on hover?
+2. **State mapping** — What engine states map to "Observing"?
+3. **Column width** — 72px (current) vs 96px (more readable)?
+4. **Sticky behavior** — Full height sticky, or scroll with content?
+5. **Feed placeholder** — Keep the placeholder area, or remove entirely?
 
 ---
 
-## Reversal Path
+## Next Steps (If Approved)
 
-To remove:
-1. Delete `.presence-rail` element from HTML
-2. Delete `.dashboard-layout` wrapper
-3. Restore icon to `.section-header`
-4. Remove CSS additions (rail, layout)
-
-All changes are additive and isolated.
+1. Finalize column width and spacing
+2. Update HTML structure (move icon, add name/state text)
+3. Refine CSS for column layout
+4. Map engine states to presence states
+5. Test responsive collapse behavior
 
 ---
 
-**Version:** Proposal v0
-**Status:** Awaiting review
+**Version:** Proposal v1 (Klaus-aligned)
+**Status:** Awaiting design approval
