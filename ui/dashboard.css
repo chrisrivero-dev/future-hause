@@ -791,6 +791,179 @@ body {
   background: rgba(0, 0, 0, 0.02);
 }
 
+/* Notes Actions — Submit button */
+.notes-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-sm);
+}
+
+.notes-submit-btn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.notes-submit-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+}
+
+.notes-submit-btn:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+.notes-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-theme="light"] .notes-submit-btn:hover {
+  border-color: var(--accent-purple);
+}
+
+/* Notes Response Panel */
+.notes-response-panel {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color-subtle);
+  border-radius: 8px;
+}
+
+.notes-response-panel[hidden] {
+  display: none;
+}
+
+.notes-response-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-cyan);
+  margin-bottom: var(--spacing-sm);
+}
+
+[data-theme="light"] .notes-response-header {
+  color: var(--accent-purple);
+}
+
+.notes-response-content {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.notes-response-content ul {
+  margin: var(--spacing-sm) 0;
+  padding-left: var(--spacing-lg);
+}
+
+.notes-response-content li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.notes-response-footer {
+  margin-top: var(--spacing-md);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: right;
+}
+
+/* ----------------------------------------------------------------------------
+   DRAFT WORK LOG — Assistant-Generated Drafts
+   - For human review only
+   - No Excel, Freshdesk, or API writes
+   - No persistence, no assumptions
+   ---------------------------------------------------------------------------- */
+
+.draft-worklog-section .secondary-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.draft-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  background: var(--accent-warning);
+  color: #000;
+  border-radius: 3px;
+}
+
+.draft-worklog-helper-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.draft-worklog-entries {
+  min-height: 100px;
+  padding: var(--spacing-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color-subtle);
+  border-radius: 6px;
+  margin-bottom: var(--spacing-md);
+}
+
+[data-theme="light"] .draft-worklog-entries {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.draft-worklog-empty {
+  text-align: center;
+  padding: var(--spacing-lg);
+  color: var(--text-muted);
+}
+
+.draft-worklog-entry {
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid var(--accent-warning);
+  border-radius: 0 4px 4px 0;
+}
+
+.draft-worklog-entry:last-child {
+  margin-bottom: 0;
+}
+
+.draft-worklog-entry-date {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.draft-worklog-entry-content {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.draft-worklog-disclaimer {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px dashed var(--border-color-subtle);
+  border-radius: 4px;
+}
+
 /* ----------------------------------------------------------------------------
    EXPLANATION PANELS — Inline Expandable Intelligence Context
    Purpose: Provide plain-language explanations of each section

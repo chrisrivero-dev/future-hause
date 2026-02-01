@@ -979,6 +979,214 @@ function initThemeToggle() {
 }
 
 /* ----------------------------------------------------------------------------
+   PHASE 1 — NOTES SUBMISSION + LLM RESPONSE
+
+   HARD CONSTRAINTS (NON-NEGOTIABLE):
+   - No side effects
+   - No data persistence
+   - No action log entries
+   - No intel promotion
+   - No automatic UI or data changes
+   - This is a read-only, explanatory loop
+
+   GLOBAL GUARDRAILS:
+   - No Excel writes
+   - No API calls (except LLM)
+   - No persistence
+   - No assumptions about work performed or time spent
+   - No changes outside the visible UI
+   ---------------------------------------------------------------------------- */
+
+// Presence states: idle | thinking | observing
+const PRESENCE_STATES = {
+  IDLE: 'idle',
+  THINKING: 'thinking',
+  OBSERVING: 'observing'
+};
+
+/**
+ * Update presence state (icon + status text)
+ * @param {string} presenceState - One of PRESENCE_STATES
+ */
+function setPresenceState(presenceState) {
+  // Update icon animation state
+  const iconWrapper = document.getElementById('dashboard-icon');
+  if (iconWrapper) {
+    iconWrapper.setAttribute('data-state', presenceState);
+  }
+
+  // Update status text
+  const statusText = document.querySelector('.presence-status-text');
+  if (statusText) {
+    const labels = {
+      [PRESENCE_STATES.IDLE]: 'Idle',
+      [PRESENCE_STATES.THINKING]: 'Thinking',
+      [PRESENCE_STATES.OBSERVING]: 'Observing'
+    };
+    statusText.textContent = labels[presenceState] || 'Idle';
+  }
+}
+
+/**
+ * Purpose disclosure — explains Future Hause's role when asked
+ * @param {string} userInput - User's input text
+ * @returns {string|null} Disclosure text if triggered, null otherwise
+ */
+function checkPurposeDisclosure(userInput) {
+  const lowered = userInput.toLowerCase();
+  const purposeTriggers = [
+    'what is your purpose',
+    'what do you do',
+    'what are you',
+    'who are you',
+    'what is future hause',
+    'explain yourself',
+    'what can you do',
+    'your role',
+    'your purpose'
+  ];
+
+  const triggered = purposeTriggers.some(trigger => lowered.includes(trigger));
+
+  if (triggered) {
+    return `My role is to serve, assist, and support you.
+
+I provide:
+• Drafts and structured summaries
+• Explanations of observations and patterns
+• Recommendations for your consideration
+
+All decisions and actions remain under your control.
+I do not execute, submit, or persist anything automatically.
+
+This phase is intentionally limited.
+Safety, reversibility, and clarity take priority over capability.`;
+  }
+
+  return null;
+}
+
+/**
+ * Send notes to LLM and get response
+ * @param {string} notes - User's notes
+ * @returns {Promise<string>} LLM response
+ */
+async function sendToLLM(notes) {
+  // Check for purpose disclosure first
+  const disclosure = checkPurposeDisclosure(notes);
+  if (disclosure) {
+    return disclosure;
+  }
+
+  // TODO: Replace with actual LLM endpoint
+  // For now, simulate a thoughtful response
+  // In production, this would call: POST /api/llm with { prompt: notes }
+
+  return new Promise((resolve) => {
+    // Simulate LLM processing time
+    setTimeout(() => {
+      const today = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+
+      resolve(`Today I:
+• Received and considered your observations
+• Noted the patterns and context you shared
+• Prepared this acknowledgment for your review
+
+No actions were taken. No data was saved.
+This response is for your reference only.
+
+Timestamp: ${today}
+Status: Observation logged (in-memory only)`);
+    }, 1500);
+  });
+}
+
+/**
+ * Handle notes form submission
+ */
+async function handleNotesSubmit() {
+  const textarea = document.getElementById('notes-textarea');
+  const submitBtn = document.getElementById('notes-submit');
+  const responsePanel = document.getElementById('notes-response-panel');
+  const responseContent = document.getElementById('notes-response-content');
+
+  if (!textarea || !submitBtn || !responsePanel || !responseContent) {
+    console.warn('Notes form elements not found');
+    return;
+  }
+
+  const notes = textarea.value.trim();
+
+  if (!notes) {
+    return; // Don't submit empty notes
+  }
+
+  // Disable submit button during processing
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Thinking...';
+
+  // Update presence: Idle → Thinking
+  setPresenceState(PRESENCE_STATES.THINKING);
+
+  try {
+    // Send to LLM
+    const response = await sendToLLM(notes);
+
+    // Update presence: Thinking → Observing
+    setPresenceState(PRESENCE_STATES.OBSERVING);
+
+    // Display response
+    responseContent.textContent = response;
+    responsePanel.hidden = false;
+
+    // After a moment, return to idle
+    setTimeout(() => {
+      setPresenceState(PRESENCE_STATES.IDLE);
+    }, 3000);
+
+  } catch (error) {
+    console.error('Error sending notes to LLM:', error);
+    responseContent.textContent = 'An error occurred. Please try again.';
+    responsePanel.hidden = false;
+    setPresenceState(PRESENCE_STATES.IDLE);
+  } finally {
+    // Re-enable submit button
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit to Future Hause';
+  }
+}
+
+/**
+ * Wire up notes form submission handler
+ */
+function wireNotesSubmit() {
+  const submitBtn = document.getElementById('notes-submit');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', handleNotesSubmit);
+  }
+
+  // Also handle Enter+Cmd/Ctrl in textarea
+  const textarea = document.getElementById('notes-textarea');
+  if (textarea) {
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        handleNotesSubmit();
+      }
+    });
+  }
+}
+
+// Expose for testing
+window.setPresenceState = setPresenceState;
+window.PRESENCE_STATES = PRESENCE_STATES;
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -988,12 +1196,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Ensure icon starts in idle state
   setIconState('idle');
+  setPresenceState(PRESENCE_STATES.IDLE);
 
   // Wire up icon interactive events
   wireIconEvents();
 
   // Wire up explanation panels for section headers
   wireExplanationPanels();
+
+  // Wire up notes submission (Phase 1 interaction)
+  wireNotesSubmit();
 
   // State only changes via hover, click, or explicit function calls
 

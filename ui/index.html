@@ -187,10 +187,16 @@
         <!--
           Notes to Future Hause
           PURPOSE:
-          - Passive textarea for human observations
-          - No submit, no JS, no data binding
+          - Human observations sent to Future Hause for consideration
+          - Submit triggers LLM response (read-only, no side effects)
           - Intent: "Here's what I'm noticing"
-          - Separates intent (notes) from outcomes (log)
+
+          PHASE 1 CONSTRAINTS:
+          - No data persistence
+          - No action log entries
+          - No intel promotion
+          - No automatic UI or data changes
+          - Read-only explanatory loop only
         -->
         <section class="secondary-section notes-section" aria-label="Notes to Future Hause" data-section="notes">
           <div class="secondary-section-header">
@@ -199,14 +205,27 @@
           <div class="secondary-section-content notes-content">
             <p class="notes-helper-text">
               Observations, patterns, or context you want Future Hause to consider.
-              These notes are for your reference only.
+              Submit to receive a response. Nothing is saved or committed.
             </p>
             <textarea
+              id="notes-textarea"
               class="notes-textarea"
               placeholder="What are you noticing?"
               aria-label="Notes textarea"
               rows="6"
             ></textarea>
+            <div class="notes-actions">
+              <button id="notes-submit" class="notes-submit-btn" type="button">
+                Submit to Future Hause
+              </button>
+            </div>
+
+            <!-- Response Panel (hidden until response received) -->
+            <div id="notes-response-panel" class="notes-response-panel" hidden>
+              <div class="notes-response-header">Future Hause Response</div>
+              <div id="notes-response-content" class="notes-response-content"></div>
+              <div class="notes-response-footer">Nothing was committed.</div>
+            </div>
           </div>
         </section>
 
@@ -244,6 +263,42 @@
         </section>
 
       </div>
+
+      <!--
+        Draft Work Log (Assistant-Generated)
+        PURPOSE:
+        - Help draft daily work entries for FutureBit timesheet
+        - Structured, human-readable, clearly labeled as DRAFT
+        - For human review only
+
+        EXPLICIT PROHIBITIONS:
+        - Do NOT write to Excel
+        - Do NOT write to Freshdesk
+        - Do NOT automate submission
+        - Do NOT assume hours unless explicitly provided
+        - This is memory-assist and drafting, not execution
+      -->
+      <section class="secondary-section draft-worklog-section" aria-label="Draft Work Log" data-section="draft-worklog">
+        <div class="secondary-section-header">
+          <h2 class="secondary-section-title">Draft Work Log (Assistant-Generated)</h2>
+          <span class="draft-badge">DRAFT</span>
+        </div>
+        <div class="secondary-section-content draft-worklog-content">
+          <p class="draft-worklog-helper-text">
+            Future Hause can help draft daily work entries for your timesheet.
+            All output is for human review only. Nothing is submitted automatically.
+          </p>
+          <div id="draft-worklog-entries" class="draft-worklog-entries">
+            <div class="draft-worklog-empty">
+              <div class="intel-empty-text">No draft entries yet. Submit notes above to generate.</div>
+            </div>
+          </div>
+          <div class="draft-worklog-disclaimer">
+            <strong>Guardrails:</strong> No Excel writes. No Freshdesk writes. No API calls.
+            No persistence. No assumptions about hours or work performed.
+          </div>
+        </div>
+      </section>
 
       <!--
         System Metadata
