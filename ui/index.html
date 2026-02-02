@@ -37,32 +37,24 @@
   <main class="dashboard-main">
     <div class="dashboard-layout">
 
-      <!-- =========================
-           PRESENCE RAIL — System Awareness Surface
-           - Narrow, passive, read-only
-           - Contains: icon (state-aware), status text, feed placeholder
-           - No controls, no mutations
-           ========================= -->
-      <aside class="presence-rail" aria-label="System Presence">
-        <!--
-          Dashboard Icon
-          Source of Truth: ui/icon.svg
-          RULES:
-          - Do NOT inline SVG
-          - Do NOT regenerate or replace artwork
-          - Animations apply ONLY to .dashboard-icon-wrapper
-        -->
-        <div class="dashboard-icon-wrapper" id="dashboard-icon" data-state="idle">
-          <img
-            src="./icon.svg"
-            class="presence-icon"
-            alt="Future Hause"
-            width="48"
-            height="48"
-            loading="eager"
-            decoding="async"
-          />
-        </div>
+    <!-- =========================
+         PRIMARY INTELLIGENCE — 4 COLUMNS
+         ========================= -->
+    <section class="primary-intelligence" aria-label="Primary Intelligence">
+      <div class="section-header">
+
+       <!--
+        Dashboard Avatar
+        Source of Truth: ui/icon.svg (inline)
+        RULES:
+        - SVG is inlined (required for state-driven animation)
+        - Do NOT rename SVG internal classes
+        - State is controlled ONLY via data-state on .bot-avatar
+      -->
+      <div class="bot-avatar" id="dashboard-icon" data-state="idle" aria-live="polite">
+        <!-- INLINE SVG CONTENT FROM ui/icon.svg GOES HERE -->
+      </div>
+
 
         <div class="presence-name">Future Hause</div>
 

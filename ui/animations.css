@@ -1,5 +1,212 @@
 /* ============================================================================
-   DEPRECATED — DO NOT USE
+   FUTURE HAUSE — STATE-DRIVEN ANIMATIONS (CSS ONLY)
+   Phase 4: State-Aware Visual Accents
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   BASE ICON SETUP
+   ---------------------------------------------------------------------------- */
+/* ============================================================================
+   FUTURE HAUSE — AVATAR STATE ADAPTER
+   Maps data-state → existing SVG animation classes
+   ============================================================================ */
+
+.bot-avatar {
+  width: 200px;
+  height: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bot-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---- State mapping (CRITICAL) ---- */
+
+.bot-avatar[data-state="idle"]        svg { }
+.bot-avatar[data-state="thinking"]    svg { }
+.bot-avatar[data-state="processing"]  svg { }
+.bot-avatar[data-state="success"]     svg { }
+.bot-avatar[data-state="error"]       svg { }
+.bot-avatar[data-state="dim"]         svg { }
+
+/* Map to your existing classes */
+.bot-avatar[data-state="idle"]        svg { --fh-state: pulse-slow; }
+.bot-avatar[data-state="thinking"]    svg { --fh-state: spin; }
+.bot-avatar[data-state="processing"]  svg { --fh-state: spin; }
+.bot-avatar[data-state="success"]     svg { --fh-state: glow; }
+.bot-avatar[data-state="error"]       svg { --fh-state: shake; }
+.bot-avatar[data-state="dim"]         svg { --fh-state: dim; }
+
+.future-hause-icon {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  transform-origin: center;
+  will-change: transform, opacity;
+  display: block;
+}
+
+/* Ensure SVG layers can be animated */
+.outer-ring,
+.face-geometry,
+.left-eye,
+.right-eye {
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 1: pulse-slow (idle_waiting)
+   Visual Accent: Gentle breathing, subtle sparkle pulse
+   ---------------------------------------------------------------------------- */
+
+@keyframes pulse-ring {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 0.9; 
+  }
+  50% { 
+    transform: scale(1.03); 
+    opacity: 1; 
+  }
+}
+
+@keyframes fade-subtle {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+.state-pulse-slow .outer-ring {
+  animation: pulse-ring 3s ease-in-out infinite;
+}
+
+.state-pulse-slow .face-geometry {
+  animation: fade-subtle 3s ease-in-out infinite;
+}
+
+/* State accent: Sparkles gently twinkle during idle */
+.state-pulse-slow .sparkles {
+  animation: sparkle-twinkle 4s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+/* State accent: Outer ring has soft white glow */
+.state-pulse-slow .outer-ring circle:first-child {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 2: spin (active_processing)
+   Visual Accent: Cyan-biased glow, brighter ring, active sparkles
+   ---------------------------------------------------------------------------- */
+
+@keyframes spin-ring {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.state-spin .outer-ring {
+  animation: spin-ring 4s linear infinite;
+}
+
+/* State accent: Processing state gets cyan-tinted glow */
+.state-spin .outer-ring circle:first-child {
+  stroke: #00f5ff;
+  stroke-opacity: 0.6;
+  filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.5));
+}
+
+/* State accent: Eyes pulse during processing */
+.state-spin .left-eye,
+.state-spin .right-eye {
+  animation: eye-pulse-active 2s ease-in-out infinite;
+}
+
+@keyframes eye-pulse-active {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* State accent: Sparkles more visible and active */
+.state-spin .sparkles {
+  opacity: 1;
+  animation: sparkle-active 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle-active {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* State accent: Face geometry stays fully visible during processing */
+.state-spin .face-geometry {
+  opacity: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   STATE 3: glow (success_complete)
+   Visual Accent: Intense multi-color glow, maximum brightness
+   ---------------------------------------------------------------------------- */
+
+@keyframes glow-eyes {
+  to { 
+    opacity: 1;
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+}
+
+.state-glow .left-eye,
+.state-glow .right-eye {
+  animation: glow-eyes 1.5s ease-out forwards;
+}
+
+/* State accent: Outer ring gets intense white glow on success */
+.state-glow .outer-ring {
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.8));
+  transition: filter 1.5s ease-out;
+}
+
+.state-glow .outer-ring circle:first-child {
+  stroke-width: 8;
+  stroke-opacity: 0.5;
+}
+
+/* State accent: Eye glow halos intensify */
+.state-glow .left-eye ellipse:first-child {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 10px #00f5ff);
+}
+
+.state-glow .right-eye ellipse:first-child {
+  opacity: 0.8;
+  filter: drop-shadow(0 0 10px #b19cff);
+}
+
+/* State accent: Sparkles reach maximum brightness */
+.state-glow .sparkles {
+  opacity: 1;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+}
+
+/* State accent: Face geometry brightens */
+.state-glow .face-geometry {
+  opacity: 1;
+  stroke: #ffffff;
+}
+
+/* State accent: Background gets subtle radial glow */
+.state-glow .background-circle circle:first-child {
+  filter: brightness(1.2);
+}
 
    This file is no longer active. Animations are handled by dashboard.css.
 
