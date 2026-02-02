@@ -6,6 +6,41 @@
 /* ----------------------------------------------------------------------------
    BASE ICON SETUP
    ---------------------------------------------------------------------------- */
+/* ============================================================================
+   FUTURE HAUSE — AVATAR STATE ADAPTER
+   Maps data-state → existing SVG animation classes
+   ============================================================================ */
+
+.bot-avatar {
+  width: 200px;
+  height: 200px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bot-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ---- State mapping (CRITICAL) ---- */
+
+.bot-avatar[data-state="idle"]        svg { }
+.bot-avatar[data-state="thinking"]    svg { }
+.bot-avatar[data-state="processing"]  svg { }
+.bot-avatar[data-state="success"]     svg { }
+.bot-avatar[data-state="error"]       svg { }
+.bot-avatar[data-state="dim"]         svg { }
+
+/* Map to your existing classes */
+.bot-avatar[data-state="idle"]        svg { --fh-state: pulse-slow; }
+.bot-avatar[data-state="thinking"]    svg { --fh-state: spin; }
+.bot-avatar[data-state="processing"]  svg { --fh-state: spin; }
+.bot-avatar[data-state="success"]     svg { --fh-state: glow; }
+.bot-avatar[data-state="error"]       svg { --fh-state: shake; }
+.bot-avatar[data-state="dim"]         svg { --fh-state: dim; }
 
 .future-hause-icon {
   width: 200px;
