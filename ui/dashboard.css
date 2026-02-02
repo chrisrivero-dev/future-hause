@@ -178,22 +178,23 @@ body {
 
 .dashboard-icon-wrapper {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
   /* Performance optimization for animations */
-  will-change: transform, filter, opacity;
-  backface-visibility: hidden;
+  will-change: filter, opacity;
 }
 
 .dashboard-icon {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   display: block;
-  /* Inherit animations from wrapper */
   pointer-events: none;
+  /* Rotation applied here only — single element, no 3D transforms */
+  transform-origin: center center;
+  will-change: transform;
 }
 
 /* ==========================================================================
@@ -245,52 +246,36 @@ body {
 }
 
 /* --------------------------------------
-   BASE WRAPPER — Ambient Energy Halo
-   Optional container-level background pulse
+   BASE WRAPPER — Glow container only
+   No halo/frame pseudo-elements
    -------------------------------------- */
 .dashboard-icon-wrapper {
   position: relative;
 }
 
-.dashboard-icon-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  z-index: -1;
-  animation: fh-ambient-halo var(--fh-halo-duration) ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes fh-ambient-halo {
-  from {
-    background: radial-gradient(
-      circle at center,
-      rgba(0, 255, 255, 0.08),
-      transparent 70%
-    );
-  }
-  to {
-    background: radial-gradient(
-      circle at center,
-      rgba(138, 43, 226, 0.12),
-      transparent 70%
-    );
-  }
-}
+/* REMOVED: ::before halo pseudo-element
+   Was creating perceived border/frame around icon */
 
 /* --------------------------------------
    PRESENCE STATES — Animation Binding
-   All states use the same animation keyframes
-   Timing controlled via CSS custom properties
+   Rotation on ICON only (single element, 2D only)
+   Glow on WRAPPER (filter, no transform)
    -------------------------------------- */
+
+/* Wrapper: glow only (no rotation) */
 .dashboard-icon-wrapper[data-state="idle"],
 .dashboard-icon-wrapper[data-state="thinking"],
 .dashboard-icon-wrapper[data-state="observing"],
 .dashboard-icon-wrapper[data-state="processing"] {
-  animation:
-    fh-rotate var(--fh-rotate-duration) linear infinite,
-    fh-glow var(--fh-glow-duration) ease-in-out infinite alternate;
+  animation: fh-glow var(--fh-glow-duration) ease-in-out infinite alternate;
+}
+
+/* Icon: rotation only (2D clockwise, no 3D transforms) */
+.dashboard-icon-wrapper[data-state="idle"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="thinking"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="observing"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="processing"] .dashboard-icon {
+  animation: fh-rotate var(--fh-rotate-duration) linear infinite;
 }
 
 /* --------------------------------------
@@ -398,15 +383,15 @@ body {
   border-right: 1px solid var(--border-color-subtle);
 }
 
-/* Icon in rail — slightly smaller than original */
+/* Icon in rail — sized for presence visibility */
 .presence-rail .dashboard-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
 }
 
 .presence-icon {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   display: block;
   pointer-events: none;
 }
@@ -1379,13 +1364,13 @@ body {
   }
 
   .presence-rail .dashboard-icon-wrapper {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
   }
 
   .presence-icon {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
   }
 
   /* Stack Notes + Action Log vertically on tablet */
@@ -1443,13 +1428,13 @@ body {
   }
 
   .presence-rail .dashboard-icon-wrapper {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
   }
 
   .presence-icon {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
   }
 }
 
