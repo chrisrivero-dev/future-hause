@@ -197,6 +197,12 @@ body {
   will-change: transform;
 }
 
+/* Also target .presence-icon (used in presence rail) */
+.presence-icon {
+  transform-origin: center center;
+  will-change: transform;
+}
+
 /* ==========================================================================
    ICON ANIMATION STATES — Video Reference Spec
    Source: Presence icon animation from reference video
@@ -271,10 +277,15 @@ body {
 }
 
 /* Icon: rotation only (2D clockwise, no 3D transforms) */
+/* Targets both .dashboard-icon and .presence-icon (actual DOM class) */
 .dashboard-icon-wrapper[data-state="idle"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="idle"] .presence-icon,
 .dashboard-icon-wrapper[data-state="thinking"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="thinking"] .presence-icon,
 .dashboard-icon-wrapper[data-state="observing"] .dashboard-icon,
-.dashboard-icon-wrapper[data-state="processing"] .dashboard-icon {
+.dashboard-icon-wrapper[data-state="observing"] .presence-icon,
+.dashboard-icon-wrapper[data-state="processing"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="processing"] .presence-icon {
   animation: fh-rotate var(--fh-rotate-duration) linear infinite;
 }
 
