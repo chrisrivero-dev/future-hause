@@ -97,10 +97,15 @@
           - Route: /intel/:id (future)
           - Data Passed: { id, type, source, timestamp, raw_content }
         -->
-        <div class="intel-column" aria-label="New Intel" data-section="intel-events">
+        <div class="intel-column" aria-label="New Intel (Candidate)" data-section="intel-events">
           <div class="intel-column-header">
             <h3 class="intel-column-title">New Intel</h3>
+            <span class="candidate-badge">CANDIDATE</span>
             <span id="intel-events-count" class="intel-column-count">0 total</span>
+          </div>
+          <div class="intel-column-disclaimer">
+            Advisory only — no action taken.<br>
+            Nothing was changed.
           </div>
           <div id="intel-events-content" class="intel-column-content" data-target="intel-detail">
             <div class="intel-empty">
