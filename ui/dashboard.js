@@ -2,6 +2,9 @@
    FUTURE HAUSE DASHBOARD — v0.1 Read-Only Intelligence Dashboard
    Fetches and renders data from /outputs/*.json files
    Read-only: No mutations, no writes, display only
+
+   LLM ROUTING CONTRACT: docs/llm-routing.md (authoritative)
+   ROUTER IMPLEMENTATION: ui/llmRouter.js
    ============================================================================ */
 
 /* ============================================================================
@@ -1135,10 +1138,14 @@ function validateResponseSchema(params) {
 /**
  * Format response according to mandatory schema
  * Enforces contract: all required sections present, no extra content
+ *
+ * Routing contract: docs/llm-routing.md
+ *
  * @param {object} params - Response parameters
+ * @param {object} params.routingDecision - Result from routeLLM() (optional)
  * @returns {string} Formatted response
  */
-function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextStep }) {
+function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextStep, routingDecision }) {
   // Validate schema compliance
   validateResponseSchema({ presenceState, summary, whatIDid, whatIDidNot });
 
@@ -1158,7 +1165,15 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
     'Status:',
     `• Presence State: ${PRESENCE_LABELS[presenceState]}`,
     '• Mode: Draft / Advisory',
-    '• Side Effects: None',
+    '• Side Effects: None'
+  ];
+
+  // Include routing decision if provided
+  if (routingDecision && typeof window.formatRoutingDecision === 'function') {
+    lines.push(`• Routed To: ${window.formatRoutingDecision(routingDecision)}`);
+  }
+
+  lines.push(
     '',
     'Summary:',
     `• ${summary}`,
@@ -1168,7 +1183,7 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
     '',
     'What I did NOT do:',
     ...guardrails.map(item => `• ${item}`)
-  ];
+  );
 
   // Optional: Next step (only if provided)
   if (nextStep && typeof nextStep === 'string' && nextStep.trim() !== '') {
@@ -1180,6 +1195,10 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
 
 /**
  * Send notes to LLM and get response
+ *
+ * Routing contract: docs/llm-routing.md
+ * Router implementation: ui/llmRouter.js
+ *
  * @param {string} notes - User's notes
  * @returns {Promise<string>} LLM response in mandatory schema format
  */
@@ -1190,9 +1209,15 @@ async function sendToLLM(notes) {
     return disclosure;
   }
 
-  // TODO: Replace with actual LLM endpoint
+  // Route input to appropriate LLM stage (no network call)
+  // See: docs/llm-routing.md for contract
+  const routingDecision = typeof window.routeLLM === 'function'
+    ? window.routeLLM(notes)
+    : null;
+
+  // TODO: Replace with actual LLM endpoint based on routingDecision.provider
   // For now, simulate a thoughtful response
-  // In production, this would call: POST /api/llm with { prompt: notes }
+  // In production: POST /api/llm with { prompt: notes, stage: routingDecision.stage }
 
   return new Promise((resolve) => {
     // Simulate LLM processing time
@@ -1200,21 +1225,24 @@ async function sendToLLM(notes) {
       resolve(formatResponse({
         presenceState: PRESENCE_STATES.OBSERVING,
         summary: 'Received and interpreted your observations.',
+        routingDecision: routingDecision,
         whatIDid: [
-          'Read and parsed your input',
-          'Identified key themes and context',
-          'Prepared this acknowledgment for your review'
+          'Analyzed input for routing keywords',
+          `Determined routing: Stage ${routingDecision?.stage || '?'} (${routingDecision?.provider || 'unknown'})`,
+          'Prepared routing decision for review'
         ],
         whatIDidNot: [
+          'No model was called (routing only)',
           'No data was saved or persisted',
           'No Excel or Freshdesk writes',
           'No API calls to external systems',
-          'No action log entries created',
-          'No assumptions made about hours or work'
+          'No action log entries created'
         ],
-        nextStep: 'Provide more detail, or ask me to draft a work log entry.'
+        nextStep: routingDecision
+          ? `Ready to forward to ${routingDecision.provider} when enabled.`
+          : 'Router not available — check llmRouter.js is loaded.'
       }));
-    }, 1500);
+    }, 800); // Shorter delay since no actual LLM call
   });
 }
 
