@@ -1,155 +1,115 @@
-# LLM Routing Contract
+# LLM Routing Rules v0 (Future Hause)
 
-**Status:** Authoritative
-**Version:** v0
-**Source of truth:** This document
-
----
-
-## Purpose
-
-This contract defines how Future Hause routes input to the appropriate LLM stage.
-Routing is **deterministic** and **local** — no network calls during routing.
+**Status:** Canonical Contract (authoritative)  
+**Purpose:** Define intent-first, cost-minimizing routing rules for any LLM usage.  
+**Non-negotiable:** Humans decide. The system advises. No implied actions.
 
 ---
 
-## Routing Decision
+## Core Goal
 
-The router examines input text and returns a **routing decision**, not a model response.
+Routing must be **intent-first** and **cost-minimizing**.
 
-```
-routeLLM(text) → RoutingDecision
-```
-
-### RoutingDecision Schema
-
-```javascript
-{
-  stage: 1 | 2 | 3,
-  provider: 'ollama' | 'openai' | 'claude',
-  role: string,
-  reason: string,
-  inputHash: string,
-  timestamp: string
-}
-```
+Predictable behavior, explicit guardrails, and minimal token usage.
 
 ---
 
-## Stage Mapping
+## Pre-LLM Classification (Required)
 
-| Stage | Provider | Role | Trigger |
-|-------|----------|------|---------|
-| 1 | Ollama/Mistral | Pattern spotting | Raw observations, new signals |
-| 2 | OpenAI | Synthesis | Structured data, cross-linking |
-| 3 | Claude | Explain / de-risk | Recommendations, human-facing |
+Before any LLM is used, the system MUST classify:
 
----
+### 1) Intent (one of)
+- **Question** — user asks for an answer.
+- **Draft Request** — user asks for a draft output (email, summary, timesheet, etc.).
+- **Observation** — user provides notes without a direct question.
+- **Meta** — user asks about the system itself (purpose, capabilities, rules).
+- **Action** — user requests changes or execution (run, write, commit, publish, log).
 
-## Routing Rules (Deterministic)
+### 2) Risk (one of)
+- **Low** — casual, non-sensitive, reversible drafts.
+- **Medium** — could mislead, affect decisions, or be mistaken as record.
+- **High** — anything that could be treated as system-of-record, legal/financial/medical, or irreversible.
 
-### Route to Stage 1 (Ollama)
-Input matches any:
-- Raw observation (unstructured text)
-- New signal detection request
-- Pattern spotting request
-- Default fallback for ambiguous input
-
-### Route to Stage 2 (OpenAI)
-Input matches any:
-- Request for synthesis or summary
-- Cross-linking or deduplication request
-- Confidence scoring request
-- KB gap detection
-
-### Route to Stage 3 (Claude)
-Input matches any:
-- Request for explanation or rationale
-- Recommendation clarity request
-- De-risking or tone adjustment
-- Human-facing content generation
+### 3) Permanence (one of)
+- **Ephemeral** — transient chat-only assistance.
+- **Draft-only** — clearly labeled draft; no persistence; for review.
+- **Record-adjacent** — could influence logs, tickets, KB, metrics, or documentation.
 
 ---
 
-## Routing Keywords (v0)
+## Hard Rules (Always)
 
-These keywords influence routing. Order of precedence: Stage 3 > Stage 2 > Stage 1.
+1) **Drafting is opt-in only.**  
+   - The system should NOT draft unless the user asks for a draft or explicitly approves drafting.
 
-### Stage 3 Keywords
-```
-explain, clarify, rationale, recommend, advise, de-risk,
-human-readable, plain language, why, impact
-```
+2) **Questions must be answered directly.**  
+   - If the user asks a question, Future Hause answers it directly (no detours into drafting).
 
-### Stage 2 Keywords
-```
-synthesize, summarize, deduplicate, link, connect,
-confidence, score, gap, opportunity, normalize
-```
+3) **Observations without a question default to Draft mode (advisory).**  
+   - BUT: do not generate a draft unless the user requested one. Otherwise, ask 1 clarifying question or respond with a lightweight acknowledgement and a suggested next question.
 
-### Stage 1 Keywords (or default)
-```
-observe, detect, pattern, signal, raw, new, watch, spot
-```
+4) **No model may imply system actions unless confirmed in the Action Log.**  
+   - The assistant must not claim: “I updated X”, “I logged Y”, “I saved Z”, “I changed state” unless it is explicitly recorded in the Action Log.
 
----
+5) **“Nothing happened” must be explicit when applicable.**  
+   - If no changes occurred, the response must say so plainly.
 
-## Guardrails
+6) **No side effects by default.**  
+   - No file writes, no API calls, no ticket creation, no Excel writes, no persistence unless a human explicitly triggers that workflow and it is logged.
 
-1. **No network calls during routing** — routing is local and synchronous
-2. **No model execution** — router returns decision only
-3. **No persistence** — routing decisions are ephemeral
-4. **No side effects** — routing is pure function
-5. **Deterministic** — same input always produces same decision
+7) **Action Log is human-write-only.**  
+   - The system can propose an Action Log entry, but cannot write it automatically.
+
+8) **Any behavior not explicitly allowed here is forbidden by default.**
 
 ---
 
-## Integration Points
+## Cost Constraints (Strict)
 
-### UI (dashboard.js)
-```javascript
-import { routeLLM } from './llmRouter.js';
-
-const decision = routeLLM(userInput);
-// Render decision in response schema
-// Do NOT call model yet
-```
-
-### Response Schema Addition
-When rendering response, include routing transparency:
-
-```
-Status:
-• Presence State: Observing
-• Mode: Draft / Advisory
-• Side Effects: None
-• Routed To: Stage 1 (Ollama) — Pattern spotting
-
-Summary:
-• [summary]
-
-What I did:
-• Analyzed input for routing keywords
-• Determined appropriate pipeline stage
-• Prepared routing decision for review
-
-What I did NOT do:
-• No model was called
-• No data was persisted
-• No external systems were modified
-```
+1) Prefer deterministic logic over LLM calls whenever possible.
+2) Use the cheapest viable model for classification.
+3) Only call a full reasoning model when synthesis or explanation is required.
+4) Never call more than **one** high-capability model for a single user input.
+5) Avoid multi-model chains unless:
+   - the input is **Record-adjacent** OR **Medium/High risk**, AND
+   - the user explicitly asked for a higher-quality synthesis.
 
 ---
 
-## Invariants
+## Routing Policy (Conceptual)
 
-1. Routing happens before any model call
-2. Routing decision is visible to user
-3. User may override routing (future)
-4. Default route is Stage 1 (safest)
-5. Routing never fails — always returns valid decision
+### A) Classification step
+- First attempt: deterministic keyword + pattern rules.
+- If uncertain: use the cheapest classifier model.
+
+### B) Answering
+- **Question + Low risk + Ephemeral:** answer directly with minimal model or deterministic logic if possible.
+- **Question + Medium/High risk:** answer + include assumptions + ask 1 clarifying question if needed.
+
+### C) Drafting
+- **Draft Request:** produce draft labeled **DRAFT**.
+- If user did not ask for draft: do NOT draft; ask for permission or a clarifying question.
+
+### D) Action intent
+- For any Action request:
+  - propose a plan
+  - explicitly state: “No action taken”
+  - require human confirmation step and Action Log entry (human authored)
 
 ---
 
-**Canonical reference:** `docs/llm-routing.md`
-**Implementation:** `ui/llmRouter.js`
+## Output Requirements (For Any LLM Response)
+
+Every response must clearly communicate:
+- What you understood
+- What you did
+- What you did NOT do
+- Next step (optional)
+- If nothing changed: say “Nothing was changed.”
+
+---
+
+## Notes
+
+These routing rules are the authoritative contract for implementation.
+Any code or UI must conform to this document.

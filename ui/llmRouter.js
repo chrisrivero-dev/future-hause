@@ -1,184 +1,128 @@
 /**
- * LLM Router — Deterministic Routing for Future Hause
+ * LLM Router (v0)
  *
- * Canonical contract: docs/llm-routing.md
+ * Canonical routing rules live in: docs/llm-routing.md
+ * This module must conform to that contract. No implicit actions.
  *
- * This module determines which LLM stage should handle input.
- * It does NOT call any models — routing is local and synchronous.
- *
- * GUARDRAILS:
- * - No network calls
- * - No model execution
+ * This file is intentionally deterministic + cheap:
+ * - Classification is heuristics only (no model calls here)
  * - No persistence
  * - No side effects
- * - Deterministic (same input → same decision)
  */
 
-/* --------------------------------------
-   STAGE DEFINITIONS
-   -------------------------------------- */
+/** @typedef {"question"|"draft_request"|"observation"|"meta"|"action"} Intent */
+/** @typedef {"low"|"medium"|"high"} Risk */
+/** @typedef {"ephemeral"|"draft_only"|"record_adjacent"} Permanence */
 
-const STAGES = {
-  STAGE_1: {
-    stage: 1,
-    provider: 'ollama',
-    role: 'Pattern spotting'
-  },
-  STAGE_2: {
-    stage: 2,
-    provider: 'openai',
-    role: 'Synthesis'
-  },
-  STAGE_3: {
-    stage: 3,
-    provider: 'claude',
-    role: 'Explain / de-risk'
+export function classifyIntent(text) {
+  const t = (text || "").toLowerCase().trim();
+
+  // Meta
+  if (
+    t.includes("what is your purpose") ||
+    t.includes("what do you do") ||
+    t.includes("who are you") ||
+    t.includes("what is future hause") ||
+    t.includes("explain yourself")
+  ) return "meta";
+
+  // Action
+  if (
+    t.startsWith("do ") ||
+    t.startsWith("run ") ||
+    t.includes("commit") ||
+    t.includes("push") ||
+    t.includes("write to") ||
+    t.includes("update the file") ||
+    t.includes("change the code") ||
+    t.includes("log this")
+  ) return "action";
+
+  // Draft request
+  if (
+    t.includes("draft") ||
+    t.includes("write me") ||
+    t.includes("create a") ||
+    t.includes("generate a") ||
+    t.includes("timesheet") ||
+    t.includes("work log")
+  ) return "draft_request";
+
+  // Question (simple heuristic: question mark OR question words)
+  if (
+    t.includes("?") ||
+    t.startsWith("what ") ||
+    t.startsWith("why ") ||
+    t.startsWith("how ") ||
+    t.startsWith("when ") ||
+    t.startsWith("can you")
+  ) return "question";
+
+  return "observation";
+}
+
+export function classifyRisk(text) {
+  const t = (text || "").toLowerCase();
+
+  if (
+    t.includes("legal") ||
+    t.includes("medical") ||
+    t.includes("financial") ||
+    t.includes("invoice") ||
+    t.includes("compliance") ||
+    t.includes("lawsuit")
+  ) return "high";
+
+  if (
+    t.includes("record") ||
+    t.includes("audit") ||
+    t.includes("action log") ||
+    t.includes("publish") ||
+    t.includes("send") ||
+    t.includes("customer") ||
+    t.includes("ticket")
+  ) return "medium";
+
+  return "low";
+}
+
+export function classifyPermanence(text) {
+  const t = (text || "").toLowerCase();
+
+  if (
+    t.includes("action log") ||
+    t.includes("save") ||
+    t.includes("persist") ||
+    t.includes("record") ||
+    t.includes("publish") ||
+    t.includes("ticket") ||
+    t.includes("kb")
+  ) return "record_adjacent";
+
+  if (t.includes("draft") || t.includes("timesheet") || t.includes("work log")) {
+    return "draft_only";
   }
-};
 
-/* --------------------------------------
-   ROUTING KEYWORDS
-   Order of precedence: Stage 3 > Stage 2 > Stage 1
-   -------------------------------------- */
-
-const STAGE_3_KEYWORDS = [
-  'explain', 'clarify', 'rationale', 'recommend', 'advise', 'de-risk',
-  'human-readable', 'plain language', 'why', 'impact', 'help me understand',
-  'what does this mean', 'draft', 'write'
-];
-
-const STAGE_2_KEYWORDS = [
-  'synthesize', 'summarize', 'deduplicate', 'link', 'connect',
-  'confidence', 'score', 'gap', 'opportunity', 'normalize',
-  'compare', 'relate', 'combine', 'merge'
-];
-
-const STAGE_1_KEYWORDS = [
-  'observe', 'detect', 'pattern', 'signal', 'raw', 'new', 'watch', 'spot',
-  'notice', 'found', 'saw', 'heard', 'reddit', 'post', 'comment'
-];
-
-/* --------------------------------------
-   ROUTING LOGIC
-   -------------------------------------- */
-
-/**
- * Check if text contains any keywords from a list
- * @param {string} text - Input text (lowercased)
- * @param {string[]} keywords - Keywords to match
- * @returns {string|null} Matched keyword or null
- */
-function matchKeywords(text, keywords) {
-  for (const keyword of keywords) {
-    if (text.includes(keyword.toLowerCase())) {
-      return keyword;
-    }
-  }
-  return null;
+  return "ephemeral";
 }
 
 /**
- * Generate simple hash for input (for traceability)
- * @param {string} text - Input text
- * @returns {string} Short hash
+ * Returns a routing decision. This does NOT call any model.
+ * @returns {{
+ *   intent: Intent,
+ *   risk: Risk,
+ *   permanence: Permanence,
+ *   allow_draft: boolean,
+ *   must_answer_directly: boolean
+ * }}
  */
-function hashInput(text) {
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return Math.abs(hash).toString(16).slice(0, 8);
-}
+export function routeLLM(text) {
+  const intent = classifyIntent(text);
+  const risk = classifyRisk(text);
+  const permanence = classifyPermanence(text);
 
-/**
- * Route input to appropriate LLM stage
- *
- * IMPORTANT: This function does NOT call any model.
- * It returns a routing decision only.
- *
- * @param {string} text - User input text
- * @returns {object} RoutingDecision
- */
-function routeLLM(text) {
-  if (!text || typeof text !== 'string') {
-    // Invalid input — route to Stage 1 (safest default)
-    return {
-      ...STAGES.STAGE_1,
-      reason: 'Invalid or empty input — defaulting to Stage 1',
-      matchedKeyword: null,
-      inputHash: 'invalid',
-      timestamp: new Date().toISOString()
-    };
-  }
+  const must_answer_directly = intent === "question" || intent === "meta";
+  const allow_draft = intent === "draft_request";
 
-  const normalizedText = text.toLowerCase().trim();
-
-  // Check Stage 3 first (highest precedence)
-  const stage3Match = matchKeywords(normalizedText, STAGE_3_KEYWORDS);
-  if (stage3Match) {
-    return {
-      ...STAGES.STAGE_3,
-      reason: `Matched Stage 3 keyword: "${stage3Match}"`,
-      matchedKeyword: stage3Match,
-      inputHash: hashInput(text),
-      timestamp: new Date().toISOString()
-    };
-  }
-
-  // Check Stage 2
-  const stage2Match = matchKeywords(normalizedText, STAGE_2_KEYWORDS);
-  if (stage2Match) {
-    return {
-      ...STAGES.STAGE_2,
-      reason: `Matched Stage 2 keyword: "${stage2Match}"`,
-      matchedKeyword: stage2Match,
-      inputHash: hashInput(text),
-      timestamp: new Date().toISOString()
-    };
-  }
-
-  // Check Stage 1
-  const stage1Match = matchKeywords(normalizedText, STAGE_1_KEYWORDS);
-  if (stage1Match) {
-    return {
-      ...STAGES.STAGE_1,
-      reason: `Matched Stage 1 keyword: "${stage1Match}"`,
-      matchedKeyword: stage1Match,
-      inputHash: hashInput(text),
-      timestamp: new Date().toISOString()
-    };
-  }
-
-  // Default to Stage 1 (safest)
-  return {
-    ...STAGES.STAGE_1,
-    reason: 'No specific keywords matched — defaulting to Stage 1 (pattern spotting)',
-    matchedKeyword: null,
-    inputHash: hashInput(text),
-    timestamp: new Date().toISOString()
-  };
-}
-
-/**
- * Format routing decision for display
- * @param {object} decision - RoutingDecision from routeLLM
- * @returns {string} Human-readable routing summary
- */
-function formatRoutingDecision(decision) {
-  return `Stage ${decision.stage} (${decision.provider}) — ${decision.role}`;
-}
-
-// Export for use in dashboard.js
-// Note: Using window for browser compatibility (no bundler)
-if (typeof window !== 'undefined') {
-  window.routeLLM = routeLLM;
-  window.formatRoutingDecision = formatRoutingDecision;
-  window.LLM_STAGES = STAGES;
-}
-
-// Export for testing (Node.js)
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { routeLLM, formatRoutingDecision, STAGES };
+  return { intent, risk, permanence, allow_draft, must_answer_directly };
 }

@@ -59,6 +59,10 @@ const CONFIG = {
     actionLog: 'action_log.json'
   }
 };
+/* ... existing header ... */
+
+// LLM routing rules are defined in docs/llm-routing.md
+// Code must conform to that contract. No implicit actions.
 
 /* ----------------------------------------------------------------------------
    SECTION EXPLANATIONS — Plain-Language Intelligence Context
