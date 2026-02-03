@@ -194,7 +194,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-size: 90%;
   box-shadow: 0 0 6px rgba(80, 180, 255, 0.25);
   /* Performance optimization for animations */
   will-change: filter, opacity;
