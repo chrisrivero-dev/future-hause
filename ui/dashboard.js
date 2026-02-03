@@ -1018,25 +1018,28 @@ function initThemeToggle() {
    - No changes outside the visible UI
    ---------------------------------------------------------------------------- */
 
-// Presence states: idle | thinking | observing
+// Presence states: idle | thinking | observing | observed
 const PRESENCE_STATES = {
   IDLE: 'idle',
   THINKING: 'thinking',
-  OBSERVING: 'observing'
+  OBSERVING: 'observing',
+  OBSERVED: 'observed'
 };
 
 // Presence state copy (exact strings, verbatim)
 const PRESENCE_COPY = {
   [PRESENCE_STATES.IDLE]: 'Waiting for input. No analysis in progress.',
   [PRESENCE_STATES.THINKING]: 'Interpreting your message and preparing a draft response. No actions are being taken.',
-  [PRESENCE_STATES.OBSERVING]: 'Draft prepared. Awaiting your review or next instruction.'
+  [PRESENCE_STATES.OBSERVING]: 'Draft prepared. Awaiting your review or next instruction.',
+  [PRESENCE_STATES.OBSERVED]: 'Data loaded from manual ingest. Review dashboard for updates.'
 };
 
 // Presence state labels (short form for UI)
 const PRESENCE_LABELS = {
   [PRESENCE_STATES.IDLE]: 'Idle',
   [PRESENCE_STATES.THINKING]: 'Thinking',
-  [PRESENCE_STATES.OBSERVING]: 'Observing'
+  [PRESENCE_STATES.OBSERVING]: 'Observing',
+  [PRESENCE_STATES.OBSERVED]: 'Observed (manual)'
 };
 
 /* ----------------------------------------------------------------------------
@@ -1732,6 +1735,227 @@ function updateLastUpdatedTime() {
 }
 
 /* ----------------------------------------------------------------------------
+   INGEST DRY-RUN — Manual, User-Initiated Demo
+   - NOT a background agent
+   - NOT automated
+   - NOT persistent beyond downloaded files
+   - Safe, reversible, human-triggered demo
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Generate mock intel events data
+ * @returns {object} Mock intel_events.json structure
+ */
+function generateMockIntelEvents() {
+  const now = new Date().toISOString();
+  return {
+    schema_version: '1.0',
+    generated_at: now,
+    events: [
+      {
+        id: 'evt-001',
+        type: 'community_discussion',
+        title: 'Apollo BTC mining setup questions',
+        source: 'Reddit r/FutureBit',
+        detected_at: now,
+        description: 'User asking about optimal settings for Apollo BTC miner',
+        url: 'https://reddit.com/r/futurebit/example',
+        priority: 'medium'
+      },
+      {
+        id: 'evt-002',
+        type: 'firmware_update',
+        title: 'New firmware v2.1.0 released',
+        source: 'FutureBit Official',
+        detected_at: now,
+        description: 'Firmware update includes performance improvements and bug fixes',
+        priority: 'high'
+      },
+      {
+        id: 'evt-003',
+        type: 'support_pattern',
+        title: 'Recurring PSU compatibility questions',
+        source: 'Support Analysis',
+        detected_at: now,
+        description: 'Multiple users asking about power supply requirements',
+        priority: 'low'
+      }
+    ]
+  };
+}
+
+/**
+ * Generate mock KB opportunities data
+ * @returns {object} Mock kb_opportunities.json structure
+ */
+function generateMockKbOpportunities() {
+  const now = new Date().toISOString();
+  return {
+    schema_version: '1.0',
+    generated_at: now,
+    opportunities: [
+      {
+        id: 'kb-001',
+        title: 'PSU Requirements Guide',
+        topic: 'Hardware Setup',
+        gap_type: 'missing_documentation',
+        status: 'identified',
+        suggested_action: 'Create comprehensive PSU compatibility guide',
+        source_signals: 'evt-003',
+        created_at: now,
+        priority: 'medium'
+      },
+      {
+        id: 'kb-002',
+        title: 'Firmware Update FAQ',
+        topic: 'Software',
+        gap_type: 'outdated_content',
+        status: 'identified',
+        suggested_action: 'Update FAQ with v2.1.0 information',
+        source_signals: 'evt-002',
+        created_at: now,
+        priority: 'high'
+      }
+    ]
+  };
+}
+
+/**
+ * Generate mock projects data
+ * @returns {object} Mock projects.json structure
+ */
+function generateMockProjects() {
+  const now = new Date().toISOString();
+  return {
+    schema_version: '1.0',
+    generated_at: now,
+    projects: [
+      {
+        id: 'proj-001',
+        name: 'Freshdesk AI Support',
+        status: 'active',
+        deliverables: ['Draft responses', 'KB gap detection'],
+        created_at: now,
+        updated_at: now,
+        priority: 'high'
+      },
+      {
+        id: 'proj-002',
+        name: 'Documentation Refresh',
+        status: 'active',
+        deliverables: ['PSU guide', 'Setup wizard docs'],
+        created_at: now,
+        updated_at: now,
+        priority: 'medium'
+      }
+    ]
+  };
+}
+
+/**
+ * Generate mock action log data
+ * @returns {object} Mock action_log.json structure
+ */
+function generateMockActionLog() {
+  return {
+    schema_version: '1.0',
+    actions: []
+  };
+}
+
+/**
+ * Download JSON data as a file using browser-safe Blob + <a download>
+ * @param {object} data - Data to download
+ * @param {string} filename - Filename for download
+ */
+function downloadJsonFile(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Run ingest dry-run
+ * - Generates mock data in memory
+ * - Downloads files via browser
+ * - Updates state to display mock data
+ * - Sets presence to Observed
+ */
+async function runIngestDryRun() {
+  // Generate mock data
+  const intelEvents = generateMockIntelEvents();
+  const kbOpportunities = generateMockKbOpportunities();
+  const projects = generateMockProjects();
+  const actionLog = generateMockActionLog();
+
+  // Download files
+  downloadJsonFile(intelEvents, 'intel_events.json');
+  downloadJsonFile(kbOpportunities, 'kb_opportunities.json');
+  downloadJsonFile(projects, 'projects.json');
+  downloadJsonFile(actionLog, 'action_log.json');
+
+  // Update state directly with mock data (for immediate UI update)
+  state.intelEvents = intelEvents;
+  state.loadStatus.intelEvents = 'success';
+  state.metadata.schemaVersions.intelEvents = intelEvents.schema_version;
+  state.metadata.generatedTimestamps.intelEvents = intelEvents.generated_at;
+
+  state.kbOpportunities = kbOpportunities;
+  state.loadStatus.kbOpportunities = 'success';
+  state.metadata.schemaVersions.kbOpportunities = kbOpportunities.schema_version;
+  state.metadata.generatedTimestamps.kbOpportunities = kbOpportunities.generated_at;
+
+  state.projects = projects;
+  state.loadStatus.projects = 'success';
+  state.metadata.schemaVersions.projects = projects.schema_version;
+  state.metadata.generatedTimestamps.projects = projects.generated_at;
+
+  state.actionLog = actionLog;
+  state.loadStatus.actionLog = 'success';
+  state.metadata.schemaVersions.actionLog = actionLog.schema_version;
+
+  // Re-render all sections
+  renderIntelEvents();
+  renderKbOpportunities();
+  renderProjects();
+  renderRecentRecommendations();
+  renderActionLogTable();
+  renderSystemMetadata();
+
+  // Update timestamps
+  updateLastUpdatedTime();
+
+  // Set presence to Observed
+  setPresenceState(PRESENCE_STATES.OBSERVED);
+}
+
+/**
+ * Wire up ingest dry-run button
+ */
+function wireIngestDryRun() {
+  const btn = document.getElementById('ingest-dry-run-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+
+    try {
+      await runIngestDryRun();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `Run ingest (dry-run)<span class="ingest-btn-hint">Manual · Non-persistent · Safe</span>`;
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -1760,6 +1984,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Update last updated timestamp
   updateLastUpdatedTime();
+
+  // Wire up ingest dry-run button
+  wireIngestDryRun();
 
   // State only changes via hover, click, or explicit function calls
 

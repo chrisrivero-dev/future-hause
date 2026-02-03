@@ -1739,6 +1739,41 @@ body {
   grid-template-columns: repeat(3, 1fr);
 }
 
+/* Ingest Dry-Run Button */
+.ingest-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 6px;
+  color: var(--accent-success);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.ingest-btn:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.2);
+  border-color: var(--accent-success);
+}
+
+.ingest-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ingest-btn-hint {
+  font-size: 0.55rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: none;
+}
+
 /* System Metadata */
 .metadata-grid {
   display: grid;
