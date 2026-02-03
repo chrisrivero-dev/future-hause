@@ -340,6 +340,96 @@ If it’s not listed here, the agent does not run.
 
 ---
 
+# 🧠 ProjectFocusAgent — Active Project Focus Manager
+
+## Overview
+
+**ProjectFocusAgent** exists **only** to manage the **Active Project Focus** panel in the Future Hause dashboard.
+
+It is intentionally constrained.
+
+- It does **not** create content  
+- It does **not** change system state  
+- It does **not** make decisions  
+
+It is a **context synthesizer**, not an actor.
+
+This agent provides a real-time, read-only snapshot of what matters *right now* for the currently selected project.
+
+---
+
+## 1. Purpose
+
+Maintain a real-time, read-only snapshot of the **currently selected project**.
+
+Think of it as answering one question:
+
+> **“What matters right now for this project?”**
+
+This agent functions as the system’s **working memory layer**.
+
+---
+
+## 2. Allowed and Forbidden Actions
+
+### ✅ Allowed
+
+ProjectFocusAgent may:
+
+- Read from the following data sources:
+  - `intel_events.json`
+  - `kb_opportunities.json`
+  - `projects.json`
+  - `action_log.json`
+- Count and summarize **state**, not content
+- Detect the **last agent activity** and timestamp
+- Select **one** suggested next step (if applicable)
+- Output a **single structured object** for the dashboard
+
+---
+
+### ❌ Forbidden
+
+ProjectFocusAgent must **never**:
+
+- Write or modify files
+- Generate drafts or content
+- Promote or demote items
+- Make assumptions or interpretations
+- Trigger other agents
+- Persist state or memory
+
+If any of these rules are violated, the agent is considered **invalid by definition**.
+
+---
+
+## 3. Output Contract (Strict)
+
+This is the **only** output the Active Project Focus panel consumes.
+
+```md
+```json
+{
+  "agent": "ProjectFocusAgent",
+  "project": "freshdesk-ai",
+  "summary": {
+    "open_items": 3,
+    "drafts_pending": 1,
+    "last_activity": {
+      "agent": "DraftAgent",
+      "timestamp": "2026-02-02T18:14:00Z"
+    }
+  },
+  "suggested_next_step": {
+    "type": "review",
+    "label": "Review generated weekly work log",
+    "source": "DraftAgent",
+    "confidence": 0.82
+  },
+  "confidence": 0.91
+}
+
+
 ## Agent Arbitration Rules
 
 ### Priority Order
@@ -348,7 +438,9 @@ If it’s not listed here, the agent does not run.
 2. OpsLedgerAgent  
 3. RefactorAgent  
 4. DocAgent  
-5. DraftAgent  
+5. DraftAgent
+6. ProjectFocusAgent (read-only, non-blocking)
+
 
 Higher-priority agents may block lower-priority agents.  
 The reverse is never allowed.
