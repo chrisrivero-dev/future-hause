@@ -1089,6 +1089,16 @@ function normalizeActiveProject(raw) {
     source: "manual"
   };
 }
+/** @type {ReviewAgentAssessment} */
+const mockReviewAssessment = {
+  confidence: 0.76,
+  risks: [
+    "ReviewAgent not yet executing",
+    "Runtime verification pending on work machine"
+  ],
+  status: "active",
+  rationale: "UI wiring complete; awaiting agent execution."
+};
 
 /**
  * Render the Active Project Focus panel
