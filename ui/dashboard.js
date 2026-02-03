@@ -1023,15 +1023,27 @@ const PRESENCE_LABELS = {
    ---------------------------------------------------------------------------- */
 
 /**
- * @typedef {Object} ActiveProject
- * @property {string} id - Unique project identifier
- * @property {string} name - Display name
- * @property {string} domain - Project domain (freshdesk-ai, help-nearby, futurehub)
- * @property {string} status - Current status (active, paused, completed)
- * @property {string} description - Brief project description
- * @property {string} lastActivity - ISO-8601 timestamp of last activity
- * @property {number} openItems - Count of open items
+ * Canonical ActiveProject (authoritative dashboard state)
+ *
+ * This is the ONLY shape the dashboard is allowed to render.
+ * All legacy data, mock data, ReviewAgent output, or agent output
+ * MUST be normalized into this form before reaching the UI.
+ *
+ * No inference happens here.
+ *
+ * @typedef {Object} ActiveProjectCanonical
+ * @property {string} project_id - Stable project identifier
+ * @property {string} title - Human-readable project name
+ * @property {"build"|"research"|"ops"|"personal"} category - Project domain
+ * @property {"active"|"paused"|"blocked"|"review"} status - Current lifecycle state
+ * @property {number} confidence - 0.0–1.0 confidence score (agent-owned later)
+ * @property {string} current_focus - What is being worked on right now
+ * @property {string} next_action - Next concrete step
+ * @property {string[]} risks - Explicit risks or blockers
+ * @property {string} last_updated - ISO-8601 timestamp
+ * @property {"manual"|"review_agent"|"agent"} source - Origin of this state
  */
+
 
 /** @type {ActiveProject} */
 const mockActiveProject = {
@@ -1043,6 +1055,27 @@ const mockActiveProject = {
   lastActivity: new Date().toISOString(),
   openItems: 3
 };
+/**
+ * Normalize legacy/mock project data into canonical ActiveProject.
+ * No inference. Explicit defaults only.
+ *
+ * @param {Object} raw
+ * @returns {ActiveProjectCanonical}
+ */
+function normalizeActiveProject(raw) {
+  return {
+    project_id: raw.id,
+    title: raw.name,
+    category: "build",
+    status: raw.status || "active",
+    confidence: 0.8, // stub — ReviewAgent will own later
+    current_focus: raw.description || "No focus defined",
+    next_action: "Pending ReviewAgent input",
+    risks: [],
+    last_updated: raw.lastActivity || new Date().toISOString(),
+    source: "manual"
+  };
+}
 
 /**
  * Render the Active Project Focus panel
