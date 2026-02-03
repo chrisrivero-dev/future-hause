@@ -194,6 +194,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-size: 90%;
+  box-shadow: 0 0 6px rgba(80, 180, 255, 0.25);
   /* Performance optimization for animations */
   will-change: filter, opacity;
 }
@@ -288,12 +290,13 @@ body {
 
 /* Idle: subtle pulse only, NO rotation */
 .dashboard-icon-wrapper[data-state="idle"] {
-  animation: idlePulse 4s ease-in-out infinite;
+  animation: idlePulse 6s ease-in-out infinite;
 }
 
 @keyframes idlePulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0); }
-  50% { box-shadow: 0 0 12px rgba(80, 180, 255, 0.35); }
+  0%   { box-shadow: 0 0 4px rgba(80,180,255,0.20); }
+  50%  { box-shadow: 0 0 8px rgba(80,180,255,0.35); }
+  100% { box-shadow: 0 0 4px rgba(80,180,255,0.20); }
 }
 
 /* Icon: vertical bounce for thinking/processing (NO rotation) */
@@ -591,17 +594,18 @@ body {
    INTEL COLUMN TINTS — Visual Differentiation
    Subtle background tints per column type
    -------------------------------------- */
+/* Dark mode: visible but subtle differentiation */
 .intel-column[data-section="intel-events"] {
-  background: rgba(0, 180, 200, 0.04);  /* Light teal tint */
+  background: rgba(0, 180, 200, 0.08);  /* Teal tint */
 }
 .intel-column[data-section="kb-opportunities"] {
-  background: rgba(74, 222, 128, 0.04);  /* Light green tint */
+  background: rgba(74, 222, 128, 0.08);  /* Green tint */
 }
 .intel-column[data-section="projects"] {
-  background: rgba(251, 191, 36, 0.04);  /* Light amber tint */
+  background: rgba(251, 191, 36, 0.08);  /* Amber tint */
 }
 .intel-column[data-section="recommendations"] {
-  background: rgba(160, 169, 200, 0.04);  /* Neutral gray tint */
+  background: rgba(160, 169, 200, 0.08);  /* Gray tint */
 }
 
 /* Light mode: slightly stronger tints for visibility */
