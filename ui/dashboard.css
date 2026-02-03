@@ -911,6 +911,11 @@ body {
     box-shadow 0.2s ease-out;
 }
 
+/* Notes section override: primary interaction surface must never clip */
+.secondary-section.notes-section {
+  overflow: visible;
+}
+
 .secondary-section:hover {
   border-color: var(--border-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -964,10 +969,12 @@ body {
   gap: var(--spacing-lg);
 }
 
-/* Notes Section — Passive textarea, no submit, no JS */
+/* Notes Section — Message to FutureHause (primary interaction surface)
+   IMPORTANT: Must never clip content */
 .notes-section {
   display: flex;
   flex-direction: column;
+  overflow: visible;  /* Override secondary-section overflow: hidden */
 }
 
 .notes-content {
@@ -976,6 +983,7 @@ body {
   gap: var(--spacing-sm);
   flex: 1;
   overflow: visible;  /* Prevent clipping of resized textarea */
+  max-height: none;   /* Override secondary-section-content max-height */
 }
 
 .notes-helper-text {
