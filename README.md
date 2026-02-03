@@ -89,5 +89,100 @@ These are ideas, not commitments.
 
 ---
 
+## Intent Routing & Ollama Usage
+
+Future Hause classifies user messages by **intent** before responding.
+
+### Intent Types
+
+| Intent | Behavior | Ollama Called? |
+|--------|----------|----------------|
+| `draft_request` | Generate draft → render in Draft Work | ✅ Yes |
+| `question` | Explanatory response only | ❌ No |
+| `meta` | Static explanation of FutureHause | ❌ No |
+| `action` | Refusal + explanation of boundaries | ❌ No |
+| `observation` | Acknowledgement only | ❌ No |
+
+### Key Rules
+
+- **Ollama is draft-only**: Only called when `allow_draft === true`
+- **No background calls**: All LLM calls are explicit and user-triggered
+- **No auto-routing**: Intent classification is deterministic (heuristics, no LLM)
+
+See `docs/llm-routing.md` for the full routing contract.
+
+---
+
+## Draft Work vs KB Opportunities
+
+| Section | Purpose | Source | Persistence |
+|---------|---------|--------|-------------|
+| **Draft Work** | Ollama-generated drafts for review | User request + Ollama | None (ephemeral) |
+| **KB Opportunities** | Observed gaps in knowledge base | System observation | Candidate only |
+
+### Draft Work Rules
+- Generated only when user explicitly requests a draft
+- Content is **DRAFT** until human review
+- No auto-promotion to KB, Projects, or Action Log
+- No persistence — refresh clears drafts
+
+### KB Opportunities Rules
+- System-observed suggestions, not user-generated
+- Marked as **CANDIDATE** until promoted
+- Promotion requires explicit human approval
+
+---
+
+## Action Log Semantics
+
+The Action Log records **approved actions only** — not ideas, not drafts.
+
+### Action Log Schema (Future)
+
+Each entry will include:
+
+| Field | Description |
+|-------|-------------|
+| `id` | Unique identifier |
+| `timestamp` | ISO 8601 timestamp |
+| `actor` | Who approved/performed the action |
+| `action_type` | Type of action taken |
+| `target` | What was affected |
+| `rationale` | Why the action was taken |
+
+### Example Entries
+
+- "Updated Freshdesk work spreadsheet"
+- "Created KB article from approved recommendation"
+- "Promoted recommendation to project"
+
+### Key Rule
+
+> **Ideas do not go into the Action Log — only approved actions do.**
+
+---
+
+## Future: WorkLogAgent (Design Only)
+
+A future WorkLogAgent will help capture daily work hours for export.
+
+### Conceptual Flow
+
+1. User drafts work entries via **Draft Work**
+2. User reviews and approves entries
+3. Approved entries → **Action Log**
+4. Later: Export approved entries to Excel for CEO review
+
+### Guardrails
+
+- No Excel generation yet
+- No filesystem writes yet
+- No scheduling or background logging
+- All exports require explicit human action
+
+This keeps FutureHause safe and reviewable.
+
+---
+
 ## Repository Structure (Evolving)
 

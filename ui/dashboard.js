@@ -1191,55 +1191,199 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
 }
 
 /**
- * Send notes to LLM and get response
+ * Call Ollama for draft generation (ONLY when allow_draft === true)
+ * @param {string} prompt - The user's draft request
+ * @returns {Promise<string>} Draft content from Ollama
+ */
+async function callOllama(prompt) {
+  try {
+    const response = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama3.2',
+        prompt: `You are a helpful assistant drafting work entries. Be concise and professional. User request: ${prompt}`,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.response || 'No response from Ollama';
+  } catch (error) {
+    console.error('Ollama error:', error);
+    return `[Ollama unavailable: ${error.message}. Ensure Ollama is running on localhost:11434]`;
+  }
+}
+
+/**
+ * Render draft content to the Draft Work section
+ * @param {string} content - Draft content to display
+ */
+function renderDraftWork(content) {
+  const entriesContainer = document.getElementById('draft-worklog-entries');
+  if (!entriesContainer) return;
+
+  const timestamp = new Date().toLocaleTimeString();
+  const entryHtml = `
+    <div class="draft-worklog-entry">
+      <div class="draft-entry-header">
+        <span class="draft-entry-time">${timestamp}</span>
+        <span class="draft-badge">DRAFT</span>
+      </div>
+      <div class="draft-entry-content">${content.replace(/\n/g, '<br>')}</div>
+    </div>
+  `;
+
+  // Clear empty state and add entry
+  entriesContainer.innerHTML = entryHtml;
+}
+
+/**
+ * Send message to LLM and get response
  *
  * Routing contract: docs/llm-routing.md
  * Router implementation: ui/llmRouter.js
  *
- * @param {string} notes - User's notes
- * @returns {Promise<string>} LLM response in mandatory schema format
+ * Intent handling:
+ * - draft_request: Call Ollama → render in Draft Work
+ * - question: Explanatory response (no Draft Work)
+ * - meta: Static explanation of FutureHause
+ * - action: Refusal + explanation of boundaries
+ * - observation: Acknowledgement only
+ *
+ * @param {string} message - User's message
+ * @returns {Promise<string>} Response in mandatory schema format
  */
-async function sendToLLM(notes) {
+async function sendToLLM(message) {
   // Check for purpose disclosure first
-  const disclosure = checkPurposeDisclosure(notes);
+  const disclosure = checkPurposeDisclosure(message);
   if (disclosure) {
     return disclosure;
   }
 
-  // Route input to appropriate LLM stage (no network call)
-  // See: docs/llm-routing.md for contract
+  // Route input to determine intent
   const routingDecision = typeof window.routeLLM === 'function'
-    ? window.routeLLM(notes)
+    ? window.routeLLM(message)
     : null;
 
-  // TODO: Replace with actual LLM endpoint based on routingDecision.provider
-  // For now, simulate a thoughtful response
-  // In production: POST /api/llm with { prompt: notes, stage: routingDecision.stage }
+  if (!routingDecision) {
+    return formatResponse({
+      presenceState: PRESENCE_STATES.IDLE,
+      summary: 'Router unavailable.',
+      whatIDid: ['Attempted to classify intent'],
+      whatIDidNot: ['Could not route — llmRouter.js not loaded'],
+      nextStep: 'Check that llmRouter.js is loaded correctly.'
+    });
+  }
 
-  return new Promise((resolve) => {
-    // Simulate LLM processing time
-    setTimeout(() => {
-      resolve(formatResponse({
-        presenceState: PRESENCE_STATES.OBSERVING,
-        summary: 'Received and interpreted your observations.',
-        routingDecision: routingDecision,
-        whatIDid: [
-          'Analyzed input for routing keywords',
-          `Determined routing: Stage ${routingDecision?.stage || '?'} (${routingDecision?.provider || 'unknown'})`,
-          'Prepared routing decision for review'
-        ],
-        whatIDidNot: [
-          'No model was called (routing only)',
-          'No data was saved or persisted',
-          'No Excel or Freshdesk writes',
-          'No API calls to external systems',
-          'No action log entries created'
-        ],
-        nextStep: routingDecision
-          ? `Ready to forward to ${routingDecision.provider} when enabled.`
-          : 'Router not available — check llmRouter.js is loaded.'
-      }));
-    }, 800); // Shorter delay since no actual LLM call
+  const { intent, allow_draft, must_answer_directly } = routingDecision;
+
+  // ═══════════════════════════════════════════════════════════════
+  // INTENT: draft_request — Call Ollama, render in Draft Work
+  // ═══════════════════════════════════════════════════════════════
+  if (intent === 'draft_request' && allow_draft) {
+    const ollamaResponse = await callOllama(message);
+    renderDraftWork(ollamaResponse);
+
+    return formatResponse({
+      presenceState: PRESENCE_STATES.OBSERVING,
+      summary: 'Draft generated and displayed in Draft Work section.',
+      whatIDid: [
+        'Classified intent as draft_request',
+        'Called Ollama to generate draft',
+        'Rendered output to Draft Work section'
+      ],
+      whatIDidNot: [
+        'No data was saved or persisted',
+        'No Excel or Freshdesk writes',
+        'No action log entries created',
+        'No auto-promotion to KB or Projects'
+      ],
+      nextStep: 'Review the draft in the Draft Work section. Edit or discard as needed.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // INTENT: question — Explanatory response (no Draft Work)
+  // ═══════════════════════════════════════════════════════════════
+  if (intent === 'question') {
+    return formatResponse({
+      presenceState: PRESENCE_STATES.OBSERVING,
+      summary: 'This appears to be a question.',
+      whatIDid: [
+        'Classified intent as question',
+        'Prepared explanatory response'
+      ],
+      whatIDidNot: [
+        'No Ollama call (questions don\'t generate drafts)',
+        'No data persistence',
+        'No action log entries'
+      ],
+      nextStep: 'For questions about FutureHause, ask "What is Future Hause?". For draft requests, try "Draft a work entry for..."'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // INTENT: meta — Static explanation of FutureHause
+  // ═══════════════════════════════════════════════════════════════
+  if (intent === 'meta') {
+    return formatResponse({
+      presenceState: PRESENCE_STATES.OBSERVING,
+      summary: 'Future Hause is a local support intelligence assistant.',
+      whatIDid: [
+        'Recognized meta/identity question',
+        'Provided system explanation'
+      ],
+      whatIDidNot: [
+        'No Ollama call needed',
+        'No data persistence'
+      ],
+      nextStep: 'Future Hause observes signals, drafts work entries, and helps organize intelligence. It never takes autonomous action.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // INTENT: action — Refusal + explanation of boundaries
+  // ═══════════════════════════════════════════════════════════════
+  if (intent === 'action') {
+    return formatResponse({
+      presenceState: PRESENCE_STATES.IDLE,
+      summary: 'Action requests require explicit human approval.',
+      whatIDid: [
+        'Classified intent as action request',
+        'Declined autonomous execution'
+      ],
+      whatIDidNot: [
+        'Did NOT execute the requested action',
+        'No commits, pushes, or file writes',
+        'No API calls or external changes',
+        'No state mutations'
+      ],
+      nextStep: 'Future Hause is an analyst, not an actor. It can draft content for your review, but actions must be taken by you.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // INTENT: observation — Acknowledgement only
+  // ═══════════════════════════════════════════════════════════════
+  return formatResponse({
+    presenceState: PRESENCE_STATES.OBSERVING,
+    summary: 'Observation received and noted.',
+    whatIDid: [
+      'Classified intent as observation',
+      'Acknowledged your input'
+    ],
+    whatIDidNot: [
+      'No Ollama call (observations don\'t generate drafts)',
+      'No data saved or persisted',
+      'No action log entries',
+      'No auto-promotion to KB or Projects'
+    ],
+    nextStep: 'To generate a draft, try: "Draft a work entry for [task description]"'
   });
 }
 

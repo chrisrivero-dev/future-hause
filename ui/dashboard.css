@@ -296,16 +296,16 @@ body {
   50% { box-shadow: 0 0 12px rgba(80, 180, 255, 0.35); }
 }
 
-/* Icon: rotation only for thinking/processing (NOT idle, NOT observing) */
+/* Icon: vertical bounce for thinking/processing (NO rotation) */
 /* Targets both .dashboard-icon and .presence-icon (actual DOM class) */
 .dashboard-icon-wrapper[data-state="thinking"] .dashboard-icon,
 .dashboard-icon-wrapper[data-state="thinking"] .presence-icon,
 .dashboard-icon-wrapper[data-state="processing"] .dashboard-icon,
 .dashboard-icon-wrapper[data-state="processing"] .presence-icon {
-  animation: fh-rotate var(--fh-rotate-duration) linear infinite;
+  animation: fh-bounce 0.6s ease-in-out infinite;
 }
 
-/* Explicitly ensure idle/observing NEVER rotate even if other rules exist */
+/* Explicitly ensure idle/observing have NO animation */
 .dashboard-icon-wrapper[data-state="idle"] .presence-icon,
 .dashboard-icon-wrapper[data-state="idle"] .dashboard-icon,
 .dashboard-icon-wrapper[data-state="observing"] .presence-icon,
@@ -314,19 +314,19 @@ body {
   transform: none !important;
 }
 
-/* Block hover-triggered rotation entirely */
+/* Block hover-triggered transforms entirely */
 .dashboard-icon-wrapper:hover .presence-icon,
 .dashboard-icon-wrapper:hover .dashboard-icon {
   transform: none !important;
 }
 
 /* --------------------------------------
-   KEYFRAMES — Core Rotation
-   Continuous slow rotation
+   KEYFRAMES — Vertical Bounce (thinking/processing)
+   Gentle up-down motion, no rotation
    -------------------------------------- */
-@keyframes fh-rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes fh-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 /* --------------------------------------
