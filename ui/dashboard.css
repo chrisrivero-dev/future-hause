@@ -1197,8 +1197,10 @@ body {
 
 .command-input {
   flex: 1;
-  min-height: 80px;
-  resize: none;
+  min-height: 120px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .primary-action {
