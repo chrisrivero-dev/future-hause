@@ -1197,25 +1197,33 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
  */
 async function callOllama(prompt) {
   try {
-    const response = await fetch('http://localhost:11434/api/generate', {
+    const res = await fetch('http://127.0.0.1:11434/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'llama3.2',
-        prompt: `You are a helpful assistant drafting work entries. Be concise and professional. User request: ${prompt}`,
+        model: 'mistral:latest',
+        prompt: prompt,
         stream: false
       })
     });
 
-    if (!response.ok) {
-      throw new Error(`Ollama returned ${response.status}`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
     }
 
-    const data = await response.json();
-    return data.response || 'No response from Ollama';
-  } catch (error) {
-    console.error('Ollama error:', error);
-    return `[Ollama unavailable: ${error.message}. Ensure Ollama is running on localhost:11434]`;
+    const data = await res.json();
+
+    // Ollama returns { response: "...", done: true }
+    if (typeof data.response === 'string') {
+      return data.response.trim();
+    }
+
+    throw new Error('Unexpected Ollama response format');
+
+  } catch (err) {
+    console.error('Ollama call failed:', err);
+    return `[Ollama error: ${err.message}]`;
   }
 }
 

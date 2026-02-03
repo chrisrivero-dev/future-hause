@@ -194,6 +194,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 6px rgba(80, 180, 255, 0.25);
   /* Performance optimization for animations */
   will-change: filter, opacity;
 }
@@ -288,12 +289,13 @@ body {
 
 /* Idle: subtle pulse only, NO rotation */
 .dashboard-icon-wrapper[data-state="idle"] {
-  animation: idlePulse 4s ease-in-out infinite;
+  animation: idlePulse 6s ease-in-out infinite;
 }
 
 @keyframes idlePulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0); }
-  50% { box-shadow: 0 0 12px rgba(80, 180, 255, 0.35); }
+  0%   { box-shadow: 0 0 4px rgba(80,180,255,0.20); }
+  50%  { box-shadow: 0 0 8px rgba(80,180,255,0.35); }
+  100% { box-shadow: 0 0 4px rgba(80,180,255,0.20); }
 }
 
 /* Icon: vertical bounce for thinking/processing (NO rotation) */
@@ -591,17 +593,18 @@ body {
    INTEL COLUMN TINTS — Visual Differentiation
    Subtle background tints per column type
    -------------------------------------- */
+/* Dark mode: visible differentiation (stronger than light mode base) */
 .intel-column[data-section="intel-events"] {
-  background: rgba(0, 180, 200, 0.04);  /* Light teal tint */
+  background: rgba(0, 180, 200, 0.12);  /* Teal tint */
 }
 .intel-column[data-section="kb-opportunities"] {
-  background: rgba(74, 222, 128, 0.04);  /* Light green tint */
+  background: rgba(74, 222, 128, 0.12);  /* Green tint */
 }
 .intel-column[data-section="projects"] {
-  background: rgba(251, 191, 36, 0.04);  /* Light amber tint */
+  background: rgba(251, 191, 36, 0.12);  /* Amber tint */
 }
 .intel-column[data-section="recommendations"] {
-  background: rgba(160, 169, 200, 0.04);  /* Neutral gray tint */
+  background: rgba(160, 169, 200, 0.12);  /* Gray tint */
 }
 
 /* Light mode: slightly stronger tints for visibility */
@@ -1068,7 +1071,7 @@ body {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color-subtle);
   border-radius: 8px;
-  overflow: hidden;
+  min-height: 0;  /* Allow flex children to shrink/grow properly */
 }
 
 .notes-response-panel[hidden] {
@@ -1129,10 +1132,11 @@ body {
 }
 
 .notes-response-body.expanded {
-  max-height: 500px;
+  max-height: none;
   opacity: 1;
   padding: var(--spacing-md);
   padding-top: 0;
+  overflow-y: auto;
 }
 
 .notes-response-content {
