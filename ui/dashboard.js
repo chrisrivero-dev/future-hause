@@ -310,6 +310,7 @@ function renderIntelEvents() {
     index,
     title: event.title || event.type || 'Event',
     meta: formatTimestamp(event.detected_at || event.timestamp),
+    urgency: event.priority || event.urgency || null,
     detailsHtml: `
       ${event.id ? renderDetailRow('ID', event.id) : ''}
       ${event.type ? renderDetailRow('Type', event.type) : ''}
@@ -346,7 +347,8 @@ function renderKbOpportunities() {
     columnId: 'kb',
     index,
     title: opp.title || opp.topic || 'Opportunity',
-    meta: escapeHtml(opp.status || opp.priority || ''),
+    meta: escapeHtml(opp.status || ''),
+    urgency: opp.priority || opp.urgency || null,
     detailsHtml: `
       ${opp.id ? renderDetailRow('ID', opp.id) : ''}
       ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
@@ -384,6 +386,7 @@ function renderProjects() {
     index,
     title: project.name || project.title || 'Project',
     meta: escapeHtml(project.status || ''),
+    urgency: project.priority || project.urgency || null,
     detailsHtml: `
       ${project.id ? renderDetailRow('ID', project.id) : ''}
       ${project.status ? renderDetailRow('Status', project.status) : ''}
@@ -421,6 +424,8 @@ function renderRecentRecommendations() {
     index,
     title: action.action || action.recommendation || 'Action',
     meta: formatTimestamp(action.timestamp || action.created_at),
+    urgency: action.priority || action.urgency || null,
+    showActions: true,
     detailsHtml: `
       ${action.id ? renderDetailRow('ID', action.id) : ''}
       ${action.rationale ? renderDetailRow('Rationale', action.rationale) : ''}
@@ -626,10 +631,25 @@ function generateCardIds(columnId, index) {
 /**
  * Render a card with proper ARIA attributes
  * @param {object} params - Card parameters
+ * @param {string} params.urgency - Optional urgency level (low, medium, high)
+ * @param {boolean} params.showActions - Whether to show action affordances
  * @returns {string} HTML string
  */
-function renderCard({ columnId, index, title, meta, detailsHtml }) {
+function renderCard({ columnId, index, title, meta, detailsHtml, urgency, showActions }) {
   const { headerId, detailsId } = generateCardIds(columnId, index);
+
+  // Urgency badge HTML (if provided)
+  const urgencyBadge = urgency
+    ? `<span class="urgency-badge ${urgency}">${urgency}</span>`
+    : '';
+
+  // Action affordances (placeholder, disabled)
+  const actionsHtml = showActions
+    ? `<div class="card-actions">
+        <button type="button" class="card-action-btn approve" disabled title="Approve (coming soon)">✓ Approve</button>
+        <button type="button" class="card-action-btn dismiss" disabled title="Dismiss (coming soon)">✕ Dismiss</button>
+      </div>`
+    : '';
 
   return `
     <div class="intel-card" data-index="${index}">
@@ -642,7 +662,7 @@ function renderCard({ columnId, index, title, meta, detailsHtml }) {
         aria-controls="${detailsId}"
       >
         <div class="intel-card-summary">
-          <div class="intel-card-title">${escapeHtml(title)}</div>
+          <div class="intel-card-title">${escapeHtml(title)}${urgencyBadge}</div>
           <div class="intel-card-meta">${meta}</div>
         </div>
         <span class="intel-card-toggle" aria-hidden="true">▼</span>
@@ -654,6 +674,7 @@ function renderCard({ columnId, index, title, meta, detailsHtml }) {
         aria-labelledby="${headerId}"
       >
         ${detailsHtml}
+        ${actionsHtml}
       </div>
     </div>
   `;
@@ -1045,6 +1066,62 @@ const mockActiveProject = {
 };
 
 /**
+ * Normalize ActiveProject to canonical form
+ * @param {ActiveProject} project - Raw project object
+ * @returns {ActiveProject} Normalized project
+ */
+function normalizeActiveProject(project) {
+  return {
+    id: project.id || '',
+    name: project.name || 'Untitled Project',
+    domain: project.domain || 'unknown',
+    status: project.status || 'active',
+    description: project.description || '',
+    lastActivity: project.lastActivity || new Date().toISOString(),
+    openItems: typeof project.openItems === 'number' ? project.openItems : 0
+  };
+}
+
+/**
+ * Mock ReviewAgent assessment (read-only, advisory)
+ * Follows ReviewAgent output contract from docs/review_agent_contract_v1.md
+ */
+const mockReviewAssessment = {
+  review_id: 'review-001',
+  draft_id: 'proj-freshdesk-ai-001',
+  timestamp: new Date().toISOString(),
+  findings: [],
+  summary: {
+    total_findings: 0,
+    high_severity: 0,
+    medium_severity: 0,
+    low_severity: 0,
+    info: 0
+  },
+  recommendation: 'approve',
+  disclaimer: 'This review is advisory only. Human judgment required.'
+};
+
+/**
+ * Apply ReviewAgent assessment to project (read-only merge)
+ * Does NOT modify original project or assessment
+ * @param {ActiveProject} project - Normalized project
+ * @param {object} assessment - ReviewAgent assessment
+ * @returns {ActiveProject} Project with review metadata attached
+ */
+function applyReviewAssessment(project, assessment) {
+  return {
+    ...project,
+    _review: {
+      recommendation: assessment.recommendation,
+      totalFindings: assessment.summary.total_findings,
+      highSeverity: assessment.summary.high_severity,
+      disclaimer: assessment.disclaimer
+    }
+  };
+}
+
+/**
  * Render the Active Project Focus panel
  * @param {ActiveProject|null} project - Project to display (null = empty state)
  */
@@ -1097,7 +1174,12 @@ function renderActiveProject(project) {
  * Initialize Active Project Focus with mock data
  */
 function initActiveProject() {
-  renderActiveProject(mockActiveProject);
+  const canonicalProject = normalizeActiveProject(mockActiveProject);
+  const reviewedProject = applyReviewAssessment(
+    canonicalProject,
+    mockReviewAssessment
+  );
+  renderActiveProject(reviewedProject);
 }
 
 /**
@@ -1590,6 +1672,66 @@ window.setPresenceState = setPresenceState;
 window.PRESENCE_STATES = PRESENCE_STATES;
 
 /* ----------------------------------------------------------------------------
+   COMMAND CHIPS — Quick Action Buttons (UI-only)
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Wire up command chip click handlers
+ * Populates textarea with chip command text
+ */
+function wireCommandChips() {
+  const chips = document.querySelectorAll('.command-chip');
+  const textarea = document.getElementById('notes-textarea');
+
+  if (!textarea) return;
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const command = chip.getAttribute('data-command');
+      if (command) {
+        textarea.value = command;
+        textarea.focus();
+      }
+    });
+  });
+}
+
+/* ----------------------------------------------------------------------------
+   RELATIVE TIME FORMATTING — UI Helper
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Format timestamp to relative time (e.g., "2 mins ago")
+ * @param {Date|string} date - Date to format
+ * @returns {string} Relative time string
+ */
+function formatRelativeTime(date) {
+  const now = new Date();
+  const then = date instanceof Date ? date : new Date(date);
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'just now';
+  if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  return formatTimestamp(then.toISOString());
+}
+
+/**
+ * Update the "Last Updated" timestamp in metadata header
+ */
+function updateLastUpdatedTime() {
+  const el = document.getElementById('last-updated-time');
+  if (el) {
+    el.textContent = `Last updated: ${formatRelativeTime(new Date())}`;
+  }
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -1610,8 +1752,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire up notes submission (Phase 1 interaction)
   wireNotesSubmit();
 
+  // Wire up command chips (quick action buttons)
+  wireCommandChips();
+
   // Initialize Active Project Focus with mock data
   initActiveProject();
+
+  // Update last updated timestamp
+  updateLastUpdatedTime();
 
   // State only changes via hover, click, or explicit function calls
 

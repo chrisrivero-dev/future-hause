@@ -99,16 +99,14 @@
           <div class="intel-column-header">
             <h3 class="intel-column-title">New Intel</h3>
             <span class="candidate-badge">CANDIDATE</span>
+            <span class="info-tooltip" data-tooltip="Signals and observations the system has noticed. Raw, uncommitted intelligence — nothing acted upon yet.">ⓘ</span>
             <span id="intel-events-count" class="intel-column-count">0 total</span>
-          </div>
-          <div class="intel-column-disclaimer">
-            Advisory only — no action taken.<br>
-            Nothing was changed.
           </div>
           <div id="intel-events-content" class="intel-column-content" data-target="intel-detail">
             <div class="intel-empty">
-              <div class="intel-empty-icon">—</div>
-              <div class="intel-empty-text">No data yet</div>
+              <div class="intel-empty-icon">📡</div>
+              <div class="intel-empty-text">No intel events yet</div>
+              <div class="intel-empty-hint">Checking for updates...</div>
             </div>
           </div>
         </div>
@@ -123,12 +121,14 @@
         <div class="intel-column" aria-label="KB Opportunities" data-section="kb-opportunities">
           <div class="intel-column-header">
             <h3 class="intel-column-title">KB Opportunities</h3>
+            <span class="info-tooltip" data-tooltip="Evidence-backed documentation gaps. Places where knowledge base content could improve.">ⓘ</span>
             <span id="kb-opportunities-count" class="intel-column-count">0 total</span>
           </div>
           <div id="kb-opportunities-content" class="intel-column-content" data-target="kb-detail">
             <div class="intel-empty">
-              <div class="intel-empty-icon">—</div>
-              <div class="intel-empty-text">No data yet</div>
+              <div class="intel-empty-icon">📚</div>
+              <div class="intel-empty-text">No KB opportunities yet</div>
+              <div class="intel-empty-hint">Checking for updates...</div>
             </div>
           </div>
         </div>
@@ -143,12 +143,14 @@
         <div class="intel-column" aria-label="Projects" data-section="projects">
           <div class="intel-column-header">
             <h3 class="intel-column-title">Projects</h3>
+            <span class="info-tooltip" data-tooltip="Human-approved initiatives derived from intelligence. Committed work with deliverables.">ⓘ</span>
             <span id="projects-count" class="intel-column-count">0 total</span>
           </div>
           <div id="projects-content" class="intel-column-content" data-target="project-detail">
             <div class="intel-empty">
-              <div class="intel-empty-icon">—</div>
-              <div class="intel-empty-text">No data yet</div>
+              <div class="intel-empty-icon">📋</div>
+              <div class="intel-empty-text">No projects yet</div>
+              <div class="intel-empty-hint">Checking for updates...</div>
             </div>
           </div>
         </div>
@@ -163,13 +165,15 @@
         -->
         <div class="intel-column" aria-label="Recent Recommendations" data-section="recommendations">
           <div class="intel-column-header">
-            <h3 class="intel-column-title">Recent Recommendations</h3>
+            <h3 class="intel-column-title">Recommendations</h3>
+            <span class="info-tooltip" data-tooltip="Actionable suggestions derived from intel. Advisory only — human decides whether to act.">ⓘ</span>
             <span id="recommendations-count" class="intel-column-count">0 total</span>
           </div>
           <div id="recommendations-content" class="intel-column-content" data-target="recommendation-detail">
             <div class="intel-empty">
-              <div class="intel-empty-icon">—</div>
-              <div class="intel-empty-text">No data yet</div>
+              <div class="intel-empty-icon">💡</div>
+              <div class="intel-empty-text">No recommendations yet</div>
+              <div class="intel-empty-hint">Checking for updates...</div>
             </div>
           </div>
         </div>
@@ -204,22 +208,24 @@
         <section class="secondary-section notes-section" aria-label="Message to Future Hause" data-section="message">
           <div class="secondary-section-header">
             <h2 class="secondary-section-title">Message to Future Hause</h2>
+            <span class="info-tooltip" data-tooltip="Ask questions or request drafts. Nothing is saved or committed.">ⓘ</span>
           </div>
           <div class="secondary-section-content notes-content">
-            <p class="notes-helper-text">
-              Ask questions, request drafts, or share observations.
-              Submit to receive a response. Nothing is saved or committed.
-            </p>
-            <textarea
-              id="notes-textarea"
-              class="notes-textarea"
-              placeholder="What would you like to ask or draft?"
-              aria-label="Message textarea"
-              rows="6"
-            ></textarea>
-            <div class="notes-actions">
-              <button id="notes-submit" class="notes-submit-btn" type="button">
-                Submit to Future Hause
+            <div class="command-chips" aria-label="Quick actions">
+              <button type="button" class="command-chip" data-command="Draft work log">Draft work log</button>
+              <button type="button" class="command-chip" data-command="Analyze recent intel">Analyze recent intel</button>
+              <button type="button" class="command-chip" data-command="Search documentation">Search documentation</button>
+            </div>
+            <div class="command-bar">
+              <textarea
+                id="notes-textarea"
+                class="notes-textarea command-input"
+                placeholder="What would you like to ask or draft?"
+                aria-label="Message textarea"
+                rows="3"
+              ></textarea>
+              <button id="notes-submit" class="notes-submit-btn primary-action" type="button">
+                Send
               </button>
             </div>
 
@@ -252,24 +258,33 @@
           - Data Passed: { id, timestamp, action_type, rationale, actor }
           - Purpose: Immutable record, no actions allowed
         -->
-        <section class="secondary-section" aria-label="Action Log" data-section="action-log">
+        <section class="secondary-section action-log-section" aria-label="Action Log" data-section="action-log">
           <div class="secondary-section-header">
             <h2 class="secondary-section-title">Action Log</h2>
+            <span class="info-tooltip" data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded.">ⓘ</span>
           </div>
           <div class="secondary-section-content">
             <table class="action-log-table">
               <thead>
                 <tr>
-                  <th class="col-time">Timestamp</th>
+                  <th class="col-time">
+                    Timestamp
+                    <span class="filter-icon" data-filter="time" title="Filter by time">⏱</span>
+                  </th>
                   <th class="col-id">ID</th>
-                  <th class="col-action">Action</th>
+                  <th class="col-action">
+                    Action
+                    <span class="filter-icon" data-filter="action" title="Filter by type">🔽</span>
+                  </th>
                   <th class="col-rationale">Rationale</th>
                 </tr>
               </thead>
               <tbody id="action-log-table-body">
                 <tr>
                   <td colspan="4" class="intel-empty">
+                    <div class="intel-empty-icon">📝</div>
                     <div class="intel-empty-text">No actions logged yet</div>
+                    <div class="intel-empty-hint">Decisions will appear here with timestamps and rationale</div>
                   </td>
                 </tr>
               </tbody>
@@ -315,22 +330,25 @@
       -->
       <section class="secondary-section draft-worklog-section" aria-label="Draft Work Log" data-section="draft-worklog">
         <div class="secondary-section-header">
-          <h2 class="secondary-section-title">Draft Work Log (Assistant-Generated)</h2>
+          <h2 class="secondary-section-title">Draft Work Log</h2>
           <span class="draft-badge">DRAFT</span>
+          <span class="info-tooltip guardrails-tooltip" data-tooltip="Guardrails: No Excel writes. No Freshdesk writes. No API calls. No persistence. No assumptions about hours.">ⓘ Learn more</span>
         </div>
         <div class="secondary-section-content draft-worklog-content">
-          <p class="draft-worklog-helper-text">
-            Future Hause can help draft daily work entries for your timesheet.
-            All output is for human review only. Nothing is submitted automatically.
-          </p>
           <div id="draft-worklog-entries" class="draft-worklog-entries">
             <div class="draft-worklog-empty">
-              <div class="intel-empty-text">No draft entries yet. Submit notes above to generate.</div>
+              <div class="intel-empty-icon">✏️</div>
+              <div class="intel-empty-text">No draft entries yet</div>
+              <div class="intel-empty-hint">Submit a message above to generate drafts</div>
             </div>
           </div>
-          <div class="draft-worklog-disclaimer">
-            <strong>Guardrails:</strong> No Excel writes. No Freshdesk writes. No API calls.
-            No persistence. No assumptions about hours or work performed.
+          <div class="draft-worklog-actions">
+            <button type="button" class="draft-action-btn" id="copy-draft-btn" disabled title="Copy to clipboard">
+              📋 Copy
+            </button>
+            <button type="button" class="draft-action-btn" id="export-draft-btn" disabled title="Export draft">
+              📤 Export
+            </button>
           </div>
         </div>
       </section>
@@ -343,12 +361,15 @@
         - Data Passed: { schema_versions, load_status, timestamps }
         - Purpose: Health + trust indicators, pure observability
       -->
-      <section class="secondary-section" aria-label="System Metadata" data-section="metadata">
+      <section class="secondary-section metadata-section" aria-label="System Metadata" data-section="metadata">
         <div class="secondary-section-header">
           <h2 class="secondary-section-title">System Metadata</h2>
+          <span class="info-tooltip" data-tooltip="Health and trust indicators. Schema versions, load status, and timestamps.">ⓘ</span>
+          <span id="last-updated-time" class="last-updated">Last updated: —</span>
         </div>
-        <div id="metadata-content" class="secondary-section-content">
+        <div id="metadata-content" class="secondary-section-content metadata-content">
           <div class="intel-empty">
+            <div class="intel-empty-icon">⚙️</div>
             <div class="intel-empty-text">Loading metadata...</div>
           </div>
         </div>
