@@ -352,9 +352,8 @@ body {
    ---------------------------------------------------------------------------- */
 
 .dashboard-main {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: var(--spacing-xl);
+  display: block;
+  width: 100%;
 }
 
 /* ----------------------------------------------------------------------------
@@ -365,6 +364,10 @@ body {
   display: flex;
   gap: var(--spacing-lg);
   align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .dashboard-content {
@@ -405,6 +408,13 @@ body {
   height: 64px;
   display: block;
   pointer-events: none;
+}
+
+/* Bot avatar — explicit sizing for layout stability */
+.bot-avatar {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 16px;
 }
 
 /* Assistant name — always visible, clear identity */
@@ -491,10 +501,9 @@ body {
    ========================================================================== */
 .intel-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);  /* 4 equal-width columns */
-  grid-auto-rows: minmax(200px, 500px);   /* Consistent row height range */
-  gap: var(--spacing-lg);
-  align-items: stretch;                    /* Equal height columns */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
   margin-bottom: var(--spacing-2xl);
 }
 
@@ -779,9 +788,9 @@ body {
    ---------------------------------------------------------------------------- */
 
 .secondary-sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .secondary-section {
