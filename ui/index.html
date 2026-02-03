@@ -24,6 +24,9 @@
       <div class="header-status">
         <span class="header-status-dot"></span>
         <span>Read-Only Dashboard</span>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode">
+          Dark
+        </button>
       </div>
     </div>
   </header>
@@ -32,6 +35,7 @@
        MAIN DASHBOARD CONTENT
        ========================= -->
   <main class="dashboard-main">
+    <div class="dashboard-layout">
 
     <!-- =========================
          PRIMARY INTELLIGENCE — 4 COLUMNS
@@ -52,18 +56,50 @@
       </div>
 
 
-        <h2 class="section-title">Activity Feed</h2>
-      </div>
+        <div class="presence-name">Future Hause</div>
+
+        <div class="presence-status">
+          <span class="presence-status-text">Idle</span>
+        </div>
+
+        <div class="presence-feed" aria-label="Active Feed">
+          <div class="presence-feed-placeholder">—</div>
+        </div>
+      </aside>
+
+      <!-- =========================
+           DASHBOARD CONTENT — Main Intelligence Area
+           ========================= -->
+      <div class="dashboard-content">
+
+        <!-- =========================
+             PRIMARY INTELLIGENCE — 4 COLUMNS
+             ========================= -->
+        <section class="primary-intelligence" aria-label="Primary Intelligence">
+          <div class="section-header">
+            <h2 class="section-title">Activity Feed</h2>
+          </div>
 
       <div class="intel-grid">
 
-        <!-- Column 1: New Intel -->
-        <div class="intel-column" aria-label="New Intel">
+        <!--
+          Column 1: New Intel
+          NAVIGATION CONTRACT:
+          - Click Target: Modal or drawer showing full intel detail
+          - Route: /intel/:id (future)
+          - Data Passed: { id, type, source, timestamp, raw_content }
+        -->
+        <div class="intel-column" aria-label="New Intel (Candidate)" data-section="intel-events">
           <div class="intel-column-header">
             <h3 class="intel-column-title">New Intel</h3>
+            <span class="candidate-badge">CANDIDATE</span>
             <span id="intel-events-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="intel-events-content" class="intel-column-content">
+          <div class="intel-column-disclaimer">
+            Advisory only — no action taken.<br>
+            Nothing was changed.
+          </div>
+          <div id="intel-events-content" class="intel-column-content" data-target="intel-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -71,13 +107,19 @@
           </div>
         </div>
 
-        <!-- Column 2: KB Opportunities -->
-        <div class="intel-column" aria-label="KB Opportunities">
+        <!--
+          Column 2: KB Opportunities
+          NAVIGATION CONTRACT:
+          - Click Target: Modal showing opportunity + linked evidence
+          - Route: /kb/:id (future)
+          - Data Passed: { id, gap_type, evidence_ids[], suggested_action }
+        -->
+        <div class="intel-column" aria-label="KB Opportunities" data-section="kb-opportunities">
           <div class="intel-column-header">
             <h3 class="intel-column-title">KB Opportunities</h3>
             <span id="kb-opportunities-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="kb-opportunities-content" class="intel-column-content">
+          <div id="kb-opportunities-content" class="intel-column-content" data-target="kb-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -85,13 +127,19 @@
           </div>
         </div>
 
-        <!-- Column 3: Projects -->
-        <div class="intel-column" aria-label="Projects">
+        <!--
+          Column 3: Projects
+          NAVIGATION CONTRACT:
+          - Click Target: Project detail page or drawer
+          - Route: /projects/:id (future)
+          - Data Passed: { id, name, status, deliverables[], source_intel_id }
+        -->
+        <div class="intel-column" aria-label="Projects" data-section="projects">
           <div class="intel-column-header">
             <h3 class="intel-column-title">Projects</h3>
             <span id="projects-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="projects-content" class="intel-column-content">
+          <div id="projects-content" class="intel-column-content" data-target="project-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -99,13 +147,20 @@
           </div>
         </div>
 
-        <!-- Column 4: Recent Recommendations -->
-        <div class="intel-column" aria-label="Recent Recommendations">
+        <!--
+          Column 4: Recent Recommendations
+          NAVIGATION CONTRACT:
+          - Click Target: Modal with accept/dismiss actions (future)
+          - Route: /recommendations/:id (future)
+          - Data Passed: { id, recommendation_type, rationale, source_intel_ids[] }
+          - Actions: promote_to_project, dismiss, defer
+        -->
+        <div class="intel-column" aria-label="Recent Recommendations" data-section="recommendations">
           <div class="intel-column-header">
             <h3 class="intel-column-title">Recent Recommendations</h3>
             <span id="recommendations-count" class="intel-column-count">0 total</span>
           </div>
-          <div id="recommendations-content" class="intel-column-content">
+          <div id="recommendations-content" class="intel-column-content" data-target="recommendation-detail">
             <div class="intel-empty">
               <div class="intel-empty-icon">—</div>
               <div class="intel-empty-text">No data yet</div>
@@ -121,34 +176,148 @@
          ========================= -->
     <div class="secondary-sections">
 
-      <!-- Action Log -->
-      <section class="secondary-section" aria-label="Action Log">
+      <!-- =========================
+           NOTES + ACTION LOG ROW — Side by Side
+           ========================= -->
+      <div class="notes-log-row">
+
+        <!--
+          Notes to Future Hause
+          PURPOSE:
+          - Human observations sent to Future Hause for consideration
+          - Submit triggers LLM response (read-only, no side effects)
+          - Intent: "Here's what I'm noticing"
+
+          PHASE 1 CONSTRAINTS:
+          - No data persistence
+          - No action log entries
+          - No intel promotion
+          - No automatic UI or data changes
+          - Read-only explanatory loop only
+        -->
+        <section class="secondary-section notes-section" aria-label="Notes to Future Hause" data-section="notes">
+          <div class="secondary-section-header">
+            <h2 class="secondary-section-title">Notes to Future Hause</h2>
+          </div>
+          <div class="secondary-section-content notes-content">
+            <p class="notes-helper-text">
+              Observations, patterns, or context you want Future Hause to consider.
+              Submit to receive a response. Nothing is saved or committed.
+            </p>
+            <textarea
+              id="notes-textarea"
+              class="notes-textarea"
+              placeholder="What are you noticing?"
+              aria-label="Notes textarea"
+              rows="6"
+            ></textarea>
+            <div class="notes-actions">
+              <button id="notes-submit" class="notes-submit-btn" type="button">
+                Submit to Future Hause
+              </button>
+            </div>
+
+            <!-- Response Panel (collapsible, hidden until response received) -->
+            <div id="notes-response-panel" class="notes-response-panel" hidden>
+              <div
+                class="notes-response-header"
+                id="notes-response-header"
+                role="button"
+                tabindex="0"
+                aria-expanded="true"
+                aria-controls="notes-response-body"
+              >
+                <span class="notes-response-title">Future Hause Response</span>
+                <span class="notes-response-toggle" aria-hidden="true">▼</span>
+              </div>
+              <div id="notes-response-body" class="notes-response-body expanded">
+                <div id="notes-response-content" class="notes-response-content"></div>
+                <div class="notes-response-footer">Nothing was committed.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!--
+          Action Log
+          NAVIGATION CONTRACT:
+          - Click Target: Expand row to show full rationale (in-place)
+          - Route: None (read-only audit trail, no navigation)
+          - Data Passed: { id, timestamp, action_type, rationale, actor }
+          - Purpose: Immutable record, no actions allowed
+        -->
+        <section class="secondary-section" aria-label="Action Log" data-section="action-log">
+          <div class="secondary-section-header">
+            <h2 class="secondary-section-title">Action Log</h2>
+          </div>
+          <div class="secondary-section-content">
+            <table class="action-log-table">
+              <thead>
+                <tr>
+                  <th class="col-time">Timestamp</th>
+                  <th class="col-id">ID</th>
+                  <th class="col-action">Action</th>
+                  <th class="col-rationale">Rationale</th>
+                </tr>
+              </thead>
+              <tbody id="action-log-table-body">
+                <tr>
+                  <td colspan="4" class="intel-empty">
+                    <div class="intel-empty-text">No actions logged yet</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+
+      <!--
+        Draft Work Log (Assistant-Generated)
+        PURPOSE:
+        - Help draft daily work entries for FutureBit timesheet
+        - Structured, human-readable, clearly labeled as DRAFT
+        - For human review only
+
+        EXPLICIT PROHIBITIONS:
+        - Do NOT write to Excel
+        - Do NOT write to Freshdesk
+        - Do NOT automate submission
+        - Do NOT assume hours unless explicitly provided
+        - This is memory-assist and drafting, not execution
+      -->
+      <section class="secondary-section draft-worklog-section" aria-label="Draft Work Log" data-section="draft-worklog">
         <div class="secondary-section-header">
-          <h2 class="secondary-section-title">Action Log</h2>
+          <h2 class="secondary-section-title">Draft Work Log (Assistant-Generated)</h2>
+          <span class="draft-badge">DRAFT</span>
         </div>
-        <div class="secondary-section-content">
-          <table class="action-log-table">
-            <thead>
-              <tr>
-                <th class="col-time">Timestamp</th>
-                <th class="col-id">ID</th>
-                <th class="col-action">Action</th>
-                <th class="col-rationale">Rationale</th>
-              </tr>
-            </thead>
-            <tbody id="action-log-table-body">
-              <tr>
-                <td colspan="4" class="intel-empty">
-                  <div class="intel-empty-text">No actions logged yet</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="secondary-section-content draft-worklog-content">
+          <p class="draft-worklog-helper-text">
+            Future Hause can help draft daily work entries for your timesheet.
+            All output is for human review only. Nothing is submitted automatically.
+          </p>
+          <div id="draft-worklog-entries" class="draft-worklog-entries">
+            <div class="draft-worklog-empty">
+              <div class="intel-empty-text">No draft entries yet. Submit notes above to generate.</div>
+            </div>
+          </div>
+          <div class="draft-worklog-disclaimer">
+            <strong>Guardrails:</strong> No Excel writes. No Freshdesk writes. No API calls.
+            No persistence. No assumptions about hours or work performed.
+          </div>
         </div>
       </section>
 
-      <!-- System Metadata -->
-      <section class="secondary-section" aria-label="System Metadata">
+      <!--
+        System Metadata
+        NAVIGATION CONTRACT:
+        - Click Target: None (informational display only)
+        - Route: None
+        - Data Passed: { schema_versions, load_status, timestamps }
+        - Purpose: Health + trust indicators, pure observability
+      -->
+      <section class="secondary-section" aria-label="System Metadata" data-section="metadata">
         <div class="secondary-section-header">
           <h2 class="secondary-section-title">System Metadata</h2>
         </div>
@@ -159,7 +328,15 @@
         </div>
       </section>
 
+      </div>
+      <!-- closes secondary-sections -->
+
     </div>
+    <!-- closes dashboard-content -->
+
+  </div>
+  <!-- closes dashboard-layout -->
+
   </main>
 
   <!-- =========================
@@ -177,6 +354,8 @@
   <!-- =========================
        SCRIPTS
        ========================= -->
+  <!-- LLM Router: docs/llm-routing.md -->
+  <script src="./llmRouter.js"></script>
   <script src="./dashboard.js"></script>
 
 </body>
