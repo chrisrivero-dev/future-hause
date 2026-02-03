@@ -50,14 +50,14 @@
 
 // Configuration
 const CONFIG = {
-  outputsPath: '/outputs',
+  outputsPath: "/outputs",
   maxItemsPerColumn: 5,
   files: {
-    intelEvents: 'intel_events.json',
-    kbOpportunities: 'kb_opportunities.json',
-    projects: 'projects.json',
-    actionLog: 'action_log.json'
-  }
+    intelEvents: "intel_events.json",
+    kbOpportunities: "kb_opportunities.json",
+    projects: "projects.json",
+    actionLog: "action_log.json",
+  },
 };
 /* ... existing header ... */
 
@@ -70,66 +70,66 @@ const CONFIG = {
    ---------------------------------------------------------------------------- */
 
 const SECTION_EXPLANATIONS = {
-  'intel-events': {
-    title: 'What is New Intel?',
-    text: 'Signals, observations, or ideas the system has noticed. This is raw, uncommitted intelligence — nothing here has been acted upon yet.',
+  "intel-events": {
+    title: "What is New Intel?",
+    text: "Signals, observations, or ideas the system has noticed. This is raw, uncommitted intelligence — nothing here has been acted upon yet.",
     examples: [
-      'New FutureBit firmware updates or announcements',
-      'Reddit community discussions or support questions',
-      'Documentation gaps or user confusion patterns',
-      'Suggestions tied to current projects'
-    ]
+      "New FutureBit firmware updates or announcements",
+      "Reddit community discussions or support questions",
+      "Documentation gaps or user confusion patterns",
+      "Suggestions tied to current projects",
+    ],
   },
-  'kb-opportunities': {
-    title: 'What are KB Opportunities?',
-    text: 'Places where documentation or canned responses could improve. These are evidence-backed suggestions derived from intel analysis.',
+  "kb-opportunities": {
+    title: "What are KB Opportunities?",
+    text: "Places where documentation or canned responses could improve. These are evidence-backed suggestions derived from intel analysis.",
     examples: [
-      'Frequently asked questions without clear answers',
-      'Common support issues that could be documented',
-      'Feature explanations that users struggle to find',
-      'Gaps between product capabilities and documentation'
-    ]
+      "Frequently asked questions without clear answers",
+      "Common support issues that could be documented",
+      "Feature explanations that users struggle to find",
+      "Gaps between product capabilities and documentation",
+    ],
   },
-  'projects': {
-    title: 'What are Projects?',
-    text: 'Human-approved initiatives you are actively working on. Projects are promoted from intel or recommendations — they represent committed work.',
+  projects: {
+    title: "What are Projects?",
+    text: "Human-approved initiatives you are actively working on. Projects are promoted from intel or recommendations — they represent committed work.",
     examples: [
-      'Documentation improvements in progress',
-      'Support workflow optimizations',
-      'Knowledge base article drafts',
-      'Process improvements based on intel patterns'
-    ]
+      "Documentation improvements in progress",
+      "Support workflow optimizations",
+      "Knowledge base article drafts",
+      "Process improvements based on intel patterns",
+    ],
   },
-  'recommendations': {
-    title: 'What are Recommendations?',
-    text: 'Actionable suggestions derived from intel and context. These are advisory only — a human must decide whether to act on them.',
+  recommendations: {
+    title: "What are Recommendations?",
+    text: "Actionable suggestions derived from intel and context. These are advisory only — a human must decide whether to act on them.",
     examples: [
-      'Suggested KB articles based on support patterns',
-      'Proposed canned responses for common questions',
-      'Workflow improvements based on observed friction',
-      'Priority suggestions based on signal frequency'
-    ]
+      "Suggested KB articles based on support patterns",
+      "Proposed canned responses for common questions",
+      "Workflow improvements based on observed friction",
+      "Priority suggestions based on signal frequency",
+    ],
   },
-  'action-log': {
-    title: 'What is the Action Log?',
-    text: 'An immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded here with timestamps and rationale.',
+  "action-log": {
+    title: "What is the Action Log?",
+    text: "An immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded here with timestamps and rationale.",
     examples: [
-      'Intel promoted to project (with reason)',
-      'Recommendation accepted or dismissed',
-      'KB article published from opportunity',
-      'System state changes and their triggers'
-    ]
+      "Intel promoted to project (with reason)",
+      "Recommendation accepted or dismissed",
+      "KB article published from opportunity",
+      "System state changes and their triggers",
+    ],
   },
-  'metadata': {
-    title: 'What is System Metadata?',
-    text: 'Health and trust indicators for the system. This shows schema versions, load status, and timestamps — pure observability, no business logic.',
+  metadata: {
+    title: "What is System Metadata?",
+    text: "Health and trust indicators for the system. This shows schema versions, load status, and timestamps — pure observability, no business logic.",
     examples: [
-      'Schema version compatibility checks',
-      'Data freshness timestamps',
-      'Load status for each data source',
-      'System configuration state'
-    ]
-  }
+      "Schema version compatibility checks",
+      "Data freshness timestamps",
+      "Load status for each data source",
+      "System configuration state",
+    ],
+  },
 };
 
 // State for loaded data and metadata
@@ -139,15 +139,15 @@ const state = {
   projects: null,
   actionLog: null,
   loadStatus: {
-    intelEvents: 'pending',
-    kbOpportunities: 'pending',
-    projects: 'pending',
-    actionLog: 'pending'
+    intelEvents: "pending",
+    kbOpportunities: "pending",
+    projects: "pending",
+    actionLog: "pending",
   },
   metadata: {
     schemaVersions: {},
-    generatedTimestamps: {}
-  }
+    generatedTimestamps: {},
+  },
 };
 
 /* ----------------------------------------------------------------------------
@@ -160,19 +160,19 @@ const state = {
  * @returns {string} Formatted date/time string
  */
 function formatTimestamp(isoString) {
-  if (!isoString) return '—';
+  if (!isoString) return "—";
   try {
     const date = new Date(isoString);
-    if (isNaN(date.getTime())) return '—';
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   } catch (e) {
-    return '—';
+    return "—";
   }
 }
 
@@ -183,8 +183,8 @@ function formatTimestamp(isoString) {
  * @returns {string} Truncated string
  */
 function truncate(str, maxLength = 50) {
-  if (!str || typeof str !== 'string') return '';
-  return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+  if (!str || typeof str !== "string") return "";
+  return str.length > maxLength ? str.substring(0, maxLength) + "..." : str;
 }
 
 /**
@@ -196,8 +196,13 @@ function truncate(str, maxLength = 50) {
  */
 function getNestedValue(obj, path, defaultValue = null) {
   if (!obj || !path) return defaultValue;
-  return path.split('.').reduce((acc, part) =>
-    acc && acc[part] !== undefined ? acc[part] : defaultValue, obj);
+  return path
+    .split(".")
+    .reduce(
+      (acc, part) =>
+        acc && acc[part] !== undefined ? acc[part] : defaultValue,
+      obj,
+    );
 }
 
 /**
@@ -206,8 +211,8 @@ function getNestedValue(obj, path, defaultValue = null) {
  * @returns {string} Escaped string
  */
 function escapeHtml(str) {
-  if (!str || typeof str !== 'string') return '';
-  const div = document.createElement('div');
+  if (!str || typeof str !== "string") return "";
+  const div = document.createElement("div");
   div.textContent = str;
   return div.innerHTML;
 }
@@ -245,33 +250,34 @@ async function loadAllData() {
     fetchOutputFile(CONFIG.files.intelEvents),
     fetchOutputFile(CONFIG.files.kbOpportunities),
     fetchOutputFile(CONFIG.files.projects),
-    fetchOutputFile(CONFIG.files.actionLog)
+    fetchOutputFile(CONFIG.files.actionLog),
   ]);
 
   // Store results and update load status
   state.intelEvents = results[0];
-  state.loadStatus.intelEvents = results[0] ? 'success' : 'error';
+  state.loadStatus.intelEvents = results[0] ? "success" : "error";
   if (results[0]) {
     state.metadata.schemaVersions.intelEvents = results[0].schema_version;
     state.metadata.generatedTimestamps.intelEvents = results[0].generated_at;
   }
 
   state.kbOpportunities = results[1];
-  state.loadStatus.kbOpportunities = results[1] ? 'success' : 'error';
+  state.loadStatus.kbOpportunities = results[1] ? "success" : "error";
   if (results[1]) {
     state.metadata.schemaVersions.kbOpportunities = results[1].schema_version;
-    state.metadata.generatedTimestamps.kbOpportunities = results[1].generated_at;
+    state.metadata.generatedTimestamps.kbOpportunities =
+      results[1].generated_at;
   }
 
   state.projects = results[2];
-  state.loadStatus.projects = results[2] ? 'success' : 'error';
+  state.loadStatus.projects = results[2] ? "success" : "error";
   if (results[2]) {
     state.metadata.schemaVersions.projects = results[2].schema_version;
     state.metadata.generatedTimestamps.projects = results[2].generated_at;
   }
 
   state.actionLog = results[3];
-  state.loadStatus.actionLog = results[3] ? 'success' : 'error';
+  state.loadStatus.actionLog = results[3] ? "success" : "error";
   if (results[3]) {
     state.metadata.schemaVersions.actionLog = results[3].schema_version;
   }
@@ -290,35 +296,39 @@ async function loadAllData() {
    ---------------------------------------------------------------------------- */
 
 function renderIntelEvents() {
-  const container = document.getElementById('intel-events-content');
-  const countEl = document.getElementById('intel-events-count');
+  const container = document.getElementById("intel-events-content");
+  const countEl = document.getElementById("intel-events-count");
 
   if (!container) return;
 
-  const events = getNestedValue(state.intelEvents, 'events', []);
+  const events = getNestedValue(state.intelEvents, "events", []);
   const displayEvents = events.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${events.length} total`;
 
   if (displayEvents.length === 0) {
-    container.innerHTML = renderEmptyState('No intel events yet');
+    container.innerHTML = renderEmptyState("No intel events yet");
     return;
   }
 
-  container.innerHTML = displayEvents.map((event, index) => renderCard({
-    columnId: 'intel',
-    index,
-    title: event.title || event.type || 'Event',
-    meta: formatTimestamp(event.detected_at || event.timestamp),
-    urgency: event.priority || event.urgency || null,
-    detailsHtml: `
-      ${event.id ? renderDetailRow('ID', event.id) : ''}
-      ${event.type ? renderDetailRow('Type', event.type) : ''}
-      ${event.source ? renderDetailRow('Source', event.source) : ''}
-      ${event.description ? renderDetailRow('Description', event.description) : ''}
-      ${event.url ? renderDetailRow('URL', event.url) : ''}
-    `
-  })).join('');
+  container.innerHTML = displayEvents
+    .map((event, index) =>
+      renderCard({
+        columnId: "intel",
+        index,
+        title: event.title || event.type || "Event",
+        meta: formatTimestamp(event.detected_at || event.timestamp),
+        urgency: event.priority || event.urgency || null,
+        detailsHtml: `
+      ${event.id ? renderDetailRow("ID", event.id) : ""}
+      ${event.type ? renderDetailRow("Type", event.type) : ""}
+      ${event.source ? renderDetailRow("Source", event.source) : ""}
+      ${event.description ? renderDetailRow("Description", event.description) : ""}
+      ${event.url ? renderDetailRow("URL", event.url) : ""}
+    `,
+      }),
+    )
+    .join("");
 
   attachExpandHandlers(container);
 }
@@ -328,35 +338,43 @@ function renderIntelEvents() {
    ---------------------------------------------------------------------------- */
 
 function renderKbOpportunities() {
-  const container = document.getElementById('kb-opportunities-content');
-  const countEl = document.getElementById('kb-opportunities-count');
+  const container = document.getElementById("kb-opportunities-content");
+  const countEl = document.getElementById("kb-opportunities-count");
 
   if (!container) return;
 
-  const opportunities = getNestedValue(state.kbOpportunities, 'opportunities', []);
+  const opportunities = getNestedValue(
+    state.kbOpportunities,
+    "opportunities",
+    [],
+  );
   const displayOpportunities = opportunities.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${opportunities.length} total`;
 
   if (displayOpportunities.length === 0) {
-    container.innerHTML = renderEmptyState('No KB opportunities yet');
+    container.innerHTML = renderEmptyState("No KB opportunities yet");
     return;
   }
 
-  container.innerHTML = displayOpportunities.map((opp, index) => renderCard({
-    columnId: 'kb',
-    index,
-    title: opp.title || opp.topic || 'Opportunity',
-    meta: escapeHtml(opp.status || ''),
-    urgency: opp.priority || opp.urgency || null,
-    detailsHtml: `
-      ${opp.id ? renderDetailRow('ID', opp.id) : ''}
-      ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
-      ${opp.suggested_action ? renderDetailRow('Suggested', opp.suggested_action) : ''}
-      ${opp.source_signals ? renderDetailRow('Signals', opp.source_signals) : ''}
-      ${opp.created_at ? renderDetailRow('Created', formatTimestamp(opp.created_at)) : ''}
-    `
-  })).join('');
+  container.innerHTML = displayOpportunities
+    .map((opp, index) =>
+      renderCard({
+        columnId: "kb",
+        index,
+        title: opp.title || opp.topic || "Opportunity",
+        meta: escapeHtml(opp.status || ""),
+        urgency: opp.priority || opp.urgency || null,
+        detailsHtml: `
+      ${opp.id ? renderDetailRow("ID", opp.id) : ""}
+      ${opp.gap_type ? renderDetailRow("Gap Type", opp.gap_type) : ""}
+      ${opp.suggested_action ? renderDetailRow("Suggested", opp.suggested_action) : ""}
+      ${opp.source_signals ? renderDetailRow("Signals", opp.source_signals) : ""}
+      ${opp.created_at ? renderDetailRow("Created", formatTimestamp(opp.created_at)) : ""}
+    `,
+      }),
+    )
+    .join("");
 
   attachExpandHandlers(container);
 }
@@ -366,35 +384,39 @@ function renderKbOpportunities() {
    ---------------------------------------------------------------------------- */
 
 function renderProjects() {
-  const container = document.getElementById('projects-content');
-  const countEl = document.getElementById('projects-count');
+  const container = document.getElementById("projects-content");
+  const countEl = document.getElementById("projects-count");
 
   if (!container) return;
 
-  const projects = getNestedValue(state.projects, 'projects', []);
+  const projects = getNestedValue(state.projects, "projects", []);
   const displayProjects = projects.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${projects.length} total`;
 
   if (displayProjects.length === 0) {
-    container.innerHTML = renderEmptyState('No projects yet');
+    container.innerHTML = renderEmptyState("No projects yet");
     return;
   }
 
-  container.innerHTML = displayProjects.map((project, index) => renderCard({
-    columnId: 'projects',
-    index,
-    title: project.name || project.title || 'Project',
-    meta: escapeHtml(project.status || ''),
-    urgency: project.priority || project.urgency || null,
-    detailsHtml: `
-      ${project.id ? renderDetailRow('ID', project.id) : ''}
-      ${project.status ? renderDetailRow('Status', project.status) : ''}
-      ${project.deliverables ? renderDetailRow('Deliverables', Array.isArray(project.deliverables) ? project.deliverables.join(', ') : project.deliverables) : ''}
-      ${project.created_at ? renderDetailRow('Created', formatTimestamp(project.created_at)) : ''}
-      ${project.updated_at ? renderDetailRow('Updated', formatTimestamp(project.updated_at)) : ''}
-    `
-  })).join('');
+  container.innerHTML = displayProjects
+    .map((project, index) =>
+      renderCard({
+        columnId: "projects",
+        index,
+        title: project.name || project.title || "Project",
+        meta: escapeHtml(project.status || ""),
+        urgency: project.priority || project.urgency || null,
+        detailsHtml: `
+      ${project.id ? renderDetailRow("ID", project.id) : ""}
+      ${project.status ? renderDetailRow("Status", project.status) : ""}
+      ${project.deliverables ? renderDetailRow("Deliverables", Array.isArray(project.deliverables) ? project.deliverables.join(", ") : project.deliverables) : ""}
+      ${project.created_at ? renderDetailRow("Created", formatTimestamp(project.created_at)) : ""}
+      ${project.updated_at ? renderDetailRow("Updated", formatTimestamp(project.updated_at)) : ""}
+    `,
+      }),
+    )
+    .join("");
 
   attachExpandHandlers(container);
 }
@@ -404,35 +426,39 @@ function renderProjects() {
    ---------------------------------------------------------------------------- */
 
 function renderRecentRecommendations() {
-  const container = document.getElementById('recommendations-content');
-  const countEl = document.getElementById('recommendations-count');
+  const container = document.getElementById("recommendations-content");
+  const countEl = document.getElementById("recommendations-count");
 
   if (!container) return;
 
-  const actions = getNestedValue(state.actionLog, 'actions', []);
+  const actions = getNestedValue(state.actionLog, "actions", []);
   const displayActions = actions.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${actions.length} total`;
 
   if (displayActions.length === 0) {
-    container.innerHTML = renderEmptyState('No recommendations yet');
+    container.innerHTML = renderEmptyState("No recommendations yet");
     return;
   }
 
-  container.innerHTML = displayActions.map((action, index) => renderCard({
-    columnId: 'recommendations',
-    index,
-    title: action.action || action.recommendation || 'Action',
-    meta: formatTimestamp(action.timestamp || action.created_at),
-    urgency: action.priority || action.urgency || null,
-    showActions: true,
-    detailsHtml: `
-      ${action.id ? renderDetailRow('ID', action.id) : ''}
-      ${action.rationale ? renderDetailRow('Rationale', action.rationale) : ''}
-      ${action.status ? renderDetailRow('Status', action.status) : ''}
-      ${action.source ? renderDetailRow('Source', action.source) : ''}
-    `
-  })).join('');
+  container.innerHTML = displayActions
+    .map((action, index) =>
+      renderCard({
+        columnId: "recommendations",
+        index,
+        title: action.action || action.recommendation || "Action",
+        meta: formatTimestamp(action.timestamp || action.created_at),
+        urgency: action.priority || action.urgency || null,
+        showActions: true,
+        detailsHtml: `
+      ${action.id ? renderDetailRow("ID", action.id) : ""}
+      ${action.rationale ? renderDetailRow("Rationale", action.rationale) : ""}
+      ${action.status ? renderDetailRow("Status", action.status) : ""}
+      ${action.source ? renderDetailRow("Source", action.source) : ""}
+    `,
+      }),
+    )
+    .join("");
 
   attachExpandHandlers(container);
 }
@@ -442,11 +468,11 @@ function renderRecentRecommendations() {
    ---------------------------------------------------------------------------- */
 
 function renderActionLogTable() {
-  const container = document.getElementById('action-log-table-body');
+  const container = document.getElementById("action-log-table-body");
 
   if (!container) return;
 
-  const actions = getNestedValue(state.actionLog, 'actions', []);
+  const actions = getNestedValue(state.actionLog, "actions", []);
 
   if (actions.length === 0) {
     // Meaningful placeholder explaining what will appear here
@@ -470,17 +496,21 @@ function renderActionLogTable() {
   }
 
   // Render actual action log entries
-  container.innerHTML = actions.map(action => `
-    <tr class="action-log-row" data-action-id="${escapeHtml(action.id || '')}">
+  container.innerHTML = actions
+    .map(
+      (action) => `
+    <tr class="action-log-row" data-action-id="${escapeHtml(action.id || "")}">
       <td class="col-time">${formatTimestamp(action.timestamp || action.created_at)}</td>
-      <td class="col-id">${escapeHtml(action.id || '—')}</td>
+      <td class="col-id">${escapeHtml(action.id || "—")}</td>
       <td class="col-action">
-        <span class="action-type">${escapeHtml(action.action || action.type || '—')}</span>
-        ${action.target ? `<span class="action-target">→ ${escapeHtml(action.target)}</span>` : ''}
+        <span class="action-type">${escapeHtml(action.action || action.type || "—")}</span>
+        ${action.target ? `<span class="action-target">→ ${escapeHtml(action.target)}</span>` : ""}
       </td>
-      <td class="col-rationale">${escapeHtml(action.rationale || '—')}</td>
+      <td class="col-rationale">${escapeHtml(action.rationale || "—")}</td>
     </tr>
-  `).join('');
+  `,
+    )
+    .join("");
 }
 
 /* ----------------------------------------------------------------------------
@@ -488,7 +518,7 @@ function renderActionLogTable() {
    ---------------------------------------------------------------------------- */
 
 function renderSystemMetadata() {
-  const container = document.getElementById('metadata-content');
+  const container = document.getElementById("metadata-content");
 
   if (!container) return;
 
@@ -522,55 +552,71 @@ function renderSystemMetadata() {
 }
 
 function renderSchemaVersions(versions) {
-  const files = ['intelEvents', 'kbOpportunities', 'projects', 'actionLog'];
+  const files = ["intelEvents", "kbOpportunities", "projects", "actionLog"];
   const labels = {
-    intelEvents: 'intel_events.json',
-    kbOpportunities: 'kb_opportunities.json',
-    projects: 'projects.json',
-    actionLog: 'action_log.json'
+    intelEvents: "intel_events.json",
+    kbOpportunities: "kb_opportunities.json",
+    projects: "projects.json",
+    actionLog: "action_log.json",
   };
 
-  return files.map(file => {
-    const version = versions[file] || '—';
-    return `<div>${labels[file]}: ${escapeHtml(version)}</div>`;
-  }).join('');
+  return files
+    .map((file) => {
+      const version = versions[file] || "—";
+      return `<div>${labels[file]}: ${escapeHtml(version)}</div>`;
+    })
+    .join("");
 }
 
 function renderGeneratedTimestamps(timestamps) {
-  const files = ['intelEvents', 'kbOpportunities', 'projects'];
+  const files = ["intelEvents", "kbOpportunities", "projects"];
   const labels = {
-    intelEvents: 'intel_events',
-    kbOpportunities: 'kb_opportunities',
-    projects: 'projects'
+    intelEvents: "intel_events",
+    kbOpportunities: "kb_opportunities",
+    projects: "projects",
   };
 
-  return files.map(file => {
-    const ts = timestamps[file];
-    const formatted = ts ? formatTimestamp(ts) : '—';
-    return `<div>${labels[file]}: ${formatted}</div>`;
-  }).join('');
+  return files
+    .map((file) => {
+      const ts = timestamps[file];
+      const formatted = ts ? formatTimestamp(ts) : "—";
+      return `<div>${labels[file]}: ${formatted}</div>`;
+    })
+    .join("");
 }
 
 function renderLoadStatus(loadStatus) {
-  const files = ['intelEvents', 'kbOpportunities', 'projects', 'actionLog'];
+  const files = ["intelEvents", "kbOpportunities", "projects", "actionLog"];
   const labels = {
-    intelEvents: 'intel_events.json',
-    kbOpportunities: 'kb_opportunities.json',
-    projects: 'projects.json',
-    actionLog: 'action_log.json'
+    intelEvents: "intel_events.json",
+    kbOpportunities: "kb_opportunities.json",
+    projects: "projects.json",
+    actionLog: "action_log.json",
   };
 
-  return files.map(file => {
-    const status = loadStatus[file];
-    const dotClass = status === 'success' ? 'success' : status === 'error' ? 'error' : 'pending';
-    const statusText = status === 'success' ? 'Loaded' : status === 'error' ? 'Failed' : 'Pending';
-    return `
+  return files
+    .map((file) => {
+      const status = loadStatus[file];
+      const dotClass =
+        status === "success"
+          ? "success"
+          : status === "error"
+            ? "error"
+            : "pending";
+      const statusText =
+        status === "success"
+          ? "Loaded"
+          : status === "error"
+            ? "Failed"
+            : "Pending";
+      return `
       <div class="metadata-status">
         <span class="metadata-status-dot ${dotClass}"></span>
         <span>${labels[file]}: ${statusText}</span>
       </div>
     `;
-  }).join('');
+    })
+    .join("");
 }
 
 /* ----------------------------------------------------------------------------
@@ -587,7 +633,7 @@ function renderEmptyState(message) {
 }
 
 function renderDetailRow(label, value) {
-  if (!value) return '';
+  if (!value) return "";
   return `
     <div class="intel-detail-row">
       <span class="intel-detail-label">${escapeHtml(label)}:</span>
@@ -624,7 +670,7 @@ function renderDetailRow(label, value) {
 function generateCardIds(columnId, index) {
   return {
     headerId: `card-header-${columnId}-${index}`,
-    detailsId: `card-details-${columnId}-${index}`
+    detailsId: `card-details-${columnId}-${index}`,
   };
 }
 
@@ -635,13 +681,21 @@ function generateCardIds(columnId, index) {
  * @param {boolean} params.showActions - Whether to show action affordances
  * @returns {string} HTML string
  */
-function renderCard({ columnId, index, title, meta, detailsHtml, urgency, showActions }) {
+function renderCard({
+  columnId,
+  index,
+  title,
+  meta,
+  detailsHtml,
+  urgency,
+  showActions,
+}) {
   const { headerId, detailsId } = generateCardIds(columnId, index);
 
   // Urgency badge HTML (if provided)
   const urgencyBadge = urgency
     ? `<span class="urgency-badge ${urgency}">${urgency}</span>`
-    : '';
+    : "";
 
   // Action affordances (placeholder, disabled)
   const actionsHtml = showActions
@@ -649,7 +703,7 @@ function renderCard({ columnId, index, title, meta, detailsHtml, urgency, showAc
         <button type="button" class="card-action-btn approve" disabled title="Approve (coming soon)">✓ Approve</button>
         <button type="button" class="card-action-btn dismiss" disabled title="Dismiss (coming soon)">✕ Dismiss</button>
       </div>`
-    : '';
+    : "";
 
   return `
     <div class="intel-card" data-index="${index}">
@@ -685,15 +739,15 @@ function renderCard({ columnId, index, title, meta, detailsHtml, urgency, showAc
  * @param {HTMLElement} container - The column content container
  */
 function attachExpandHandlers(container) {
-  const headers = container.querySelectorAll('.intel-card-header');
+  const headers = container.querySelectorAll(".intel-card-header");
 
-  headers.forEach(header => {
+  headers.forEach((header) => {
     // Click handler
-    header.addEventListener('click', handleCardToggle);
+    header.addEventListener("click", handleCardToggle);
 
     // Keyboard handler (Enter/Space)
-    header.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+    header.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         handleCardToggle.call(header, e);
       }
@@ -701,9 +755,9 @@ function attachExpandHandlers(container) {
   });
 
   // Prevent link clicks inside details from collapsing the card
-  const links = container.querySelectorAll('.intel-card-details a');
-  links.forEach(link => {
-    link.addEventListener('click', (e) => {
+  const links = container.querySelectorAll(".intel-card-details a");
+  links.forEach((link) => {
+    link.addEventListener("click", (e) => {
       e.stopPropagation();
     });
   });
@@ -716,18 +770,18 @@ function attachExpandHandlers(container) {
  */
 function handleCardToggle(event) {
   const header = this;
-  const card = header.closest('.intel-card');
+  const card = header.closest(".intel-card");
   if (!card) return;
 
-  const column = card.closest('.intel-column-content');
+  const column = card.closest(".intel-column-content");
   if (!column) return;
 
-  const isExpanded = card.classList.contains('expanded');
+  const isExpanded = card.classList.contains("expanded");
 
   // If expanding, collapse any other expanded card in this column first
   if (!isExpanded) {
-    const expandedCards = column.querySelectorAll('.intel-card.expanded');
-    expandedCards.forEach(expandedCard => {
+    const expandedCards = column.querySelectorAll(".intel-card.expanded");
+    expandedCards.forEach((expandedCard) => {
       if (expandedCard !== card) {
         collapseCard(expandedCard);
       }
@@ -750,10 +804,10 @@ function handleCardToggle(event) {
  * @param {HTMLElement} card - The card element
  */
 function expandCard(card) {
-  card.classList.add('expanded');
-  const header = card.querySelector('.intel-card-header');
+  card.classList.add("expanded");
+  const header = card.querySelector(".intel-card-header");
   if (header) {
-    header.setAttribute('aria-expanded', 'true');
+    header.setAttribute("aria-expanded", "true");
   }
 }
 
@@ -762,10 +816,10 @@ function expandCard(card) {
  * @param {HTMLElement} card - The card element
  */
 function collapseCard(card) {
-  card.classList.remove('expanded');
-  const header = card.querySelector('.intel-card-header');
+  card.classList.remove("expanded");
+  const header = card.querySelector(".intel-card-header");
   if (header) {
-    header.setAttribute('aria-expanded', 'false');
+    header.setAttribute("aria-expanded", "false");
   }
 }
 
@@ -778,9 +832,9 @@ function collapseCard(card) {
  * @param {string} iconState - One of: idle, processing, success, error
  */
 function setIconState(iconState) {
-  const iconWrapper = document.getElementById('dashboard-icon');
+  const iconWrapper = document.getElementById("dashboard-icon");
   if (iconWrapper) {
-    iconWrapper.setAttribute('data-state', iconState);
+    iconWrapper.setAttribute("data-state", iconState);
   }
 }
 
@@ -805,16 +859,16 @@ const ICON_EVENTS_ENABLED = true;
 function wireIconEvents() {
   if (!ICON_EVENTS_ENABLED) return;
 
-  const iconWrapper = document.getElementById('dashboard-icon');
+  const iconWrapper = document.getElementById("dashboard-icon");
   if (!iconWrapper) return;
 
   // Hover should NOT change state (no accidental rotation)
   // Removed: mouseenter/mouseleave state changes
 
   // Click: Brief success flash, then idle
-  iconWrapper.addEventListener('click', () => {
-    setIconState('success');
-    setTimeout(() => setIconState('idle'), 600);
+  iconWrapper.addEventListener("click", () => {
+    setIconState("success");
+    setTimeout(() => setIconState("idle"), 600);
   });
 }
 
@@ -828,10 +882,10 @@ const MAX_PROCESSING_MS = 10000;
  */
 function mockProcessing(durationMs = 2000) {
   const safeDuration = Math.min(durationMs, MAX_PROCESSING_MS);
-  setIconState('processing');
-  return new Promise(resolve => {
+  setIconState("processing");
+  return new Promise((resolve) => {
     setTimeout(() => {
-      setIconState('idle');
+      setIconState("idle");
       resolve();
     }, safeDuration);
   });
@@ -844,12 +898,12 @@ function mockProcessing(durationMs = 2000) {
  */
 function mockThinking(thinkMs = 1500) {
   const safeDuration = Math.min(thinkMs, MAX_PROCESSING_MS);
-  setIconState('processing');
-  return new Promise(resolve => {
+  setIconState("processing");
+  return new Promise((resolve) => {
     setTimeout(() => {
-      setIconState('success');
+      setIconState("success");
       setTimeout(() => {
-        setIconState('idle');
+        setIconState("idle");
         resolve();
       }, 500);
     }, safeDuration);
@@ -874,11 +928,11 @@ window.setIconState = setIconState;
  */
 function createExplanationPanel(sectionKey) {
   const explanation = SECTION_EXPLANATIONS[sectionKey];
-  if (!explanation) return '';
+  if (!explanation) return "";
 
   const examplesList = explanation.examples
-    .map(ex => `<li>${ex}</li>`)
-    .join('');
+    .map((ex) => `<li>${ex}</li>`)
+    .join("");
 
   return `
     <div class="explanation-panel" data-panel="${sectionKey}">
@@ -896,7 +950,7 @@ function createExplanationPanel(sectionKey) {
 function toggleExplanationPanel(sectionKey) {
   const panel = document.querySelector(`[data-panel="${sectionKey}"]`);
   if (panel) {
-    panel.classList.toggle('expanded');
+    panel.classList.toggle("expanded");
   }
 }
 
@@ -906,40 +960,45 @@ function toggleExplanationPanel(sectionKey) {
  */
 function wireExplanationPanels() {
   // Wire up intel columns
-  document.querySelectorAll('.intel-column[data-section]').forEach(column => {
-    const sectionKey = column.getAttribute('data-section');
-    const header = column.querySelector('.intel-column-header');
-    const content = column.querySelector('.intel-column-content');
+  document.querySelectorAll(".intel-column[data-section]").forEach((column) => {
+    const sectionKey = column.getAttribute("data-section");
+    const header = column.querySelector(".intel-column-header");
+    const content = column.querySelector(".intel-column-content");
 
     if (header && content && SECTION_EXPLANATIONS[sectionKey]) {
       // Insert explanation panel after header
-      header.insertAdjacentHTML('afterend', createExplanationPanel(sectionKey));
+      header.insertAdjacentHTML("afterend", createExplanationPanel(sectionKey));
 
       // Add click handler to header
-      header.addEventListener('click', (e) => {
+      header.addEventListener("click", (e) => {
         // Don't trigger if clicking on count or other interactive elements
-        if (e.target.closest('.intel-column-count')) return;
+        if (e.target.closest(".intel-column-count")) return;
         toggleExplanationPanel(sectionKey);
       });
     }
   });
 
   // Wire up secondary sections
-  document.querySelectorAll('.secondary-section[data-section]').forEach(section => {
-    const sectionKey = section.getAttribute('data-section');
-    const header = section.querySelector('.secondary-section-header');
-    const content = section.querySelector('.secondary-section-content');
+  document
+    .querySelectorAll(".secondary-section[data-section]")
+    .forEach((section) => {
+      const sectionKey = section.getAttribute("data-section");
+      const header = section.querySelector(".secondary-section-header");
+      const content = section.querySelector(".secondary-section-content");
 
-    if (header && content && SECTION_EXPLANATIONS[sectionKey]) {
-      // Insert explanation panel after header
-      header.insertAdjacentHTML('afterend', createExplanationPanel(sectionKey));
+      if (header && content && SECTION_EXPLANATIONS[sectionKey]) {
+        // Insert explanation panel after header
+        header.insertAdjacentHTML(
+          "afterend",
+          createExplanationPanel(sectionKey),
+        );
 
-      // Add click handler to header
-      header.addEventListener('click', () => {
-        toggleExplanationPanel(sectionKey);
-      });
-    }
-  });
+        // Add click handler to header
+        header.addEventListener("click", () => {
+          toggleExplanationPanel(sectionKey);
+        });
+      }
+    });
 }
 
 /* ----------------------------------------------------------------------------
@@ -948,14 +1007,14 @@ function wireExplanationPanels() {
    - Dark mode is default
    ---------------------------------------------------------------------------- */
 
-const THEME_STORAGE_KEY = 'future-hause-theme';
+const THEME_STORAGE_KEY = "future-hause-theme";
 
 /**
  * Get current theme from localStorage or default to 'dark'
  * @returns {'dark' | 'light'}
  */
 function getStoredTheme() {
-  return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+  return localStorage.getItem(THEME_STORAGE_KEY) || "dark";
 }
 
 /**
@@ -963,15 +1022,15 @@ function getStoredTheme() {
  * @param {'dark' | 'light'} theme
  */
 function applyTheme(theme) {
-  if (theme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
+  if (theme === "light") {
+    document.documentElement.setAttribute("data-theme", "light");
   } else {
-    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.removeAttribute("data-theme");
   }
 
-  const toggleBtn = document.getElementById('theme-toggle');
+  const toggleBtn = document.getElementById("theme-toggle");
   if (toggleBtn) {
-    toggleBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
+    toggleBtn.textContent = theme === "dark" ? "Dark" : "Light";
   }
 }
 
@@ -979,8 +1038,11 @@ function applyTheme(theme) {
  * Toggle between dark and light themes
  */
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  const currentTheme =
+    document.documentElement.getAttribute("data-theme") === "light"
+      ? "light"
+      : "dark";
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
 
   applyTheme(newTheme);
   localStorage.setItem(THEME_STORAGE_KEY, newTheme);
@@ -990,9 +1052,9 @@ function toggleTheme() {
  * Initialize theme toggle button
  */
 function initThemeToggle() {
-  const toggleBtn = document.getElementById('theme-toggle');
+  const toggleBtn = document.getElementById("theme-toggle");
   if (toggleBtn) {
-    toggleBtn.addEventListener('click', toggleTheme);
+    toggleBtn.addEventListener("click", toggleTheme);
   }
 
   // Apply stored theme on load
@@ -1017,29 +1079,34 @@ function initThemeToggle() {
    - No assumptions about work performed or time spent
    - No changes outside the visible UI
    ---------------------------------------------------------------------------- */
-
 // Presence states: idle | thinking | observing | observed
 const PRESENCE_STATES = {
-  IDLE: 'idle',
-  THINKING: 'thinking',
-  OBSERVING: 'observing',
-  OBSERVED: 'observed'
+  IDLE: "idle",
+  THINKING: "thinking",
+  OBSERVING: "observing",
+  OBSERVED: "observed",
 };
+
+// Detect file:// protocol (local demo mode)
+const IS_FILE_PROTOCOL = window.location.protocol === "file:";
 
 // Presence state copy (exact strings, verbatim)
 const PRESENCE_COPY = {
-  [PRESENCE_STATES.IDLE]: 'Waiting for input. No analysis in progress.',
-  [PRESENCE_STATES.THINKING]: 'Interpreting your message and preparing a draft response. No actions are being taken.',
-  [PRESENCE_STATES.OBSERVING]: 'Draft prepared. Awaiting your review or next instruction.',
-  [PRESENCE_STATES.OBSERVED]: 'Data loaded from manual ingest. Review dashboard for updates.'
+  [PRESENCE_STATES.IDLE]: "Waiting for input. No analysis in progress.",
+  [PRESENCE_STATES.THINKING]:
+    "Interpreting your message and preparing a draft response. No actions are being taken.",
+  [PRESENCE_STATES.OBSERVING]:
+    "Draft prepared. Awaiting your review or next instruction.",
+  [PRESENCE_STATES.OBSERVED]:
+    "Data loaded from manual ingest. Review dashboard for updates.",
 };
 
 // Presence state labels (short form for UI)
 const PRESENCE_LABELS = {
-  [PRESENCE_STATES.IDLE]: 'Idle',
-  [PRESENCE_STATES.THINKING]: 'Thinking',
-  [PRESENCE_STATES.OBSERVING]: 'Observing',
-  [PRESENCE_STATES.OBSERVED]: 'Observed (manual)'
+  [PRESENCE_STATES.IDLE]: "Idle",
+  [PRESENCE_STATES.THINKING]: "Thinking",
+  [PRESENCE_STATES.OBSERVING]: "Observing",
+  [PRESENCE_STATES.OBSERVED]: "Observed (manual)",
 };
 
 /* ----------------------------------------------------------------------------
@@ -1081,16 +1148,16 @@ const PRESENCE_LABELS = {
  * @property {string} rationale - Human-readable reasoning
  */
 
-
 /** @type {ActiveProject} */
 const mockActiveProject = {
-  id: 'proj-freshdesk-ai-001',
-  name: 'Freshdesk AI Support',
-  domain: 'freshdesk-ai',
-  status: 'active',
-  description: 'Intelligent support assistant for FutureBit customer tickets. Drafts responses, identifies KB gaps, and tracks recurring issues.',
+  id: "proj-freshdesk-ai-001",
+  name: "Freshdesk AI Support",
+  domain: "freshdesk-ai",
+  status: "active",
+  description:
+    "Intelligent support assistant for FutureBit customer tickets. Drafts responses, identifies KB gaps, and tracks recurring issues.",
   lastActivity: new Date().toISOString(),
-  openItems: 3
+  openItems: 3,
 };
 /**
  * Normalize legacy/mock project data into canonical ActiveProject.
@@ -1110,19 +1177,9 @@ function normalizeActiveProject(raw) {
     next_action: "Pending ReviewAgent input",
     risks: [],
     last_updated: raw.lastActivity || new Date().toISOString(),
-    source: "manual"
+    source: "manual",
   };
 }
-/** @type {ReviewAgentAssessment} */
-const mockReviewAssessment = {
-  confidence: 0.76,
-  risks: [
-    "ReviewAgent not yet executing",
-    "Runtime verification pending on work machine"
-  ],
-  status: "active",
-  rationale: "UI wiring complete; awaiting agent execution."
-};
 
 /**
  * Normalize ActiveProject to canonical form
@@ -1131,13 +1188,13 @@ const mockReviewAssessment = {
  */
 function normalizeActiveProject(project) {
   return {
-    id: project.id || '',
-    name: project.name || 'Untitled Project',
-    domain: project.domain || 'unknown',
-    status: project.status || 'active',
-    description: project.description || '',
+    id: project.id || "",
+    name: project.name || "Untitled Project",
+    domain: project.domain || "unknown",
+    status: project.status || "active",
+    description: project.description || "",
     lastActivity: project.lastActivity || new Date().toISOString(),
-    openItems: typeof project.openItems === 'number' ? project.openItems : 0
+    openItems: typeof project.openItems === "number" ? project.openItems : 0,
   };
 }
 
@@ -1145,21 +1202,6 @@ function normalizeActiveProject(project) {
  * Mock ReviewAgent assessment (read-only, advisory)
  * Follows ReviewAgent output contract from docs/review_agent_contract_v1.md
  */
-const mockReviewAssessment = {
-  review_id: 'review-001',
-  draft_id: 'proj-freshdesk-ai-001',
-  timestamp: new Date().toISOString(),
-  findings: [],
-  summary: {
-    total_findings: 0,
-    high_severity: 0,
-    medium_severity: 0,
-    low_severity: 0,
-    info: 0
-  },
-  recommendation: 'approve',
-  disclaimer: 'This review is advisory only. Human judgment required.'
-};
 
 /**
  * Apply ReviewAgent assessment to project (read-only merge)
@@ -1175,8 +1217,8 @@ function applyReviewAssessment(project, assessment) {
       recommendation: assessment.recommendation,
       totalFindings: assessment.summary.total_findings,
       highSeverity: assessment.summary.high_severity,
-      disclaimer: assessment.disclaimer
-    }
+      disclaimer: assessment.disclaimer,
+    },
   };
 }
 
@@ -1185,7 +1227,7 @@ function applyReviewAssessment(project, assessment) {
  * @param {ActiveProject|null} project - Project to display (null = empty state)
  */
 function renderActiveProject(project) {
-  const panel = document.getElementById('active-project-panel');
+  const panel = document.getElementById("active-project-panel");
   if (!panel) return;
 
   if (!project) {
@@ -1196,26 +1238,30 @@ function renderActiveProject(project) {
     `;
     return;
   }
-/**
- * Apply ReviewAgent assessment to a canonical ActiveProject.
- * No inference. No mutation of identity fields.
- *
- * @param {ActiveProjectCanonical} project
- * @param {ReviewAgentAssessment} assessment
- * @returns {ActiveProjectCanonical}
- */
-function applyReviewAssessment(project, assessment) {
-  return {
-    ...project,
-    confidence: assessment.confidence,
-    risks: assessment.risks,
-    status: assessment.status,
-    source: "review_agent"
-  };
-}
+  /**
+   * Apply ReviewAgent assessment to a canonical ActiveProject.
+   * No inference. No mutation of identity fields.
+   *
+   * @param {ActiveProjectCanonical} project
+   * @param {ReviewAgentAssessment} assessment
+   * @returns {ActiveProjectCanonical}
+   */
+  function applyReviewAssessment(project, assessment) {
+    return {
+      ...project,
+      confidence: assessment.confidence,
+      risks: assessment.risks,
+      status: assessment.status,
+      source: "review_agent",
+    };
+  }
 
-  const statusClass = project.status === 'active' ? '' :
-                      project.status === 'paused' ? 'warning' : 'inactive';
+  const statusClass =
+    project.status === "active"
+      ? ""
+      : project.status === "paused"
+        ? "warning"
+        : "inactive";
 
   panel.innerHTML = `
     <div class="active-project-card">
@@ -1247,32 +1293,20 @@ function applyReviewAssessment(project, assessment) {
 }
 
 /**
- * Initialize Active Project Focus with mock data
- */
-function initActiveProject() {
-  const canonicalProject = normalizeActiveProject(mockActiveProject);
-  const reviewedProject = applyReviewAssessment(
-    canonicalProject,
-    mockReviewAssessment
-  );
-  renderActiveProject(reviewedProject);
-}
-
-/**
  * Update presence state (icon + status text)
  * @param {string} presenceState - One of PRESENCE_STATES
  */
 function setPresenceState(presenceState) {
   // Update icon animation state
-  const iconWrapper = document.getElementById('dashboard-icon');
+  const iconWrapper = document.getElementById("dashboard-icon");
   if (iconWrapper) {
-    iconWrapper.setAttribute('data-state', presenceState);
+    iconWrapper.setAttribute("data-state", presenceState);
   }
 
   // Update status text (short label)
-  const statusText = document.querySelector('.presence-status-text');
+  const statusText = document.querySelector(".presence-status-text");
   if (statusText) {
-    statusText.textContent = PRESENCE_LABELS[presenceState] || 'Idle';
+    statusText.textContent = PRESENCE_LABELS[presenceState] || "Idle";
   }
 }
 
@@ -1285,34 +1319,36 @@ function setPresenceState(presenceState) {
 function checkPurposeDisclosure(userInput) {
   const lowered = userInput.toLowerCase();
   const purposeTriggers = [
-    'what is your purpose',
-    'what do you do',
-    'what are you',
-    'who are you',
-    'what is future hause',
-    'explain yourself',
-    'what can you do',
-    'your role',
-    'your purpose'
+    "what is your purpose",
+    "what do you do",
+    "what are you",
+    "who are you",
+    "what is future hause",
+    "explain yourself",
+    "what can you do",
+    "your role",
+    "your purpose",
   ];
 
-  const triggered = purposeTriggers.some(trigger => lowered.includes(trigger));
+  const triggered = purposeTriggers.some((trigger) =>
+    lowered.includes(trigger),
+  );
 
   if (triggered) {
     return formatResponse({
       presenceState: PRESENCE_STATES.OBSERVING,
-      summary: 'You asked about my purpose and capabilities.',
+      summary: "You asked about my purpose and capabilities.",
       whatIDid: [
-        'Explained my role: to serve, assist, and support you',
-        'Clarified that I provide drafts, explanations, and recommendations',
-        'Confirmed all decisions remain under your control'
+        "Explained my role: to serve, assist, and support you",
+        "Clarified that I provide drafts, explanations, and recommendations",
+        "Confirmed all decisions remain under your control",
       ],
       whatIDidNot: [
-        'No data was persisted',
-        'No external systems were contacted',
-        'No actions were executed'
+        "No data was persisted",
+        "No external systems were contacted",
+        "No actions were executed",
       ],
-      nextStep: 'Share observations or context you would like me to consider.'
+      nextStep: "Share observations or context you would like me to consider.",
     });
   }
 
@@ -1339,8 +1375,8 @@ function checkPurposeDisclosure(userInput) {
 
 // Minimum guardrails that MUST appear in "What I did NOT do"
 const MANDATORY_GUARDRAILS = [
-  'No data was persisted',
-  'No external systems were modified'
+  "No data was persisted",
+  "No external systems were modified",
 ];
 
 /**
@@ -1352,13 +1388,16 @@ function validateResponseSchema(params) {
   const { presenceState, summary, whatIDid, whatIDidNot } = params;
 
   // Required: presenceState must be valid
-  if (!presenceState || !Object.values(PRESENCE_STATES).includes(presenceState)) {
-    throw new Error('Schema violation: Invalid or missing presenceState');
+  if (
+    !presenceState ||
+    !Object.values(PRESENCE_STATES).includes(presenceState)
+  ) {
+    throw new Error("Schema violation: Invalid or missing presenceState");
   }
 
   // Required: summary must be non-empty string
-  if (!summary || typeof summary !== 'string' || summary.trim() === '') {
-    throw new Error('Schema violation: Missing or empty summary');
+  if (!summary || typeof summary !== "string" || summary.trim() === "") {
+    throw new Error("Schema violation: Missing or empty summary");
   }
 
   // Required: whatIDid must be non-empty array
@@ -1368,7 +1407,9 @@ function validateResponseSchema(params) {
 
   // Required: whatIDidNot must be non-empty array
   if (!Array.isArray(whatIDidNot) || whatIDidNot.length === 0) {
-    throw new Error('Schema violation: "What I did NOT do" must be non-empty array');
+    throw new Error(
+      'Schema violation: "What I did NOT do" must be non-empty array',
+    );
   }
 }
 
@@ -1382,15 +1423,22 @@ function validateResponseSchema(params) {
  * @param {object} params.routingDecision - Result from routeLLM() (optional)
  * @returns {string} Formatted response
  */
-function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextStep, routingDecision }) {
+function formatResponse({
+  presenceState,
+  summary,
+  whatIDid,
+  whatIDidNot,
+  nextStep,
+  routingDecision,
+}) {
   // Validate schema compliance
   validateResponseSchema({ presenceState, summary, whatIDid, whatIDidNot });
 
   // Ensure mandatory guardrails are included in "What I did NOT do"
   const guardrails = [...whatIDidNot];
-  MANDATORY_GUARDRAILS.forEach(guardrail => {
-    const alreadyIncluded = guardrails.some(item =>
-      item.toLowerCase().includes(guardrail.toLowerCase().replace('no ', ''))
+  MANDATORY_GUARDRAILS.forEach((guardrail) => {
+    const alreadyIncluded = guardrails.some((item) =>
+      item.toLowerCase().includes(guardrail.toLowerCase().replace("no ", "")),
     );
     if (!alreadyIncluded) {
       guardrails.push(guardrail);
@@ -1399,35 +1447,35 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
 
   // Build response in strict schema order
   const lines = [
-    'Status:',
+    "Status:",
     `• Presence State: ${PRESENCE_LABELS[presenceState]}`,
-    '• Mode: Draft / Advisory',
-    '• Side Effects: None'
+    "• Mode: Draft / Advisory",
+    "• Side Effects: None",
   ];
 
   // Include routing decision if provided
-  if (routingDecision && typeof window.formatRoutingDecision === 'function') {
+  if (routingDecision && typeof window.formatRoutingDecision === "function") {
     lines.push(`• Routed To: ${window.formatRoutingDecision(routingDecision)}`);
   }
 
   lines.push(
-    '',
-    'Summary:',
+    "",
+    "Summary:",
     `• ${summary}`,
-    '',
-    'What I did:',
-    ...whatIDid.map(item => `• ${item}`),
-    '',
-    'What I did NOT do:',
-    ...guardrails.map(item => `• ${item}`)
+    "",
+    "What I did:",
+    ...whatIDid.map((item) => `• ${item}`),
+    "",
+    "What I did NOT do:",
+    ...guardrails.map((item) => `• ${item}`),
   );
 
   // Optional: Next step (only if provided)
-  if (nextStep && typeof nextStep === 'string' && nextStep.trim() !== '') {
-    lines.push('', 'Next suggested step (optional):', `• ${nextStep}`);
+  if (nextStep && typeof nextStep === "string" && nextStep.trim() !== "") {
+    lines.push("", "Next suggested step (optional):", `• ${nextStep}`);
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 /**
@@ -1437,14 +1485,14 @@ function formatResponse({ presenceState, summary, whatIDid, whatIDidNot, nextSte
  */
 async function callOllama(prompt) {
   try {
-    const res = await fetch('http://127.0.0.1:11434/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch("http://127.0.0.1:11434/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: 'mistral:latest',
+        model: "mistral:latest",
         prompt: prompt,
-        stream: false
-      })
+        stream: false,
+      }),
     });
 
     if (!res.ok) {
@@ -1455,14 +1503,13 @@ async function callOllama(prompt) {
     const data = await res.json();
 
     // Ollama returns { response: "...", done: true }
-    if (typeof data.response === 'string') {
+    if (typeof data.response === "string") {
       return data.response.trim();
     }
 
-    throw new Error('Unexpected Ollama response format');
-
+    throw new Error("Unexpected Ollama response format");
   } catch (err) {
-    console.error('Ollama call failed:', err);
+    console.error("Ollama call failed:", err);
     return `[Ollama error: ${err.message}]`;
   }
 }
@@ -1472,7 +1519,7 @@ async function callOllama(prompt) {
  * @param {string} content - Draft content to display
  */
 function renderDraftWork(content) {
-  const entriesContainer = document.getElementById('draft-worklog-entries');
+  const entriesContainer = document.getElementById("draft-worklog-entries");
   if (!entriesContainer) return;
 
   const timestamp = new Date().toLocaleTimeString();
@@ -1482,7 +1529,7 @@ function renderDraftWork(content) {
         <span class="draft-entry-time">${timestamp}</span>
         <span class="draft-badge">DRAFT</span>
       </div>
-      <div class="draft-entry-content">${content.replace(/\n/g, '<br>')}</div>
+      <div class="draft-entry-content">${content.replace(/\n/g, "<br>")}</div>
     </div>
   `;
 
@@ -1514,17 +1561,16 @@ async function sendToLLM(message) {
   }
 
   // Route input to determine intent
-  const routingDecision = typeof window.routeLLM === 'function'
-    ? window.routeLLM(message)
-    : null;
+  const routingDecision =
+    typeof window.routeLLM === "function" ? window.routeLLM(message) : null;
 
   if (!routingDecision) {
     return formatResponse({
       presenceState: PRESENCE_STATES.IDLE,
-      summary: 'Router unavailable.',
-      whatIDid: ['Attempted to classify intent'],
-      whatIDidNot: ['Could not route — llmRouter.js not loaded'],
-      nextStep: 'Check that llmRouter.js is loaded correctly.'
+      summary: "Router unavailable.",
+      whatIDid: ["Attempted to classify intent"],
+      whatIDidNot: ["Could not route — llmRouter.js not loaded"],
+      nextStep: "Check that llmRouter.js is loaded correctly.",
     });
   }
 
@@ -1533,85 +1579,86 @@ async function sendToLLM(message) {
   // ═══════════════════════════════════════════════════════════════
   // INTENT: draft_request — Call Ollama, render in Draft Work
   // ═══════════════════════════════════════════════════════════════
-  if (intent === 'draft_request' && allow_draft) {
+  if (intent === "draft_request" && allow_draft) {
     const ollamaResponse = await callOllama(message);
     renderDraftWork(ollamaResponse);
 
     return formatResponse({
       presenceState: PRESENCE_STATES.OBSERVING,
-      summary: 'Draft generated and displayed in Draft Work section.',
+      summary: "Draft generated and displayed in Draft Work section.",
       whatIDid: [
-        'Classified intent as draft_request',
-        'Called Ollama to generate draft',
-        'Rendered output to Draft Work section'
+        "Classified intent as draft_request",
+        "Called Ollama to generate draft",
+        "Rendered output to Draft Work section",
       ],
       whatIDidNot: [
-        'No data was saved or persisted',
-        'No Excel or Freshdesk writes',
-        'No action log entries created',
-        'No auto-promotion to KB or Projects'
+        "No data was saved or persisted",
+        "No Excel or Freshdesk writes",
+        "No action log entries created",
+        "No auto-promotion to KB or Projects",
       ],
-      nextStep: 'Review the draft in the Draft Work section. Edit or discard as needed.'
+      nextStep:
+        "Review the draft in the Draft Work section. Edit or discard as needed.",
     });
   }
 
   // ═══════════════════════════════════════════════════════════════
   // INTENT: question — Explanatory response (no Draft Work)
   // ═══════════════════════════════════════════════════════════════
-  if (intent === 'question') {
+  if (intent === "question") {
     return formatResponse({
       presenceState: PRESENCE_STATES.OBSERVING,
-      summary: 'This appears to be a question.',
+      summary: "This appears to be a question.",
       whatIDid: [
-        'Classified intent as question',
-        'Prepared explanatory response'
+        "Classified intent as question",
+        "Prepared explanatory response",
       ],
       whatIDidNot: [
-        'No Ollama call (questions don\'t generate drafts)',
-        'No data persistence',
-        'No action log entries'
+        "No Ollama call (questions don't generate drafts)",
+        "No data persistence",
+        "No action log entries",
       ],
-      nextStep: 'For questions about FutureHause, ask "What is Future Hause?". For draft requests, try "Draft a work entry for..."'
+      nextStep:
+        'For questions about FutureHause, ask "What is Future Hause?". For draft requests, try "Draft a work entry for..."',
     });
   }
 
   // ═══════════════════════════════════════════════════════════════
   // INTENT: meta — Static explanation of FutureHause
   // ═══════════════════════════════════════════════════════════════
-  if (intent === 'meta') {
+  if (intent === "meta") {
     return formatResponse({
       presenceState: PRESENCE_STATES.OBSERVING,
-      summary: 'Future Hause is a local support intelligence assistant.',
+      summary: "Future Hause is a local support intelligence assistant.",
       whatIDid: [
-        'Recognized meta/identity question',
-        'Provided system explanation'
+        "Recognized meta/identity question",
+        "Provided system explanation",
       ],
-      whatIDidNot: [
-        'No Ollama call needed',
-        'No data persistence'
-      ],
-      nextStep: 'Future Hause observes signals, drafts work entries, and helps organize intelligence. It never takes autonomous action.'
+      whatIDidNot: ["No Ollama call needed", "No data persistence"],
+      nextStep:
+        "Future Hause observes signals, drafts work entries, and helps organize intelligence. It never takes autonomous action.",
     });
   }
 
   // ═══════════════════════════════════════════════════════════════
   // INTENT: action — Refusal + explanation of boundaries
   // ═══════════════════════════════════════════════════════════════
-  if (intent === 'action') {
+  if (intent === "action") {
     return formatResponse({
       presenceState: PRESENCE_STATES.IDLE,
-      summary: 'Action requests require explicit human approval.',
+      summary: "Action requests require explicit human approval.",
       whatIDid: [
-        'Classified intent as action request',
-        'Declined autonomous execution'
+        "Classified intent as action request",
+        "Declined autonomous execution",
       ],
       whatIDidNot: [
-        'Did NOT execute the requested action',
-        'No commits, pushes, or file writes',
-        'No API calls or external changes',
-        'No state mutations'
+        "Did NOT execute the requested action",
+        "No commits, pushes, or file writes",
+        "No API calls or external changes",
+        "No state mutations",
       ],
-      nextStep: 'Future Hause is an analyst, not an actor. It can draft content for your review, but actions must be taken by you.'
+      nextStep:
+        "Future Hause is an analyst, not an actor. It can draft content for your review, but actions must be taken by you.",
     });
   }
 
@@ -1620,18 +1667,16 @@ async function sendToLLM(message) {
   // ═══════════════════════════════════════════════════════════════
   return formatResponse({
     presenceState: PRESENCE_STATES.OBSERVING,
-    summary: 'Observation received and noted.',
-    whatIDid: [
-      'Classified intent as observation',
-      'Acknowledged your input'
-    ],
+    summary: "Observation received and noted.",
+    whatIDid: ["Classified intent as observation", "Acknowledged your input"],
     whatIDidNot: [
-      'No Ollama call (observations don\'t generate drafts)',
-      'No data saved or persisted',
-      'No action log entries',
-      'No auto-promotion to KB or Projects'
+      "No Ollama call (observations don't generate drafts)",
+      "No data saved or persisted",
+      "No action log entries",
+      "No auto-promotion to KB or Projects",
     ],
-    nextStep: 'To generate a draft, try: "Draft a work entry for [task description]"'
+    nextStep:
+      'To generate a draft, try: "Draft a work entry for [task description]"',
   });
 }
 
@@ -1639,13 +1684,13 @@ async function sendToLLM(message) {
  * Handle notes form submission
  */
 async function handleNotesSubmit() {
-  const textarea = document.getElementById('notes-textarea');
-  const submitBtn = document.getElementById('notes-submit');
-  const responsePanel = document.getElementById('notes-response-panel');
-  const responseContent = document.getElementById('notes-response-content');
+  const textarea = document.getElementById("notes-textarea");
+  const submitBtn = document.getElementById("notes-submit");
+  const responsePanel = document.getElementById("notes-response-panel");
+  const responseContent = document.getElementById("notes-response-content");
 
   if (!textarea || !submitBtn || !responsePanel || !responseContent) {
-    console.warn('Notes form elements not found');
+    console.warn("Notes form elements not found");
     return;
   }
 
@@ -1657,7 +1702,7 @@ async function handleNotesSubmit() {
 
   // Disable submit button during processing
   submitBtn.disabled = true;
-  submitBtn.textContent = 'Thinking...';
+  submitBtn.textContent = "Thinking...";
 
   // Update presence: Idle → Thinking
   setPresenceState(PRESENCE_STATES.THINKING);
@@ -1677,16 +1722,15 @@ async function handleNotesSubmit() {
     setTimeout(() => {
       setPresenceState(PRESENCE_STATES.IDLE);
     }, 3000);
-
   } catch (error) {
-    console.error('Error sending notes to LLM:', error);
-    responseContent.textContent = 'An error occurred. Please try again.';
+    console.error("Error sending notes to LLM:", error);
+    responseContent.textContent = "An error occurred. Please try again.";
     responsePanel.hidden = false;
     setPresenceState(PRESENCE_STATES.IDLE);
   } finally {
     // Re-enable submit button
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit to Future Hause';
+    submitBtn.textContent = "Submit to Future Hause";
   }
 }
 
@@ -1694,16 +1738,16 @@ async function handleNotesSubmit() {
  * Wire up notes form submission handler
  */
 function wireNotesSubmit() {
-  const submitBtn = document.getElementById('notes-submit');
+  const submitBtn = document.getElementById("notes-submit");
   if (submitBtn) {
-    submitBtn.addEventListener('click', handleNotesSubmit);
+    submitBtn.addEventListener("click", handleNotesSubmit);
   }
 
   // Also handle Enter+Cmd/Ctrl in textarea
-  const textarea = document.getElementById('notes-textarea');
+  const textarea = document.getElementById("notes-textarea");
   if (textarea) {
-    textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    textarea.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         handleNotesSubmit();
       }
@@ -1711,11 +1755,11 @@ function wireNotesSubmit() {
   }
 
   // Wire up collapsible response panel
-  const responseHeader = document.getElementById('notes-response-header');
+  const responseHeader = document.getElementById("notes-response-header");
   if (responseHeader) {
-    responseHeader.addEventListener('click', toggleResponsePanel);
-    responseHeader.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+    responseHeader.addEventListener("click", toggleResponsePanel);
+    responseHeader.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         toggleResponsePanel();
       }
@@ -1727,19 +1771,19 @@ function wireNotesSubmit() {
  * Toggle response panel expand/collapse
  */
 function toggleResponsePanel() {
-  const header = document.getElementById('notes-response-header');
-  const body = document.getElementById('notes-response-body');
+  const header = document.getElementById("notes-response-header");
+  const body = document.getElementById("notes-response-body");
 
   if (!header || !body) return;
 
-  const isExpanded = body.classList.contains('expanded');
+  const isExpanded = body.classList.contains("expanded");
 
   if (isExpanded) {
-    body.classList.remove('expanded');
-    header.setAttribute('aria-expanded', 'false');
+    body.classList.remove("expanded");
+    header.setAttribute("aria-expanded", "false");
   } else {
-    body.classList.add('expanded');
-    header.setAttribute('aria-expanded', 'true');
+    body.classList.add("expanded");
+    header.setAttribute("aria-expanded", "true");
   }
 }
 
@@ -1756,14 +1800,14 @@ window.PRESENCE_STATES = PRESENCE_STATES;
  * Populates textarea with chip command text
  */
 function wireCommandChips() {
-  const chips = document.querySelectorAll('.command-chip');
-  const textarea = document.getElementById('notes-textarea');
+  const chips = document.querySelectorAll(".command-chip");
+  const textarea = document.getElementById("notes-textarea");
 
   if (!textarea) return;
 
-  chips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const command = chip.getAttribute('data-command');
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const command = chip.getAttribute("data-command");
       if (command) {
         textarea.value = command;
         textarea.focus();
@@ -1790,10 +1834,10 @@ function formatRelativeTime(date) {
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
-  if (diffSec < 60) return 'just now';
-  if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
-  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
-  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  if (diffSec < 60) return "just now";
+  if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? "s" : ""} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? "s" : ""} ago`;
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
   return formatTimestamp(then.toISOString());
 }
 
@@ -1801,7 +1845,7 @@ function formatRelativeTime(date) {
  * Update the "Last Updated" timestamp in metadata header
  */
 function updateLastUpdatedTime() {
-  const el = document.getElementById('last-updated-time');
+  const el = document.getElementById("last-updated-time");
   if (el) {
     el.textContent = `Last updated: ${formatRelativeTime(new Date())}`;
   }
@@ -1820,40 +1864,22 @@ function updateLastUpdatedTime() {
  * @returns {object} Mock intel_events.json structure
  */
 function generateMockIntelEvents() {
-  const now = new Date().toISOString();
+  const ingestNow = new Date().toISOString();
   return {
-    schema_version: '1.0',
-    generated_at: now,
+    schema_version: "1.0",
+    generated_at: ingestNow,
     events: [
       {
-        id: 'evt-001',
-        type: 'community_discussion',
-        title: 'Apollo BTC mining setup questions',
-        source: 'Reddit r/FutureBit',
-        detected_at: now,
-        description: 'User asking about optimal settings for Apollo BTC miner',
-        url: 'https://reddit.com/r/futurebit/example',
-        priority: 'medium'
+        id: "evt-001",
+        type: "community_discussion",
+        title: "Apollo BTC mining setup questions",
+        source: "Reddit r/FutureBit",
+        detected_at: ingestNow,
+        description: "User asking about optimal settings for Apollo BTC miner",
+        url: "https://reddit.com/r/futurebit/example",
+        priority: "medium",
       },
-      {
-        id: 'evt-002',
-        type: 'firmware_update',
-        title: 'New firmware v2.1.0 released',
-        source: 'FutureBit Official',
-        detected_at: now,
-        description: 'Firmware update includes performance improvements and bug fixes',
-        priority: 'high'
-      },
-      {
-        id: 'evt-003',
-        type: 'support_pattern',
-        title: 'Recurring PSU compatibility questions',
-        source: 'Support Analysis',
-        detected_at: now,
-        description: 'Multiple users asking about power supply requirements',
-        priority: 'low'
-      }
-    ]
+    ],
   };
 }
 
@@ -1862,34 +1888,34 @@ function generateMockIntelEvents() {
  * @returns {object} Mock kb_opportunities.json structure
  */
 function generateMockKbOpportunities() {
-  const now = new Date().toISOString();
+  const metadataNow = new Date().toISOString();
   return {
-    schema_version: '1.0',
+    schema_version: "1.0",
     generated_at: now,
     opportunities: [
       {
-        id: 'kb-001',
-        title: 'PSU Requirements Guide',
-        topic: 'Hardware Setup',
-        gap_type: 'missing_documentation',
-        status: 'identified',
-        suggested_action: 'Create comprehensive PSU compatibility guide',
-        source_signals: 'evt-003',
+        id: "kb-001",
+        title: "PSU Requirements Guide",
+        topic: "Hardware Setup",
+        gap_type: "missing_documentation",
+        status: "identified",
+        suggested_action: "Create comprehensive PSU compatibility guide",
+        source_signals: "evt-003",
         created_at: now,
-        priority: 'medium'
+        priority: "medium",
       },
       {
-        id: 'kb-002',
-        title: 'Firmware Update FAQ',
-        topic: 'Software',
-        gap_type: 'outdated_content',
-        status: 'identified',
-        suggested_action: 'Update FAQ with v2.1.0 information',
-        source_signals: 'evt-002',
+        id: "kb-002",
+        title: "Firmware Update FAQ",
+        topic: "Software",
+        gap_type: "outdated_content",
+        status: "identified",
+        suggested_action: "Update FAQ with v2.1.0 information",
+        source_signals: "evt-002",
         created_at: now,
-        priority: 'high'
-      }
-    ]
+        priority: "high",
+      },
+    ],
   };
 }
 
@@ -1898,30 +1924,30 @@ function generateMockKbOpportunities() {
  * @returns {object} Mock projects.json structure
  */
 function generateMockProjects() {
-  const now = new Date().toISOString();
+  const actionLogNow = new Date().toISOString();
   return {
-    schema_version: '1.0',
+    schema_version: "1.0",
     generated_at: now,
     projects: [
       {
-        id: 'proj-001',
-        name: 'Freshdesk AI Support',
-        status: 'active',
-        deliverables: ['Draft responses', 'KB gap detection'],
+        id: "proj-001",
+        name: "Freshdesk AI Support",
+        status: "active",
+        deliverables: ["Draft responses", "KB gap detection"],
         created_at: now,
         updated_at: now,
-        priority: 'high'
+        priority: "high",
       },
       {
-        id: 'proj-002',
-        name: 'Documentation Refresh',
-        status: 'active',
-        deliverables: ['PSU guide', 'Setup wizard docs'],
+        id: "proj-002",
+        name: "Documentation Refresh",
+        status: "active",
+        deliverables: ["PSU guide", "Setup wizard docs"],
         created_at: now,
         updated_at: now,
-        priority: 'medium'
-      }
-    ]
+        priority: "medium",
+      },
+    ],
   };
 }
 
@@ -1931,8 +1957,8 @@ function generateMockProjects() {
  */
 function generateMockActionLog() {
   return {
-    schema_version: '1.0',
-    actions: []
+    schema_version: "1.0",
+    actions: [],
   };
 }
 
@@ -1947,27 +1973,32 @@ async function runIngestDryRun() {
   // Generate mock data in memory
   const intelEvents = generateMockIntelEvents();
   const kbOpportunities = generateMockKbOpportunities();
-  const projects = generateMockProjects();
+  const mockProjects = generateMockProjects();
   const actionLog = generateMockActionLog();
 
-  // Update state directly with mock data (immediate UI update)
+  // Intel Events
   state.intelEvents = intelEvents;
-  state.loadStatus.intelEvents = 'success';
+  state.loadStatus.intelEvents = "success";
   state.metadata.schemaVersions.intelEvents = intelEvents.schema_version;
   state.metadata.generatedTimestamps.intelEvents = intelEvents.generated_at;
 
+  // KB Opportunities
   state.kbOpportunities = kbOpportunities;
-  state.loadStatus.kbOpportunities = 'success';
-  state.metadata.schemaVersions.kbOpportunities = kbOpportunities.schema_version;
-  state.metadata.generatedTimestamps.kbOpportunities = kbOpportunities.generated_at;
+  state.loadStatus.kbOpportunities = "success";
+  state.metadata.schemaVersions.kbOpportunities =
+    kbOpportunities.schema_version;
+  state.metadata.generatedTimestamps.kbOpportunities =
+    kbOpportunities.generated_at;
 
-  state.projects = projects;
-  state.loadStatus.projects = 'success';
-  state.metadata.schemaVersions.projects = projects.schema_version;
-  state.metadata.generatedTimestamps.projects = projects.generated_at;
+  // Projects  ✅ FIXED
+  state.projects = mockProjects;
+  state.loadStatus.projects = "success";
+  state.metadata.schemaVersions.projects = mockProjects.schema_version;
+  state.metadata.generatedTimestamps.projects = mockProjects.generated_at;
 
+  // Action Log
   state.actionLog = actionLog;
-  state.loadStatus.actionLog = 'success';
+  state.loadStatus.actionLog = "success";
   state.metadata.schemaVersions.actionLog = actionLog.schema_version;
 
   // Re-render all sections
@@ -1981,7 +2012,7 @@ async function runIngestDryRun() {
   // Update timestamps
   updateLastUpdatedTime();
 
-  // Set presence to Observed (manual)
+  // Presence
   setPresenceState(PRESENCE_STATES.OBSERVED);
 }
 
@@ -1989,12 +2020,12 @@ async function runIngestDryRun() {
  * Wire up ingest dry-run button
  */
 function wireIngestDryRun() {
-  const btn = document.getElementById('ingest-dry-run-btn');
+  const btn = document.getElementById("ingest-dry-run-btn");
   if (!btn) return;
 
-  btn.addEventListener('click', async () => {
+  btn.addEventListener("click", async () => {
     btn.disabled = true;
-    btn.textContent = 'Running...';
+    btn.textContent = "Running...";
 
     try {
       await runIngestDryRun();
@@ -2009,46 +2040,36 @@ function wireIngestDryRun() {
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Initialize theme from localStorage
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize theme (safe in all modes)
   initThemeToggle();
 
-  // Ensure icon starts in idle state
-  setIconState('idle');
+  // Core UI wiring (safe, no fetch)
+  setIconState("idle");
   setPresenceState(PRESENCE_STATES.IDLE);
-
-  // Wire up icon interactive events
   wireIconEvents();
-
-  // Wire up explanation panels for section headers
   wireExplanationPanels();
-
-  // Wire up notes submission (Phase 1 interaction)
   wireNotesSubmit();
-
-  // Wire up command chips (quick action buttons)
   wireCommandChips();
-
-  // Initialize Active Project Focus with mock data
   initActiveProject();
-
-  // Update last updated timestamp
   updateLastUpdatedTime();
-
-  // Wire up ingest dry-run button
   wireIngestDryRun();
 
-  // State only changes via hover, click, or explicit function calls
+  // File protocol: demo mode only
+  if (IS_FILE_PROTOCOL) {
+    console.warn("[Future Hause] file:// detected — auto-load disabled");
+    return; // ⛔ ABSOLUTE STOP — NO FETCH, NO AUTO LOAD
+  }
 
+  // http/https only
   loadAllData().then(() => {
-    // Data loaded silently — icon remains idle unless error
-    const hasErrors = Object.values(state.loadStatus).some(s => s === 'error');
+    const hasErrors = Object.values(state.loadStatus).some(
+      (s) => s === "error",
+    );
 
     if (hasErrors) {
-      setIconState('error');
-      // Return to idle after showing error briefly
-      setTimeout(() => setIconState('idle'), 3000);
+      setIconState("error");
+      setTimeout(() => setIconState("idle"), 3000);
     }
-    // Success is silent — icon stays idle
   });
 });
