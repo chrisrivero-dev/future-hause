@@ -268,18 +268,25 @@ body {
    Glow on WRAPPER (filter, no transform)
    -------------------------------------- */
 
-/* Wrapper: glow only (no rotation) */
-.dashboard-icon-wrapper[data-state="idle"],
+/* Wrapper: glow for thinking/observing/processing only */
 .dashboard-icon-wrapper[data-state="thinking"],
 .dashboard-icon-wrapper[data-state="observing"],
 .dashboard-icon-wrapper[data-state="processing"] {
   animation: fh-glow var(--fh-glow-duration) ease-in-out infinite alternate;
 }
 
-/* Icon: rotation only (2D clockwise, no 3D transforms) */
+/* Idle: subtle pulse only, NO rotation */
+.dashboard-icon-wrapper[data-state="idle"] {
+  animation: idlePulse 4s ease-in-out infinite;
+}
+
+@keyframes idlePulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0); }
+  50% { box-shadow: 0 0 12px rgba(80, 180, 255, 0.35); }
+}
+
+/* Icon: rotation only for thinking/observing/processing (NOT idle) */
 /* Targets both .dashboard-icon and .presence-icon (actual DOM class) */
-.dashboard-icon-wrapper[data-state="idle"] .dashboard-icon,
-.dashboard-icon-wrapper[data-state="idle"] .presence-icon,
 .dashboard-icon-wrapper[data-state="thinking"] .dashboard-icon,
 .dashboard-icon-wrapper[data-state="thinking"] .presence-icon,
 .dashboard-icon-wrapper[data-state="observing"] .dashboard-icon,
@@ -352,9 +359,8 @@ body {
    ---------------------------------------------------------------------------- */
 
 .dashboard-main {
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: var(--spacing-xl);
+  display: block;
+  width: 100%;
 }
 
 /* ----------------------------------------------------------------------------
@@ -365,6 +371,10 @@ body {
   display: flex;
   gap: var(--spacing-lg);
   align-items: flex-start;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
 .dashboard-content {
@@ -405,6 +415,26 @@ body {
   height: 64px;
   display: block;
   pointer-events: none;
+}
+
+/* Bot avatar — explicit sizing for layout stability */
+.bot-avatar {
+  width: 128px;
+  height: 128px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.bot-avatar svg,
+.bot-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* Assistant name — always visible, clear identity */
@@ -491,10 +521,9 @@ body {
    ========================================================================== */
 .intel-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);  /* 4 equal-width columns */
-  grid-auto-rows: minmax(200px, 500px);   /* Consistent row height range */
-  gap: var(--spacing-lg);
-  align-items: stretch;                    /* Equal height columns */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
   margin-bottom: var(--spacing-2xl);
 }
 
@@ -779,9 +808,9 @@ body {
    ---------------------------------------------------------------------------- */
 
 .secondary-sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .secondary-section {
@@ -870,7 +899,7 @@ body {
 
 .notes-textarea {
   flex: 1;
-  min-height: 120px;
+  min-height: 140px;
   padding: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color-subtle);
