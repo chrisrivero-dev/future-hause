@@ -1018,6 +1018,88 @@ const PRESENCE_LABELS = {
   [PRESENCE_STATES.OBSERVING]: 'Observing'
 };
 
+/* ----------------------------------------------------------------------------
+   ACTIVE PROJECT FOCUS — Mock State (Local Only)
+   ---------------------------------------------------------------------------- */
+
+/**
+ * @typedef {Object} ActiveProject
+ * @property {string} id - Unique project identifier
+ * @property {string} name - Display name
+ * @property {string} domain - Project domain (freshdesk-ai, help-nearby, futurehub)
+ * @property {string} status - Current status (active, paused, completed)
+ * @property {string} description - Brief project description
+ * @property {string} lastActivity - ISO-8601 timestamp of last activity
+ * @property {number} openItems - Count of open items
+ */
+
+/** @type {ActiveProject} */
+const mockActiveProject = {
+  id: 'proj-freshdesk-ai-001',
+  name: 'Freshdesk AI Support',
+  domain: 'freshdesk-ai',
+  status: 'active',
+  description: 'Intelligent support assistant for FutureBit customer tickets. Drafts responses, identifies KB gaps, and tracks recurring issues.',
+  lastActivity: new Date().toISOString(),
+  openItems: 3
+};
+
+/**
+ * Render the Active Project Focus panel
+ * @param {ActiveProject|null} project - Project to display (null = empty state)
+ */
+function renderActiveProject(project) {
+  const panel = document.getElementById('active-project-panel');
+  if (!panel) return;
+
+  if (!project) {
+    panel.innerHTML = `
+      <div class="active-project-empty">
+        <div class="intel-empty-text">No project selected</div>
+      </div>
+    `;
+    return;
+  }
+
+  const statusClass = project.status === 'active' ? '' :
+                      project.status === 'paused' ? 'warning' : 'inactive';
+
+  panel.innerHTML = `
+    <div class="active-project-card">
+      <div class="active-project-field">
+        <span class="active-project-label">Project</span>
+        <span class="active-project-value project-name">${escapeHtml(project.name)}</span>
+      </div>
+      <div class="active-project-field">
+        <span class="active-project-label">Domain</span>
+        <span class="active-project-value">${escapeHtml(project.domain)}</span>
+      </div>
+      <div class="active-project-field">
+        <span class="active-project-label">Status</span>
+        <span class="active-project-value project-status">
+          <span class="status-dot ${statusClass}"></span>
+          ${escapeHtml(project.status)}
+        </span>
+      </div>
+      <div class="active-project-field">
+        <span class="active-project-label">Open Items</span>
+        <span class="active-project-value">${project.openItems}</span>
+      </div>
+      <div class="active-project-field active-project-description">
+        <span class="active-project-label">Description</span>
+        <span class="active-project-value">${escapeHtml(project.description)}</span>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Initialize Active Project Focus with mock data
+ */
+function initActiveProject() {
+  renderActiveProject(mockActiveProject);
+}
+
 /**
  * Update presence state (icon + status text)
  * @param {string} presenceState - One of PRESENCE_STATES
@@ -1527,6 +1609,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Wire up notes submission (Phase 1 interaction)
   wireNotesSubmit();
+
+  // Initialize Active Project Focus with mock data
+  initActiveProject();
 
   // State only changes via hover, click, or explicit function calls
 

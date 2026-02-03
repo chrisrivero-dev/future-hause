@@ -280,6 +280,26 @@
       </div>
 
       <!--
+        Active Project Focus
+        PURPOSE:
+        - Display currently selected project context
+        - Show project metadata and status
+        - Read-only, no mutations
+      -->
+      <section class="secondary-section active-project-section" aria-label="Active Project Focus" data-section="active-project">
+        <div class="secondary-section-header">
+          <h2 class="secondary-section-title">Active Project Focus</h2>
+        </div>
+        <div class="secondary-section-content active-project-content">
+          <div id="active-project-panel" class="active-project-panel">
+            <div class="active-project-empty">
+              <div class="intel-empty-text">No project selected</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!--
         Draft Work Log (Assistant-Generated)
         PURPOSE:
         - Help draft daily work entries for FutureBit timesheet

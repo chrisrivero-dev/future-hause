@@ -1164,6 +1164,82 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   ACTIVE PROJECT FOCUS — Current Project Context
+   - Read-only display of selected project
+   - No mutations, no API calls
+   ---------------------------------------------------------------------------- */
+
+.active-project-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.active-project-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+.active-project-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.active-project-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.active-project-value {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.active-project-value.project-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+}
+
+.active-project-value.project-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-success);
+}
+
+.status-dot.inactive {
+  background: var(--text-muted);
+}
+
+.status-dot.warning {
+  background: var(--accent-warning);
+}
+
+.active-project-description {
+  grid-column: 1 / -1;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color-subtle);
+}
+
+.active-project-empty {
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+/* ----------------------------------------------------------------------------
    DRAFT WORK LOG — Assistant-Generated Drafts
    - For human review only
    - No Excel, Freshdesk, or API writes
