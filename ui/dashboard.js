@@ -310,6 +310,7 @@ function renderIntelEvents() {
     index,
     title: event.title || event.type || 'Event',
     meta: formatTimestamp(event.detected_at || event.timestamp),
+    urgency: event.priority || event.urgency || null,
     detailsHtml: `
       ${event.id ? renderDetailRow('ID', event.id) : ''}
       ${event.type ? renderDetailRow('Type', event.type) : ''}
@@ -346,7 +347,8 @@ function renderKbOpportunities() {
     columnId: 'kb',
     index,
     title: opp.title || opp.topic || 'Opportunity',
-    meta: escapeHtml(opp.status || opp.priority || ''),
+    meta: escapeHtml(opp.status || ''),
+    urgency: opp.priority || opp.urgency || null,
     detailsHtml: `
       ${opp.id ? renderDetailRow('ID', opp.id) : ''}
       ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
@@ -384,6 +386,7 @@ function renderProjects() {
     index,
     title: project.name || project.title || 'Project',
     meta: escapeHtml(project.status || ''),
+    urgency: project.priority || project.urgency || null,
     detailsHtml: `
       ${project.id ? renderDetailRow('ID', project.id) : ''}
       ${project.status ? renderDetailRow('Status', project.status) : ''}
@@ -421,6 +424,8 @@ function renderRecentRecommendations() {
     index,
     title: action.action || action.recommendation || 'Action',
     meta: formatTimestamp(action.timestamp || action.created_at),
+    urgency: action.priority || action.urgency || null,
+    showActions: true,
     detailsHtml: `
       ${action.id ? renderDetailRow('ID', action.id) : ''}
       ${action.rationale ? renderDetailRow('Rationale', action.rationale) : ''}
@@ -626,10 +631,25 @@ function generateCardIds(columnId, index) {
 /**
  * Render a card with proper ARIA attributes
  * @param {object} params - Card parameters
+ * @param {string} params.urgency - Optional urgency level (low, medium, high)
+ * @param {boolean} params.showActions - Whether to show action affordances
  * @returns {string} HTML string
  */
-function renderCard({ columnId, index, title, meta, detailsHtml }) {
+function renderCard({ columnId, index, title, meta, detailsHtml, urgency, showActions }) {
   const { headerId, detailsId } = generateCardIds(columnId, index);
+
+  // Urgency badge HTML (if provided)
+  const urgencyBadge = urgency
+    ? `<span class="urgency-badge ${urgency}">${urgency}</span>`
+    : '';
+
+  // Action affordances (placeholder, disabled)
+  const actionsHtml = showActions
+    ? `<div class="card-actions">
+        <button type="button" class="card-action-btn approve" disabled title="Approve (coming soon)">✓ Approve</button>
+        <button type="button" class="card-action-btn dismiss" disabled title="Dismiss (coming soon)">✕ Dismiss</button>
+      </div>`
+    : '';
 
   return `
     <div class="intel-card" data-index="${index}">
@@ -642,7 +662,7 @@ function renderCard({ columnId, index, title, meta, detailsHtml }) {
         aria-controls="${detailsId}"
       >
         <div class="intel-card-summary">
-          <div class="intel-card-title">${escapeHtml(title)}</div>
+          <div class="intel-card-title">${escapeHtml(title)}${urgencyBadge}</div>
           <div class="intel-card-meta">${meta}</div>
         </div>
         <span class="intel-card-toggle" aria-hidden="true">▼</span>
@@ -654,6 +674,7 @@ function renderCard({ columnId, index, title, meta, detailsHtml }) {
         aria-labelledby="${headerId}"
       >
         ${detailsHtml}
+        ${actionsHtml}
       </div>
     </div>
   `;
@@ -997,25 +1018,28 @@ function initThemeToggle() {
    - No changes outside the visible UI
    ---------------------------------------------------------------------------- */
 
-// Presence states: idle | thinking | observing
+// Presence states: idle | thinking | observing | observed
 const PRESENCE_STATES = {
   IDLE: 'idle',
   THINKING: 'thinking',
-  OBSERVING: 'observing'
+  OBSERVING: 'observing',
+  OBSERVED: 'observed'
 };
 
 // Presence state copy (exact strings, verbatim)
 const PRESENCE_COPY = {
   [PRESENCE_STATES.IDLE]: 'Waiting for input. No analysis in progress.',
   [PRESENCE_STATES.THINKING]: 'Interpreting your message and preparing a draft response. No actions are being taken.',
-  [PRESENCE_STATES.OBSERVING]: 'Draft prepared. Awaiting your review or next instruction.'
+  [PRESENCE_STATES.OBSERVING]: 'Draft prepared. Awaiting your review or next instruction.',
+  [PRESENCE_STATES.OBSERVED]: 'Data loaded from manual ingest. Review dashboard for updates.'
 };
 
 // Presence state labels (short form for UI)
 const PRESENCE_LABELS = {
   [PRESENCE_STATES.IDLE]: 'Idle',
   [PRESENCE_STATES.THINKING]: 'Thinking',
-  [PRESENCE_STATES.OBSERVING]: 'Observing'
+  [PRESENCE_STATES.OBSERVING]: 'Observing',
+  [PRESENCE_STATES.OBSERVED]: 'Observed (manual)'
 };
 
 /* ----------------------------------------------------------------------------
@@ -1101,6 +1125,62 @@ const mockReviewAssessment = {
 };
 
 /**
+ * Normalize ActiveProject to canonical form
+ * @param {ActiveProject} project - Raw project object
+ * @returns {ActiveProject} Normalized project
+ */
+function normalizeActiveProject(project) {
+  return {
+    id: project.id || '',
+    name: project.name || 'Untitled Project',
+    domain: project.domain || 'unknown',
+    status: project.status || 'active',
+    description: project.description || '',
+    lastActivity: project.lastActivity || new Date().toISOString(),
+    openItems: typeof project.openItems === 'number' ? project.openItems : 0
+  };
+}
+
+/**
+ * Mock ReviewAgent assessment (read-only, advisory)
+ * Follows ReviewAgent output contract from docs/review_agent_contract_v1.md
+ */
+const mockReviewAssessment = {
+  review_id: 'review-001',
+  draft_id: 'proj-freshdesk-ai-001',
+  timestamp: new Date().toISOString(),
+  findings: [],
+  summary: {
+    total_findings: 0,
+    high_severity: 0,
+    medium_severity: 0,
+    low_severity: 0,
+    info: 0
+  },
+  recommendation: 'approve',
+  disclaimer: 'This review is advisory only. Human judgment required.'
+};
+
+/**
+ * Apply ReviewAgent assessment to project (read-only merge)
+ * Does NOT modify original project or assessment
+ * @param {ActiveProject} project - Normalized project
+ * @param {object} assessment - ReviewAgent assessment
+ * @returns {ActiveProject} Project with review metadata attached
+ */
+function applyReviewAssessment(project, assessment) {
+  return {
+    ...project,
+    _review: {
+      recommendation: assessment.recommendation,
+      totalFindings: assessment.summary.total_findings,
+      highSeverity: assessment.summary.high_severity,
+      disclaimer: assessment.disclaimer
+    }
+  };
+}
+
+/**
  * Render the Active Project Focus panel
  * @param {ActiveProject|null} project - Project to display (null = empty state)
  */
@@ -1170,7 +1250,12 @@ function applyReviewAssessment(project, assessment) {
  * Initialize Active Project Focus with mock data
  */
 function initActiveProject() {
-  renderActiveProject(mockActiveProject);
+  const canonicalProject = normalizeActiveProject(mockActiveProject);
+  const reviewedProject = applyReviewAssessment(
+    canonicalProject,
+    mockReviewAssessment
+  );
+  renderActiveProject(reviewedProject);
 }
 
 /**
@@ -1663,6 +1748,264 @@ window.setPresenceState = setPresenceState;
 window.PRESENCE_STATES = PRESENCE_STATES;
 
 /* ----------------------------------------------------------------------------
+   COMMAND CHIPS — Quick Action Buttons (UI-only)
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Wire up command chip click handlers
+ * Populates textarea with chip command text
+ */
+function wireCommandChips() {
+  const chips = document.querySelectorAll('.command-chip');
+  const textarea = document.getElementById('notes-textarea');
+
+  if (!textarea) return;
+
+  chips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const command = chip.getAttribute('data-command');
+      if (command) {
+        textarea.value = command;
+        textarea.focus();
+      }
+    });
+  });
+}
+
+/* ----------------------------------------------------------------------------
+   RELATIVE TIME FORMATTING — UI Helper
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Format timestamp to relative time (e.g., "2 mins ago")
+ * @param {Date|string} date - Date to format
+ * @returns {string} Relative time string
+ */
+function formatRelativeTime(date) {
+  const now = new Date();
+  const then = date instanceof Date ? date : new Date(date);
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+
+  if (diffSec < 60) return 'just now';
+  if (diffMin < 60) return `${diffMin} min${diffMin > 1 ? 's' : ''} ago`;
+  if (diffHour < 24) return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+  if (diffDay < 7) return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+  return formatTimestamp(then.toISOString());
+}
+
+/**
+ * Update the "Last Updated" timestamp in metadata header
+ */
+function updateLastUpdatedTime() {
+  const el = document.getElementById('last-updated-time');
+  if (el) {
+    el.textContent = `Last updated: ${formatRelativeTime(new Date())}`;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   INGEST DRY-RUN — Manual, User-Initiated Demo
+   - NOT a background agent
+   - NOT automated
+   - NOT persistent beyond downloaded files
+   - Safe, reversible, human-triggered demo
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Generate mock intel events data
+ * @returns {object} Mock intel_events.json structure
+ */
+function generateMockIntelEvents() {
+  const now = new Date().toISOString();
+  return {
+    schema_version: '1.0',
+    generated_at: now,
+    events: [
+      {
+        id: 'evt-001',
+        type: 'community_discussion',
+        title: 'Apollo BTC mining setup questions',
+        source: 'Reddit r/FutureBit',
+        detected_at: now,
+        description: 'User asking about optimal settings for Apollo BTC miner',
+        url: 'https://reddit.com/r/futurebit/example',
+        priority: 'medium'
+      },
+      {
+        id: 'evt-002',
+        type: 'firmware_update',
+        title: 'New firmware v2.1.0 released',
+        source: 'FutureBit Official',
+        detected_at: now,
+        description: 'Firmware update includes performance improvements and bug fixes',
+        priority: 'high'
+      },
+      {
+        id: 'evt-003',
+        type: 'support_pattern',
+        title: 'Recurring PSU compatibility questions',
+        source: 'Support Analysis',
+        detected_at: now,
+        description: 'Multiple users asking about power supply requirements',
+        priority: 'low'
+      }
+    ]
+  };
+}
+
+/**
+ * Generate mock KB opportunities data
+ * @returns {object} Mock kb_opportunities.json structure
+ */
+function generateMockKbOpportunities() {
+  const now = new Date().toISOString();
+  return {
+    schema_version: '1.0',
+    generated_at: now,
+    opportunities: [
+      {
+        id: 'kb-001',
+        title: 'PSU Requirements Guide',
+        topic: 'Hardware Setup',
+        gap_type: 'missing_documentation',
+        status: 'identified',
+        suggested_action: 'Create comprehensive PSU compatibility guide',
+        source_signals: 'evt-003',
+        created_at: now,
+        priority: 'medium'
+      },
+      {
+        id: 'kb-002',
+        title: 'Firmware Update FAQ',
+        topic: 'Software',
+        gap_type: 'outdated_content',
+        status: 'identified',
+        suggested_action: 'Update FAQ with v2.1.0 information',
+        source_signals: 'evt-002',
+        created_at: now,
+        priority: 'high'
+      }
+    ]
+  };
+}
+
+/**
+ * Generate mock projects data
+ * @returns {object} Mock projects.json structure
+ */
+function generateMockProjects() {
+  const now = new Date().toISOString();
+  return {
+    schema_version: '1.0',
+    generated_at: now,
+    projects: [
+      {
+        id: 'proj-001',
+        name: 'Freshdesk AI Support',
+        status: 'active',
+        deliverables: ['Draft responses', 'KB gap detection'],
+        created_at: now,
+        updated_at: now,
+        priority: 'high'
+      },
+      {
+        id: 'proj-002',
+        name: 'Documentation Refresh',
+        status: 'active',
+        deliverables: ['PSU guide', 'Setup wizard docs'],
+        created_at: now,
+        updated_at: now,
+        priority: 'medium'
+      }
+    ]
+  };
+}
+
+/**
+ * Generate mock action log data
+ * @returns {object} Mock action_log.json structure
+ */
+function generateMockActionLog() {
+  return {
+    schema_version: '1.0',
+    actions: []
+  };
+}
+
+/**
+ * Run ingest dry-run
+ * - Generates mock data in memory
+ * - Populates dashboard immediately
+ * - Sets presence to Observed (manual)
+ * - No downloads, no persistence, no background work
+ */
+async function runIngestDryRun() {
+  // Generate mock data in memory
+  const intelEvents = generateMockIntelEvents();
+  const kbOpportunities = generateMockKbOpportunities();
+  const projects = generateMockProjects();
+  const actionLog = generateMockActionLog();
+
+  // Update state directly with mock data (immediate UI update)
+  state.intelEvents = intelEvents;
+  state.loadStatus.intelEvents = 'success';
+  state.metadata.schemaVersions.intelEvents = intelEvents.schema_version;
+  state.metadata.generatedTimestamps.intelEvents = intelEvents.generated_at;
+
+  state.kbOpportunities = kbOpportunities;
+  state.loadStatus.kbOpportunities = 'success';
+  state.metadata.schemaVersions.kbOpportunities = kbOpportunities.schema_version;
+  state.metadata.generatedTimestamps.kbOpportunities = kbOpportunities.generated_at;
+
+  state.projects = projects;
+  state.loadStatus.projects = 'success';
+  state.metadata.schemaVersions.projects = projects.schema_version;
+  state.metadata.generatedTimestamps.projects = projects.generated_at;
+
+  state.actionLog = actionLog;
+  state.loadStatus.actionLog = 'success';
+  state.metadata.schemaVersions.actionLog = actionLog.schema_version;
+
+  // Re-render all sections
+  renderIntelEvents();
+  renderKbOpportunities();
+  renderProjects();
+  renderRecentRecommendations();
+  renderActionLogTable();
+  renderSystemMetadata();
+
+  // Update timestamps
+  updateLastUpdatedTime();
+
+  // Set presence to Observed (manual)
+  setPresenceState(PRESENCE_STATES.OBSERVED);
+}
+
+/**
+ * Wire up ingest dry-run button
+ */
+function wireIngestDryRun() {
+  const btn = document.getElementById('ingest-dry-run-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Running...';
+
+    try {
+      await runIngestDryRun();
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `Run ingest (dry-run)<span class="ingest-btn-hint">Manual · Non-persistent · Safe</span>`;
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -1683,8 +2026,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Wire up notes submission (Phase 1 interaction)
   wireNotesSubmit();
 
+  // Wire up command chips (quick action buttons)
+  wireCommandChips();
+
   // Initialize Active Project Focus with mock data
   initActiveProject();
+
+  // Update last updated timestamp
+  updateLastUpdatedTime();
+
+  // Wire up ingest dry-run button
+  wireIngestDryRun();
 
   // State only changes via hover, click, or explicit function calls
 
