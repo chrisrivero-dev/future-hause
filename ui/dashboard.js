@@ -1864,43 +1864,20 @@ function generateMockActionLog() {
 }
 
 /**
- * Download JSON data as a file using browser-safe Blob + <a download>
- * @param {object} data - Data to download
- * @param {string} filename - Filename for download
- */
-function downloadJsonFile(data, filename) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-/**
  * Run ingest dry-run
  * - Generates mock data in memory
- * - Downloads files via browser
- * - Updates state to display mock data
- * - Sets presence to Observed
+ * - Populates dashboard immediately
+ * - Sets presence to Observed (manual)
+ * - No downloads, no persistence, no background work
  */
 async function runIngestDryRun() {
-  // Generate mock data
+  // Generate mock data in memory
   const intelEvents = generateMockIntelEvents();
   const kbOpportunities = generateMockKbOpportunities();
   const projects = generateMockProjects();
   const actionLog = generateMockActionLog();
 
-  // Download files
-  downloadJsonFile(intelEvents, 'intel_events.json');
-  downloadJsonFile(kbOpportunities, 'kb_opportunities.json');
-  downloadJsonFile(projects, 'projects.json');
-  downloadJsonFile(actionLog, 'action_log.json');
-
-  // Update state directly with mock data (for immediate UI update)
+  // Update state directly with mock data (immediate UI update)
   state.intelEvents = intelEvents;
   state.loadStatus.intelEvents = 'success';
   state.metadata.schemaVersions.intelEvents = intelEvents.schema_version;
@@ -1931,7 +1908,7 @@ async function runIngestDryRun() {
   // Update timestamps
   updateLastUpdatedTime();
 
-  // Set presence to Observed
+  // Set presence to Observed (manual)
   setPresenceState(PRESENCE_STATES.OBSERVED);
 }
 
