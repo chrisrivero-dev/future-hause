@@ -1043,6 +1043,19 @@ const PRESENCE_LABELS = {
  * @property {string} last_updated - ISO-8601 timestamp
  * @property {"manual"|"review_agent"|"agent"} source - Origin of this state
  */
+/**
+ * ReviewAgent output (read-only, non-authoritative)
+ *
+ * This represents an evaluation of a project, not ownership.
+ * It may override confidence, risks, or status,
+ * but never mutates project identity or structure.
+ *
+ * @typedef {Object} ReviewAgentAssessment
+ * @property {number} confidence - 0.0–1.0 confidence score
+ * @property {string[]} risks - Explicit risks or concerns
+ * @property {"active"|"paused"|"blocked"|"review"} status
+ * @property {string} rationale - Human-readable reasoning
+ */
 
 
 /** @type {ActiveProject} */
