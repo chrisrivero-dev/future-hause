@@ -126,3 +126,6 @@ export function routeLLM(text) {
 
   return { intent, risk, permanence, allow_draft, must_answer_directly };
 }
+
+// Expose on window for non-module scripts (dashboard.js)
+window.routeLLM = routeLLM;
