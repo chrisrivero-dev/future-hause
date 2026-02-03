@@ -305,6 +305,21 @@ body {
   animation: fh-rotate var(--fh-rotate-duration) linear infinite;
 }
 
+/* Explicitly ensure idle/observing NEVER rotate even if other rules exist */
+.dashboard-icon-wrapper[data-state="idle"] .presence-icon,
+.dashboard-icon-wrapper[data-state="idle"] .dashboard-icon,
+.dashboard-icon-wrapper[data-state="observing"] .presence-icon,
+.dashboard-icon-wrapper[data-state="observing"] .dashboard-icon {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Block hover-triggered rotation entirely */
+.dashboard-icon-wrapper:hover .presence-icon,
+.dashboard-icon-wrapper:hover .dashboard-icon {
+  transform: none !important;
+}
+
 /* --------------------------------------
    KEYFRAMES — Core Rotation
    Continuous slow rotation
@@ -960,6 +975,7 @@ body {
   flex-direction: column;
   gap: var(--spacing-sm);
   flex: 1;
+  overflow: visible;  /* Prevent clipping of resized textarea */
 }
 
 .notes-helper-text {
@@ -970,9 +986,9 @@ body {
 }
 
 .notes-textarea {
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   min-height: 180px;
-  min-width: 200px;
   padding: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color-subtle);
@@ -981,7 +997,7 @@ body {
   font-family: var(--font-sans);
   font-size: 0.85rem;
   line-height: 1.6;
-  resize: both;
+  resize: vertical;  /* vertical only = doesn't break grid */
   overflow: auto;
   transition: border-color 0.2s ease-out;
 }

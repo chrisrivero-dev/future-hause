@@ -787,15 +787,8 @@ function wireIconEvents() {
   const iconWrapper = document.getElementById('dashboard-icon');
   if (!iconWrapper) return;
 
-  // Hover: Show processing state
-  iconWrapper.addEventListener('mouseenter', () => {
-    setIconState('processing');
-  });
-
-  // Mouseleave: Always return to idle
-  iconWrapper.addEventListener('mouseleave', () => {
-    setIconState('idle');
-  });
+  // Hover should NOT change state (no accidental rotation)
+  // Removed: mouseenter/mouseleave state changes
 
   // Click: Brief success flash, then idle
   iconWrapper.addEventListener('click', () => {
