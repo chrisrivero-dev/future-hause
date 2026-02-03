@@ -1116,6 +1116,23 @@ function renderActiveProject(project) {
     `;
     return;
   }
+/**
+ * Apply ReviewAgent assessment to a canonical ActiveProject.
+ * No inference. No mutation of identity fields.
+ *
+ * @param {ActiveProjectCanonical} project
+ * @param {ReviewAgentAssessment} assessment
+ * @returns {ActiveProjectCanonical}
+ */
+function applyReviewAssessment(project, assessment) {
+  return {
+    ...project,
+    confidence: assessment.confidence,
+    risks: assessment.risks,
+    status: assessment.status,
+    source: "review_agent"
+  };
+}
 
   const statusClass = project.status === 'active' ? '' :
                       project.status === 'paused' ? 'warning' : 'inactive';
