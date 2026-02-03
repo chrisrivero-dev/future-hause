@@ -114,6 +114,17 @@ body {
   color: var(--text-primary);
 }
 
+/* Light mode: ensure header title has strong contrast */
+[data-theme="light"] .header-title {
+  color: #0f1629;  /* Deep navy for maximum readability */
+  font-weight: 700;
+}
+
+[data-theme="light"] .app-header {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
 .header-version {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -285,12 +296,10 @@ body {
   50% { box-shadow: 0 0 12px rgba(80, 180, 255, 0.35); }
 }
 
-/* Icon: rotation only for thinking/observing/processing (NOT idle) */
+/* Icon: rotation only for thinking/processing (NOT idle, NOT observing) */
 /* Targets both .dashboard-icon and .presence-icon (actual DOM class) */
 .dashboard-icon-wrapper[data-state="thinking"] .dashboard-icon,
 .dashboard-icon-wrapper[data-state="thinking"] .presence-icon,
-.dashboard-icon-wrapper[data-state="observing"] .dashboard-icon,
-.dashboard-icon-wrapper[data-state="observing"] .presence-icon,
 .dashboard-icon-wrapper[data-state="processing"] .dashboard-icon,
 .dashboard-icon-wrapper[data-state="processing"] .presence-icon {
   animation: fh-rotate var(--fh-rotate-duration) linear infinite;
@@ -563,6 +572,37 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* --------------------------------------
+   INTEL COLUMN TINTS — Visual Differentiation
+   Subtle background tints per column type
+   -------------------------------------- */
+.intel-column[data-section="intel-events"] {
+  background: rgba(0, 180, 200, 0.04);  /* Light teal tint */
+}
+.intel-column[data-section="kb-opportunities"] {
+  background: rgba(74, 222, 128, 0.04);  /* Light green tint */
+}
+.intel-column[data-section="projects"] {
+  background: rgba(251, 191, 36, 0.04);  /* Light amber tint */
+}
+.intel-column[data-section="recommendations"] {
+  background: rgba(160, 169, 200, 0.04);  /* Neutral gray tint */
+}
+
+/* Light mode: slightly stronger tints for visibility */
+[data-theme="light"] .intel-column[data-section="intel-events"] {
+  background: rgba(0, 180, 200, 0.06);
+}
+[data-theme="light"] .intel-column[data-section="kb-opportunities"] {
+  background: rgba(74, 222, 128, 0.06);
+}
+[data-theme="light"] .intel-column[data-section="projects"] {
+  background: rgba(251, 191, 36, 0.06);
+}
+[data-theme="light"] .intel-column[data-section="recommendations"] {
+  background: rgba(160, 169, 200, 0.06);
+}
+
 .intel-column-header {
   padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--border-color-subtle);
@@ -606,6 +646,38 @@ body {
   color: #000;
   border-radius: 3px;
   margin-left: var(--spacing-xs);
+  position: relative;
+  cursor: help;
+}
+
+/* Tooltip for CANDIDATE badge */
+.candidate-badge::after {
+  content: "Candidate = observed intel not yet promoted to a project or KB item";
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.65rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.candidate-badge:hover::after {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Disclaimer sub-header — Advisory notice (always visible) */
@@ -899,7 +971,8 @@ body {
 
 .notes-textarea {
   flex: 1;
-  min-height: 140px;
+  min-height: 180px;
+  min-width: 200px;
   padding: var(--spacing-sm);
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color-subtle);
@@ -908,7 +981,8 @@ body {
   font-family: var(--font-sans);
   font-size: 0.85rem;
   line-height: 1.6;
-  resize: vertical;
+  resize: both;
+  overflow: auto;
   transition: border-color 0.2s ease-out;
 }
 
