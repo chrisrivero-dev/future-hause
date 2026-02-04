@@ -2041,7 +2041,7 @@ document.addEventListener("DOMContentLoaded", () => {
   wireExplanationPanels();
   wireNotesSubmit();
   wireCommandChips();
-  initActiveProject();
+  // initActiveProject(); // TEMP: function not defined
   updateLastUpdatedTime();
   wireIngestDryRun();
 
