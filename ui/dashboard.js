@@ -299,38 +299,28 @@ function renderIntelEvents() {
   const container = document.getElementById("intel-events-content");
   const countEl = document.getElementById("intel-events-count");
 
-  if (!container) return;
+  if (!container || !countEl) return;
 
-  const events = getNestedValue(state.intelEvents, "events", []);
-  const displayEvents = events.slice(0, CONFIG.maxItemsPerColumn);
+  container.innerHTML = '';
 
-  countEl.textContent = `${events.length} total`;
+  const events = state.intelEvents?.events || [];
+  countEl.textContent = events.length;
 
-  if (displayEvents.length === 0) {
-    container.innerHTML = renderEmptyState("No intel events yet");
+  if (events.length === 0) {
+    container.innerHTML = '<div class="intel-empty"><div class="intel-empty-text">No intel events yet</div></div>';
     return;
   }
 
-  container.innerHTML = displayEvents
-    .map((event, index) =>
-      renderCard({
-        columnId: "intel",
-        index,
-        title: event.title || event.type || "Event",
-        meta: formatTimestamp(event.detected_at || event.timestamp),
-        urgency: event.priority || event.urgency || null,
-        detailsHtml: `
-      ${event.id ? renderDetailRow("ID", event.id) : ""}
-      ${event.type ? renderDetailRow("Type", event.type) : ""}
-      ${event.source ? renderDetailRow("Source", event.source) : ""}
-      ${event.description ? renderDetailRow("Description", event.description) : ""}
-      ${event.url ? renderDetailRow("URL", event.url) : ""}
-    `,
-      }),
-    )
-    .join("");
-
-  attachExpandHandlers(container);
+  events.forEach((evt) => {
+    const row = document.createElement('div');
+    row.className = 'intel-row';
+    row.innerHTML = `
+      <strong>${escapeHtml(evt.title || 'Event')}</strong>
+      <div class="meta">${escapeHtml(evt.source || '')} • ${escapeHtml(evt.priority || '')}</div>
+      <div class="desc">${escapeHtml(evt.description || '')}</div>
+    `;
+    container.appendChild(row);
+  });
 }
 
 /* ----------------------------------------------------------------------------
@@ -2055,11 +2045,16 @@ document.addEventListener("DOMContentLoaded", () => {
   updateLastUpdatedTime();
   wireIngestDryRun();
 
-  // File protocol: demo mode only
+  // Detect file:// protocol (local demo mode)
+  const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
+
   if (IS_FILE_PROTOCOL) {
-    console.warn("[Future Hause] file:// detected — auto-load disabled");
-    return; // ⛔ ABSOLUTE STOP — NO FETCH, NO AUTO LOAD
+    // Auto-run ingest once for immediate demo visibility
+    runIngestDryRun();
+    return;
   }
+
+  // State only changes via hover, click, or explicit function calls
 
   // http/https only
   loadAllData().then(() => {
