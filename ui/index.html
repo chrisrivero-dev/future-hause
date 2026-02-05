@@ -1,50 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Future Hause — Intelligence Dashboard</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <span>Future Hause Dashboard v0.1 — Read-Only Intelligence Dashboard</span>
 
-  <!-- Core Styles -->
-  <link rel="stylesheet" href="./dashboard.css" />
-</head>
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="./dashboard.css" />
+  </head>
 
-<body>
-
-  <!-- =========================
+  <body>
+    <!-- =========================
        APP HEADER
        ========================= -->
-  <header class="app-header">
-    <div class="header-content">
-      <div class="header-left">
-        <span class="header-title">Future Hause</span>
-        <span class="header-version">v0.1</span>
-      </div>
+    <header class="app-header">
+      <div class="header-content">
+        <div class="header-left">
+          <span class="header-title">Future Hause Dashboard</span>
+          <span class="header-version">v0.1</span>
+        </div>
 
-      <div class="header-status">
-        <span class="header-status-dot"></span>
-        <span>Read-Only Dashboard</span>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode">
-          Dark
-        </button>
+        <div class="header-status">
+          <span class="header-status-dot"></span>
+          <span>Read-Only Dashboard</span>
+          <button
+            class="theme-toggle"
+            id="theme-toggle"
+            aria-label="Toggle dark/light mode"
+          >
+            Dark
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- =========================
+    <!-- =========================
        MAIN DASHBOARD CONTENT
        ========================= -->
-  <main class="dashboard-main">
-    <div class="dashboard-layout">
-
-      <!-- =========================
+    <main class="dashboard-main">
+      <div class="dashboard-layout">
+        <!-- =========================
            PRESENCE RAIL — System Awareness Surface
            - Narrow, passive, read-only
            - Contains: icon (state-aware), status text, feed placeholder
            - No controls, no mutations
            ========================= -->
-      <aside class="presence-rail" aria-label="System Presence">
-        <!--
+        <aside class="presence-rail" aria-label="System Presence">
+          <!--
           Dashboard Icon
           Source of Truth: ui/icon.svg
           RULES:
@@ -52,110 +54,157 @@
           - Do NOT regenerate or replace artwork
           - Animations apply ONLY to .dashboard-icon-wrapper
         -->
-        <div class="dashboard-icon-wrapper" id="dashboard-icon" data-state="idle">
-          <img
-            src="./icon.svg"
-            class="presence-icon"
-            alt="Future Hause"
-            loading="eager"
-            decoding="async"
-          />
-        </div>
-
-        <div class="presence-name">Future Hause</div>
-
-        <div class="presence-status">
-          <span class="presence-status-text">Idle</span>
-        </div>
-
-        <div class="presence-feed" aria-label="Active Feed">
-          <div class="presence-feed-placeholder">—</div>
-        </div>
-      </aside>
-
-      <!-- =========================
-           DASHBOARD CONTENT — Main Intelligence Area
-           ========================= -->
-      <div class="dashboard-content">
-
-        <!-- =========================
-             PRIMARY INTELLIGENCE — 4 COLUMNS
-             ========================= -->
-        <section class="primary-intelligence" aria-label="Primary Intelligence">
-          <div class="section-header">
-            <h2 class="section-title">Activity Feed</h2>
+          <div
+            class="dashboard-icon-wrapper"
+            id="dashboard-icon"
+            data-state="idle"
+          >
+            <img
+              src="./icon.svg"
+              class="presence-icon"
+              alt="Future Hause"
+              loading="eager"
+              decoding="async"
+            />
           </div>
 
-      <div class="intel-grid">
+          <div class="presence-name">Future Hause</div>
 
-        <!--
+          <div class="presence-status">
+            <span class="presence-status-text">Idle</span>
+          </div>
+
+          <div class="presence-feed" aria-label="Active Feed">
+            <div class="presence-feed-placeholder">—</div>
+          </div>
+        </aside>
+
+        <!-- =========================
+           DASHBOARD CONTENT — Main Intelligence Area
+           ========================= -->
+        <div class="dashboard-content">
+          <!-- =========================
+             PRIMARY INTELLIGENCE — 4 COLUMNS
+             ========================= -->
+          <section
+            class="primary-intelligence"
+            aria-label="Primary Intelligence"
+          >
+            <div class="section-header">
+              <h2 class="section-title">Activity Feed</h2>
+            </div>
+
+            <div class="intel-grid">
+              <!--
           Column 1: New Intel
           NAVIGATION CONTRACT:
           - Click Target: Modal or drawer showing full intel detail
           - Route: /intel/:id (future)
           - Data Passed: { id, type, source, timestamp, raw_content }
         -->
-        <div class="intel-column" aria-label="New Intel (Candidate)" data-section="intel-events">
-          <div class="intel-column-header">
-            <h3 class="intel-column-title">New Intel</h3>
-            <span class="candidate-badge">CANDIDATE</span>
-            <span class="info-tooltip" data-tooltip="Signals and observations the system has noticed. Raw, uncommitted intelligence — nothing acted upon yet.">ⓘ</span>
-            <span id="intel-events-count" class="intel-column-count">0 total</span>
-          </div>
-          <div id="intel-events-content" class="intel-column-content" data-target="intel-detail">
-            <div class="intel-empty">
-              <div class="intel-empty-icon">📡</div>
-              <div class="intel-empty-text">No intel events yet</div>
-              <div class="intel-empty-hint">Checking for updates...</div>
-            </div>
-          </div>
-        </div>
+              <div
+                class="intel-column"
+                aria-label="New Intel (Candidate)"
+                data-section="intel-events"
+              >
+                <div class="intel-column-header">
+                  <h3 class="intel-column-title">New Intel</h3>
+                  <span class="candidate-badge">CANDIDATE</span>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Signals and observations the system has noticed. Raw, uncommitted intelligence — nothing acted upon yet."
+                    >ⓘ</span
+                  >
+                  <span id="intel-events-count" class="intel-column-count"
+                    >0 total</span
+                  >
+                </div>
+                <div
+                  id="intel-events-content"
+                  class="intel-column-content"
+                  data-target="intel-detail"
+                >
+                  <div class="intel-empty">
+                    <div class="intel-empty-icon">📡</div>
+                    <div class="intel-empty-text">No intel events yet</div>
+                    <div class="intel-empty-hint">Checking for updates...</div>
+                  </div>
+                </div>
+              </div>
 
-        <!--
+              <!--
           Column 2: KB Opportunities
           NAVIGATION CONTRACT:
           - Click Target: Modal showing opportunity + linked evidence
           - Route: /kb/:id (future)
           - Data Passed: { id, gap_type, evidence_ids[], suggested_action }
         -->
-        <div class="intel-column" aria-label="KB Opportunities" data-section="kb-opportunities">
-          <div class="intel-column-header">
-            <h3 class="intel-column-title">KB Opportunities</h3>
-            <span class="info-tooltip" data-tooltip="Evidence-backed documentation gaps. Places where knowledge base content could improve.">ⓘ</span>
-            <span id="kb-opportunities-count" class="intel-column-count">0 total</span>
-          </div>
-          <div id="kb-opportunities-content" class="intel-column-content" data-target="kb-detail">
-            <div class="intel-empty">
-              <div class="intel-empty-icon">📚</div>
-              <div class="intel-empty-text">No KB opportunities yet</div>
-              <div class="intel-empty-hint">Checking for updates...</div>
-            </div>
-          </div>
-        </div>
+              <div
+                class="intel-column"
+                aria-label="KB Opportunities"
+                data-section="kb-opportunities"
+              >
+                <div class="intel-column-header">
+                  <h3 class="intel-column-title">KB Opportunities</h3>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Evidence-backed documentation gaps. Places where knowledge base content could improve."
+                    >ⓘ</span
+                  >
+                  <span id="kb-opportunities-count" class="intel-column-count"
+                    >0 total</span
+                  >
+                </div>
+                <div
+                  id="kb-opportunities-content"
+                  class="intel-column-content"
+                  data-target="kb-detail"
+                >
+                  <div class="intel-empty">
+                    <div class="intel-empty-icon">📚</div>
+                    <div class="intel-empty-text">No KB opportunities yet</div>
+                    <div class="intel-empty-hint">Checking for updates...</div>
+                  </div>
+                </div>
+              </div>
 
-        <!--
+              <!--
           Column 3: Projects
           NAVIGATION CONTRACT:
           - Click Target: Project detail page or drawer
           - Route: /projects/:id (future)
           - Data Passed: { id, name, status, deliverables[], source_intel_id }
         -->
-        <div class="intel-column" aria-label="Projects" data-section="projects">
-          <div class="intel-column-header">
-            <h3 class="intel-column-title">Projects</h3>
-            <span class="info-tooltip" data-tooltip="Human-approved initiatives derived from intelligence. Committed work with deliverables.">ⓘ</span>
-            <span id="projects-count" class="intel-column-count">0 total</span>
-          </div>
-          <div id="projects-content" class="intel-column-content" data-target="project-detail">
-            <div class="intel-empty">
-              <div class="intel-empty-icon">📋</div>
-              <div class="intel-empty-text">No projects yet</div>
-              <div class="intel-empty-hint">Checking for updates...</div>
-            </div>
-          </div>
-        </div>
+              <div
+                class="intel-column"
+                aria-label="Projects"
+                data-section="projects"
+              >
+                <div class="intel-column-header">
+                  <h3 class="intel-column-title">Projects</h3>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Human-approved initiatives derived from intelligence. Committed work with deliverables."
+                    >ⓘ</span
+                  >
+                  <span id="projects-count" class="intel-column-count"
+                    >0 total</span
+                  >
+                </div>
+                <div
+                  id="projects-content"
+                  class="intel-column-content"
+                  data-target="project-detail"
+                >
+                  <div class="intel-empty">
+                    <div class="intel-empty-icon">📋</div>
+                    <div class="intel-empty-text">No projects yet</div>
+                    <div class="intel-empty-hint">Checking for updates...</div>
+                  </div>
+                </div>
+              </div>
 
-        <!--
+              <!--
           Column 4: Recent Recommendations
           NAVIGATION CONTRACT:
           - Click Target: Modal with accept/dismiss actions (future)
@@ -163,35 +212,46 @@
           - Data Passed: { id, recommendation_type, rationale, source_intel_ids[] }
           - Actions: promote_to_project, dismiss, defer
         -->
-        <div class="intel-column" aria-label="Recent Recommendations" data-section="recommendations">
-          <div class="intel-column-header">
-            <h3 class="intel-column-title">Recommendations</h3>
-            <span class="info-tooltip" data-tooltip="Actionable suggestions derived from intel. Advisory only — human decides whether to act.">ⓘ</span>
-            <span id="recommendations-count" class="intel-column-count">0 total</span>
-          </div>
-          <div id="recommendations-content" class="intel-column-content" data-target="recommendation-detail">
-            <div class="intel-empty">
-              <div class="intel-empty-icon">💡</div>
-              <div class="intel-empty-text">No recommendations yet</div>
-              <div class="intel-empty-hint">Checking for updates...</div>
+              <div
+                class="intel-column"
+                aria-label="Recent Recommendations"
+                data-section="recommendations"
+              >
+                <div class="intel-column-header">
+                  <h3 class="intel-column-title">Recommendations</h3>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Actionable suggestions derived from intel. Advisory only — human decides whether to act."
+                    >ⓘ</span
+                  >
+                  <span id="recommendations-count" class="intel-column-count"
+                    >0 total</span
+                  >
+                </div>
+                <div
+                  id="recommendations-content"
+                  class="intel-column-content"
+                  data-target="recommendation-detail"
+                >
+                  <div class="intel-empty">
+                    <div class="intel-empty-icon">💡</div>
+                    <div class="intel-empty-text">No recommendations yet</div>
+                    <div class="intel-empty-hint">Checking for updates...</div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-      </div>
-    </section>
-
-    <!-- =========================
+          <!-- =========================
          SECONDARY SECTIONS — STACKED FULL-WIDTH
          ========================= -->
-    <div class="secondary-sections">
-
-      <!-- =========================
+          <div class="secondary-sections">
+            <!-- =========================
            NOTES + ACTION LOG ROW — Side by Side
            ========================= -->
-      <div class="notes-log-row">
-
-        <!--
+            <div class="notes-log-row">
+              <!--
           Notes to Future Hause
           PURPOSE:
           - Human observations sent to Future Hause for consideration
@@ -205,52 +265,117 @@
           - No automatic UI or data changes
           - Read-only explanatory loop only
         -->
-        <section class="secondary-section notes-section" aria-label="Message to Future Hause" data-section="message">
-          <div class="secondary-section-header">
-            <h2 class="secondary-section-title">Message to Future Hause</h2>
-            <span class="info-tooltip" data-tooltip="Ask questions or request drafts. Nothing is saved or committed.">ⓘ</span>
-          </div>
-          <div class="secondary-section-content notes-content">
-            <div class="command-chips" aria-label="Quick actions">
-              <button type="button" class="command-chip" data-command="Draft work log">Draft work log</button>
-              <button type="button" class="command-chip" data-command="Analyze recent intel">Analyze recent intel</button>
-              <button type="button" class="command-chip" data-command="Search documentation">Search documentation</button>
-            </div>
-            <div class="command-bar">
-              <textarea
-                id="notes-textarea"
-                class="notes-textarea command-input"
-                placeholder="What would you like to ask or draft?"
-                aria-label="Message textarea"
-                rows="3"
-              ></textarea>
-              <button id="notes-submit" class="notes-submit-btn primary-action" type="button">
-                Send
-              </button>
-            </div>
-
-            <!-- Response Panel (collapsible, hidden until response received) -->
-            <div id="notes-response-panel" class="notes-response-panel" hidden>
-              <div
-                class="notes-response-header"
-                id="notes-response-header"
-                role="button"
-                tabindex="0"
-                aria-expanded="true"
-                aria-controls="notes-response-body"
+              <section
+                class="secondary-section notes-section"
+                aria-label="Message to Future Hause"
+                data-section="message"
               >
-                <span class="notes-response-title">Future Hause Response</span>
-                <span class="notes-response-toggle" aria-hidden="true">▼</span>
-              </div>
-              <div id="notes-response-body" class="notes-response-body expanded">
-                <div id="notes-response-content" class="notes-response-content"></div>
-                <div class="notes-response-footer">Nothing was committed.</div>
-              </div>
-            </div>
-          </div>
-        </section>
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">
+                    Message to Future Hause
+                  </h2>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Ask questions or request drafts. Nothing is saved or committed."
+                    >ⓘ</span
+                  >
+                </div>
+                <div class="secondary-section-content notes-content">
+                  <div class="command-chips" aria-label="Quick actions">
+                    <button
+                      type="button"
+                      class="command-chip"
+                      data-command="Draft work log"
+                    >
+                      Draft work log
+                    </button>
+                    <button
+                      type="button"
+                      class="command-chip"
+                      data-command="Analyze recent intel"
+                    >
+                      Analyze recent intel
+                    </button>
+                    <button
+                      type="button"
+                      class="command-chip"
+                      data-command="Search documentation"
+                    >
+                      Search documentation
+                    </button>
+                  </div>
+                  <div class="command-bar">
+                    <textarea
+                      id="notes-textarea"
+                      class="notes-textarea command-input"
+                      placeholder="What would you like to ask or draft?"
+                      aria-label="Message textarea"
+                      rows="3"
+                    ></textarea>
+                    <button
+                      id="notes-submit"
+                      class="notes-submit-btn primary-action"
+                      type="button"
+                    >
+                      Send
+                    </button>
+                  </div>
 
-        <!--
+                  <!-- Response Panel (collapsible, hidden until response received) -->
+                  <div
+                    id="notes-response-panel"
+                    class="notes-response-panel"
+                    hidden
+                  >
+                    <div
+                      class="notes-response-header"
+                      id="notes-response-header"
+                      role="button"
+                      tabindex="0"
+                      aria-expanded="true"
+                      aria-controls="notes-response-body"
+                    >
+                      <span class="notes-response-title"
+                        >Future Hause Response</span
+                      >
+                      <span class="notes-response-toggle" aria-hidden="true"
+                        >▼</span
+                      >
+                    </div>
+                    <div
+                      id="notes-response-body"
+                      class="notes-response-body expanded"
+                    >
+                      <div
+                        id="notes-response-content"
+                        class="notes-response-content"
+                      ></div>
+                      <div class="notes-response-footer">
+                        Nothing was committed.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <!-- ===============================
+     FUTURE HAUSE RESPONSE PANEL
+     =============================== -->
+              <section
+                class="secondary-section future-hause-response-panel"
+                id="future-hause-response"
+                aria-label="Future Hause Response"
+                data-section="future-response"
+              >
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">Future Hause Response</h2>
+                </div>
+
+                <div class="future-hause-response-content">
+                  <em>No response yet.</em>
+                </div>
+              </section>
+
+              <!--
           Action Log
           NAVIGATION CONTRACT:
           - Click Target: Expand row to show full rationale (in-place)
@@ -258,63 +383,89 @@
           - Data Passed: { id, timestamp, action_type, rationale, actor }
           - Purpose: Immutable record, no actions allowed
         -->
-        <section class="secondary-section action-log-section" aria-label="Action Log" data-section="action-log">
-          <div class="secondary-section-header">
-            <h2 class="secondary-section-title">Action Log</h2>
-            <span class="info-tooltip" data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded.">ⓘ</span>
-          </div>
-          <div class="secondary-section-content">
-            <table class="action-log-table">
-              <thead>
-                <tr>
-                  <th class="col-time">
-                    Timestamp
-                    <span class="filter-icon" data-filter="time" title="Filter by time">⏱</span>
-                  </th>
-                  <th class="col-id">ID</th>
-                  <th class="col-action">
-                    Action
-                    <span class="filter-icon" data-filter="action" title="Filter by type">🔽</span>
-                  </th>
-                  <th class="col-rationale">Rationale</th>
-                </tr>
-              </thead>
-              <tbody id="action-log-table-body">
-                <tr>
-                  <td colspan="4" class="intel-empty">
-                    <div class="intel-empty-icon">📝</div>
-                    <div class="intel-empty-text">No actions logged yet</div>
-                    <div class="intel-empty-hint">Decisions will appear here with timestamps and rationale</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+              <section
+                class="secondary-section action-log-section"
+                aria-label="Action Log"
+                data-section="action-log"
+              >
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">Action Log</h2>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
+                    >ⓘ</span
+                  >
+                </div>
+                <div class="secondary-section-content">
+                  <table class="action-log-table">
+                    <thead>
+                      <tr>
+                        <th class="col-time">
+                          Timestamp
+                          <span
+                            class="filter-icon"
+                            data-filter="time"
+                            title="Filter by time"
+                            >⏱</span
+                          >
+                        </th>
+                        <th class="col-id">ID</th>
+                        <th class="col-action">
+                          Action
+                          <span
+                            class="filter-icon"
+                            data-filter="action"
+                            title="Filter by type"
+                            >🔽</span
+                          >
+                        </th>
+                        <th class="col-rationale">Rationale</th>
+                      </tr>
+                    </thead>
+                    <tbody id="action-log-table-body">
+                      <tr>
+                        <td colspan="4" class="intel-empty">
+                          <div class="intel-empty-icon">📝</div>
+                          <div class="intel-empty-text">
+                            No actions logged yet
+                          </div>
+                          <div class="intel-empty-hint">
+                            Decisions will appear here with timestamps and
+                            rationale
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
 
-      </div>
-
-      <!--
+            <!--
         Active Project Focus
         PURPOSE:
         - Display currently selected project context
         - Show project metadata and status
         - Read-only, no mutations
       -->
-      <section class="secondary-section active-project-section" aria-label="Active Project Focus" data-section="active-project">
-        <div class="secondary-section-header">
-          <h2 class="secondary-section-title">Active Project Focus</h2>
-        </div>
-        <div class="secondary-section-content active-project-content">
-          <div id="active-project-panel" class="active-project-panel">
-            <div class="active-project-empty">
-              <div class="intel-empty-text">No project selected</div>
-            </div>
-          </div>
-        </div>
-      </section>
+            <section
+              class="secondary-section active-project-section"
+              aria-label="Active Project Focus"
+              data-section="active-project"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Active Project Focus</h2>
+              </div>
+              <div class="secondary-section-content active-project-content">
+                <div id="active-project-panel" class="active-project-panel">
+                  <div class="active-project-empty">
+                    <div class="intel-empty-text">No project selected</div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-      <!--
+            <!--
         Draft Work Log (Assistant-Generated)
         PURPOSE:
         - Help draft daily work entries for FutureBit timesheet
@@ -328,32 +479,54 @@
         - Do NOT assume hours unless explicitly provided
         - This is memory-assist and drafting, not execution
       -->
-      <section class="secondary-section draft-worklog-section" aria-label="Draft Work Log" data-section="draft-worklog">
-        <div class="secondary-section-header">
-          <h2 class="secondary-section-title">Draft Work Log</h2>
-          <span class="draft-badge">DRAFT</span>
-          <span class="info-tooltip guardrails-tooltip" data-tooltip="Guardrails: No Excel writes. No Freshdesk writes. No API calls. No persistence. No assumptions about hours.">ⓘ Learn more</span>
-        </div>
-        <div class="secondary-section-content draft-worklog-content">
-          <div id="draft-worklog-entries" class="draft-worklog-entries">
-            <div class="draft-worklog-empty">
-              <div class="intel-empty-icon">✏️</div>
-              <div class="intel-empty-text">No draft entries yet</div>
-              <div class="intel-empty-hint">Submit a message above to generate drafts</div>
-            </div>
-          </div>
-          <div class="draft-worklog-actions">
-            <button type="button" class="draft-action-btn" id="copy-draft-btn" disabled title="Copy to clipboard">
-              📋 Copy
-            </button>
-            <button type="button" class="draft-action-btn" id="export-draft-btn" disabled title="Export draft">
-              📤 Export
-            </button>
-          </div>
-        </div>
-      </section>
+            <section
+              class="secondary-section draft-worklog-section"
+              aria-label="Draft Work Log"
+              data-section="draft-worklog"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Draft Work Log</h2>
+                <span class="draft-badge">DRAFT</span>
+                <span
+                  class="info-tooltip guardrails-tooltip"
+                  data-tooltip="Guardrails: No Excel writes. No Freshdesk writes. No API calls. No persistence. No assumptions about hours."
+                  >ⓘ Learn more</span
+                >
+              </div>
+              <div class="secondary-section-content draft-worklog-content">
+                <div id="draft-worklog-entries" class="draft-worklog-entries">
+                  <div class="draft-worklog-empty">
+                    <div class="intel-empty-icon">✏️</div>
+                    <div class="intel-empty-text">No draft entries yet</div>
+                    <div class="intel-empty-hint">
+                      Submit a message above to generate drafts
+                    </div>
+                  </div>
+                </div>
+                <div class="draft-worklog-actions">
+                  <button
+                    type="button"
+                    class="draft-action-btn"
+                    id="copy-draft-btn"
+                    disabled
+                    title="Copy to clipboard"
+                  >
+                    📋 Copy
+                  </button>
+                  <button
+                    type="button"
+                    class="draft-action-btn"
+                    id="export-draft-btn"
+                    disabled
+                    title="Export draft"
+                  >
+                    📤 Export
+                  </button>
+                </div>
+              </div>
+            </section>
 
-      <!--
+            <!--
         System Metadata
         NAVIGATION CONTRACT:
         - Click Target: None (informational display only)
@@ -361,52 +534,68 @@
         - Data Passed: { schema_versions, load_status, timestamps }
         - Purpose: Health + trust indicators, pure observability
       -->
-      <section class="secondary-section metadata-section" aria-label="System Metadata" data-section="metadata">
-        <div class="secondary-section-header">
-          <h2 class="secondary-section-title">System Metadata</h2>
-          <span class="info-tooltip" data-tooltip="Health and trust indicators. Schema versions, load status, and timestamps.">ⓘ</span>
-          <span id="last-updated-time" class="last-updated">Last updated: —</span>
-          <button type="button" class="ingest-btn" id="ingest-dry-run-btn" title="Generate mock data files">
-            Run ingest (dry-run)
-            <span class="ingest-btn-hint">Manual · Non-persistent · Safe</span>
-          </button>
-        </div>
-        <div id="metadata-content" class="secondary-section-content metadata-content">
-          <div class="intel-empty">
-            <div class="intel-empty-icon">⚙️</div>
-            <div class="intel-empty-text">Loading metadata...</div>
+            <section
+              class="secondary-section metadata-section"
+              aria-label="System Metadata"
+              data-section="metadata"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">System Metadata</h2>
+                <span
+                  class="info-tooltip"
+                  data-tooltip="Health and trust indicators. Schema versions, load status, and timestamps."
+                  >ⓘ</span
+                >
+                <span id="last-updated-time" class="last-updated"
+                  >Last updated: —</span
+                >
+                <button
+                  type="button"
+                  class="ingest-btn"
+                  id="ingest-dry-run-btn"
+                  title="Generate mock data files"
+                >
+                  Run ingest (dry-run)
+                  <span class="ingest-btn-hint"
+                    >Manual · Non-persistent · Safe</span
+                  >
+                </button>
+              </div>
+              <div
+                id="metadata-content"
+                class="secondary-section-content metadata-content"
+              >
+                <div class="intel-empty">
+                  <div class="intel-empty-icon">⚙️</div>
+                  <div class="intel-empty-text">Loading metadata...</div>
+                </div>
+              </div>
+            </section>
           </div>
+          <!-- closes secondary-sections -->
         </div>
-      </section>
-
+        <!-- closes dashboard-content -->
       </div>
-      <!-- closes secondary-sections -->
+      <!-- closes dashboard-layout -->
+    </main>
 
-    </div>
-    <!-- closes dashboard-content -->
-
-  </div>
-  <!-- closes dashboard-layout -->
-
-  </main>
-
-  <!-- =========================
+    <!-- =========================
        FOOTER
        ========================= -->
-  <footer class="app-footer">
-    <div class="footer-content">
-      <span>Future Hause v0.1 — Read-Only Intelligence Dashboard</span>
-      <div class="footer-status">
-        <span>Output Contract: Frozen</span>
+    <footer class="app-footer">
+      <div class="footer-content">
+        <span>Future Hause v0.1 — Read-Only Intelligence Dashboard</span>
+        <div class="footer-status">
+          <span>Output Contract: Frozen</span>
+        </div>
       </div>
-    </div>
-  </footer>
+    </footer>
 
-  <!-- =========================
+    <!-- =========================
        SCRIPTS
        ========================= -->
-  <!-- LLM Router: docs/llm-routing.md (disabled for file:// compatibility) -->
-  <!-- <script type="module" src="./llmRouter.js"></script> -->
-  <script src="./dashboard.js"></script>
-
-<script src="./dashboard.js"></script>
+    <!-- LLM Router: docs/llm-routing.md (disabled for file:// compatibility) -->
+    <!-- <script type="module" src="./llmRouter.js"></script> -->
+    <script src="./dashboard.js"></script>
+  </body>
+</html>
