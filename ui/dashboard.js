@@ -485,6 +485,21 @@ function renderActionLogTable() {
     `;
     return;
   }
+  /* ----------------------------------------------------------------------------
+   FUTURE HAUSE RESPONSE RENDER
+   ---------------------------------------------------------------------------- */
+  function renderFutureHauseResponse(text) {
+    const panel = document.getElementById('future-hause-response');
+    if (!panel) {
+      console.error('[Future Hause] Response panel missing from DOM');
+      return;
+    }
+
+    const content = panel.querySelector('.future-hause-response-content');
+    if (!content) return;
+
+    content.textContent = text;
+  }
 
   // Render actual action log entries
   container.innerHTML = actions
@@ -1029,14 +1044,10 @@ function applyTheme(theme) {
  * Toggle between dark and light themes
  */
 function toggleTheme() {
-  const currentTheme =
-    document.documentElement.getAttribute('data-theme') === 'light'
-      ? 'light'
-      : 'dark';
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-  applyTheme(newTheme);
-  localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+  const current = getStoredTheme();
+  const next = current === 'dark' ? 'light' : 'dark';
+  localStorage.setItem(THEME_STORAGE_KEY, next);
+  applyTheme(next);
 }
 
 /**
@@ -1044,11 +1055,9 @@ function toggleTheme() {
  */
 function initThemeToggle() {
   const toggleBtn = document.getElementById('theme-toggle');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', toggleTheme);
-  }
+  if (!toggleBtn) return;
 
-  // Apply stored theme on load
+  toggleBtn.addEventListener('click', toggleTheme);
   applyTheme(getStoredTheme());
 }
 
@@ -1344,7 +1353,7 @@ function checkPurposeDisclosure(userInput) {
   }
 
   return null;
-}
+} // ✅ CLOSE validateResponseSchema — CRITICAL
 
 /* --------------------------------------
    RESPONSE SCHEMA CONTRACT (LOCKED)
@@ -1401,73 +1410,79 @@ function validateResponseSchema(params) {
     throw new Error(
       'Schema violation: "What I did NOT do" must be non-empty array'
     );
-  }
-}
+  } // ✅ end validateResponseSchema (must NOT wrap the rest of the file)
 
-/**
- * Format response according to mandatory schema
- * Enforces contract: all required sections present, no extra content
- *
- * Routing contract: docs/llm-routing.md
- *
- * @param {object} params - Response parameters
- * @param {object} params.routingDecision - Result from routeLLM() (optional)
- * @returns {string} Formatted response
- */
-function formatResponse({
-  presenceState,
-  summary,
-  whatIDid,
-  whatIDidNot,
-  nextStep,
-  routingDecision,
-}) {
-  // Validate schema compliance
-  validateResponseSchema({ presenceState, summary, whatIDid, whatIDidNot });
+  /**
+   * Format response according to mandatory schema
+   * Enforces contract: all required sections present, no extra content
+   *
+   * Routing contract: docs/llm-routing.md
+   *
+   * @param {object} params - Response parameters
+   * @param {object} params.routingDecision - Result from routeLLM() (optional)
+   * @returns {string} Formatted response
+   */
+  function formatResponse({
+    presenceState,
+    summary,
+    whatIDid,
+    whatIDidNot,
+    nextStep,
+    routingDecision,
+  }) {
+    // Validate schema compliance
+    validateResponseSchema({ presenceState, summary, whatIDid, whatIDidNot });
 
-  // Ensure mandatory guardrails are included in "What I did NOT do"
-  const guardrails = [...whatIDidNot];
-  MANDATORY_GUARDRAILS.forEach((guardrail) => {
-    const alreadyIncluded = guardrails.some((item) =>
-      item.toLowerCase().includes(guardrail.toLowerCase().replace('no ', ''))
-    );
-    if (!alreadyIncluded) {
-      guardrails.push(guardrail);
+    // Ensure mandatory guardrails are included in "What I did NOT do"
+    const guardrails = [...whatIDidNot];
+    MANDATORY_GUARDRAILS.forEach((guardrail) => {
+      const alreadyIncluded = guardrails.some((item) =>
+        item.toLowerCase().includes(guardrail.toLowerCase().replace('no ', ''))
+      );
+      if (!alreadyIncluded) {
+        guardrails.push(guardrail);
+      }
+    });
+
+    // Build response in strict schema order
+    const lines = [
+      'Status:',
+      `• Presence State: ${PRESENCE_LABELS[presenceState]}`,
+      '• Mode: Draft / Advisory',
+      '• Side Effects: None',
+    ];
+
+    // Include routing decision if provided
+    if (routingDecision && typeof window.formatRoutingDecision === 'function') {
+      lines.push(
+        `• Routed To: ${window.formatRoutingDecision(routingDecision)}`
+      );
     }
-  });
 
-  // Build response in strict schema order
-  const lines = [
-    'Status:',
-    `• Presence State: ${PRESENCE_LABELS[presenceState]}`,
-    '• Mode: Draft / Advisory',
-    '• Side Effects: None',
-  ];
+    lines.push(
+      '',
+      'Summary:',
+      `• ${summary}`,
+      '',
+      'What I did:',
+      ...whatIDid.map((item) => `• ${item}`),
+      '',
+      'What I did NOT do:',
+      ...guardrails.map((item) => `• ${item}`)
+    );
 
-  // Include routing decision if provided
-  if (routingDecision && typeof window.formatRoutingDecision === 'function') {
-    lines.push(`• Routed To: ${window.formatRoutingDecision(routingDecision)}`);
+    // Optional: Next step (only if provided)
+    if (nextStep && typeof nextStep === 'string' && nextStep.trim() !== '') {
+      lines.push('', 'Next suggested step (optional):', `• ${nextStep}`);
+    }
+
+    return lines.join('\n');
   }
+} // ✅ CRITICAL: close the unintended wrapper that was swallowing everything below (e.g., validateResponseSchema)
 
-  lines.push(
-    '',
-    'Summary:',
-    `• ${summary}`,
-    '',
-    'What I did:',
-    ...whatIDid.map((item) => `• ${item}`),
-    '',
-    'What I did NOT do:',
-    ...guardrails.map((item) => `• ${item}`)
-  );
-
-  // Optional: Next step (only if provided)
-  if (nextStep && typeof nextStep === 'string' && nextStep.trim() !== '') {
-    lines.push('', 'Next suggested step (optional):', `• ${nextStep}`);
-  }
-
-  return lines.join('\n');
-}
+/* =============================================================================
+   LLM + MESSAGE PANEL WIRING (TOP-LEVEL, GLOBAL)
+   ============================================================================= */
 
 /**
  * Call Ollama for draft generation (ONLY when allow_draft === true)
@@ -1671,91 +1686,97 @@ async function sendToLLM(message) {
   });
 }
 
-/**
- * Handle notes form submission
- */
-async function handleNotesSubmit() {
-  const textarea = document.getElementById('notes-textarea');
-  const submitBtn = document.getElementById('notes-submit');
-  const responsePanel = document.getElementById('notes-response-panel');
-  const responseContent = document.getElementById('notes-response-content');
-
-  if (!textarea || !submitBtn || !responsePanel || !responseContent) {
-    console.warn('Notes form elements not found');
+// Update presence: Idle → Thinking
+function renderFutureHauseResponse(response) {
+  const panel = document.getElementById('future-hause-response');
+  if (!panel) {
+    console.error('[Future Hause] Response panel missing from DOM');
     return;
   }
 
-  const notes = textarea.value.trim();
+  const content = panel.querySelector('.future-hause-response-content');
+  if (!content) return;
 
-  if (!notes) {
-    return; // Don't submit empty notes
-  }
+  content.textContent =
+    typeof response === 'string' ? response : JSON.stringify(response, null, 2);
 
-  // Disable submit button during processing
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Thinking...';
+  panel.hidden = false;
+}
 
-  // Update presence: Idle → Thinking
-  setPresenceState(PRESENCE_STATES.THINKING);
+async function handleUserSubmission(text) {
+  // 1) Presence: Idle → Thinking
+  setPresenceState?.(PRESENCE_STATES?.THINKING || 'thinking');
 
+  // 2) Ask the router/LLM layer for a response (drafts may render into Draft Work)
+  let response;
   try {
-    // Send to LLM
-    const response = await sendToLLM(notes);
-
-    // Update presence: Thinking → Observing
-    setPresenceState(PRESENCE_STATES.OBSERVING);
-
-    // Display response
-    responseContent.textContent = response;
-    responsePanel.hidden = false;
-
-    // After a moment, return to idle
-    setTimeout(() => {
-      setPresenceState(PRESENCE_STATES.IDLE);
-    }, 3000);
-  } catch (error) {
-    console.error('Error sending notes to LLM:', error);
-    responseContent.textContent = 'An error occurred. Please try again.';
-    responsePanel.hidden = false;
-    setPresenceState(PRESENCE_STATES.IDLE);
-  } finally {
-    // Re-enable submit button
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit to Future Hause';
+    response = await sendToLLM(text);
+  } catch (err) {
+    console.error('[Future Hause] sendToLLM failed:', err);
+    response = `Error: ${err?.message || err}`;
   }
+
+  // 3) Render Future Hause Response panel
+  renderFutureHauseResponse?.(response);
+
+  // 4) Presence: Thinking → Observing
+  setPresenceState?.(PRESENCE_STATES?.OBSERVING || 'observing');
 }
 
 /**
  * Wire up notes form submission handler
  */
 function wireNotesSubmit() {
-  const submitBtn = document.getElementById('notes-submit');
-  if (submitBtn) {
-    submitBtn.addEventListener('click', handleNotesSubmit);
-  }
+  // Support both legacy IDs and current class-based selectors
+  const textarea =
+    document.getElementById('notes-textarea') ||
+    document.querySelector('.notes-textarea');
+  const submitBtn =
+    document.getElementById('notes-submit') ||
+    document.getElementById('submit-btn');
 
-  // Also handle Enter+Cmd/Ctrl in textarea
-  const textarea = document.getElementById('notes-textarea');
-  if (textarea) {
-    textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        handleNotesSubmit();
-      }
-    });
-  }
+  if (!textarea || !submitBtn) return;
 
-  // Wire up collapsible response panel
-  const responseHeader = document.getElementById('notes-response-header');
-  if (responseHeader) {
-    responseHeader.addEventListener('click', toggleResponsePanel);
-    responseHeader.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggleResponsePanel();
-      }
+  submitBtn.addEventListener('click', async () => {
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    // 1) Action log (append into schema-shaped actionLog.actions array)
+    if (!state.actionLog || typeof state.actionLog !== 'object') {
+      state.actionLog = { schema_version: '1.0', actions: [] };
+    }
+    if (!Array.isArray(state.actionLog.actions)) {
+      state.actionLog.actions = [];
+    }
+
+    state.actionLog.actions.push({
+      id: `manual-${Date.now()}`,
+      type: 'manual',
+      content: text,
+      timestamp: new Date().toISOString(),
     });
-  }
+
+    state.loadStatus.actionLog = 'success';
+    renderActionLogTable();
+
+    // 2) Drive orchestration + response
+    await handleUserSubmission(text);
+
+    // 3) Clear input
+    textarea.value = '';
+  });
+}
+
+// Wire up collapsible response panel
+const responseHeader = document.getElementById('notes-response-header');
+if (responseHeader) {
+  responseHeader.addEventListener('click', toggleResponsePanel);
+  responseHeader.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleResponsePanel();
+    }
+  });
 }
 
 /**
@@ -1811,11 +1832,6 @@ function wireCommandChips() {
    RELATIVE TIME FORMATTING — UI Helper
    ---------------------------------------------------------------------------- */
 
-/**
- * Format timestamp to relative time (e.g., "2 mins ago")
- * @param {Date|string} date - Date to format
- * @returns {string} Relative time string
- */
 function formatRelativeTime(date) {
   const now = new Date();
   const then = date instanceof Date ? date : new Date(date);
@@ -1832,9 +1848,6 @@ function formatRelativeTime(date) {
   return formatTimestamp(then.toISOString());
 }
 
-/**
- * Update the "Last Updated" timestamp in metadata header
- */
 function updateLastUpdatedTime() {
   const el = document.getElementById('last-updated-time');
   if (el) {
@@ -1844,16 +1857,8 @@ function updateLastUpdatedTime() {
 
 /* ----------------------------------------------------------------------------
    INGEST DRY-RUN — Manual, User-Initiated Demo
-   - NOT a background agent
-   - NOT automated
-   - NOT persistent beyond downloaded files
-   - Safe, reversible, human-triggered demo
    ---------------------------------------------------------------------------- */
 
-/**
- * Generate mock intel events data
- * @returns {object} Mock intel_events.json structure
- */
 function generateMockIntelEvents() {
   const ingestNow = new Date().toISOString();
   return {
@@ -1873,10 +1878,6 @@ function generateMockIntelEvents() {
   };
 }
 
-/**
- * Generate mock KB opportunities data
- * @returns {object} Mock kb_opportunities.json structure
- */
 function generateMockKbOpportunities() {
   const metadataNow = new Date().toISOString();
   return {
@@ -1894,10 +1895,6 @@ function generateMockKbOpportunities() {
   };
 }
 
-/**
- * Generate mock projects data
- * @returns {object} Mock projects.json structure
- */
 function generateMockProjects() {
   const projectsNow = new Date().toISOString();
   return {
@@ -1916,10 +1913,6 @@ function generateMockProjects() {
   };
 }
 
-/**
- * Generate mock action log data
- * @returns {object} Mock action_log.json structure
- */
 function generateMockActionLog() {
   return {
     schema_version: '1.0',
@@ -1927,31 +1920,17 @@ function generateMockActionLog() {
   };
 }
 
-/**
- * Run ingest dry-run
- * - Generates mock data in memory
- * - Populates dashboard immediately
- * - Sets presence to Observed (manual)
- * - No downloads, no persistence, no background work
- */
 async function runIngestDryRun() {
-  // Generate mock data
   const intelEvents = generateMockIntelEvents();
   const kbOpportunities = generateMockKbOpportunities();
   const mockProjects = generateMockProjects();
   const actionLog = generateMockActionLog();
 
-  /* ======================
-     INTEL EVENTS
-     ====================== */
   state.intelEvents = intelEvents;
   state.loadStatus.intelEvents = 'success';
   state.metadata.schemaVersions.intelEvents = intelEvents.schema_version;
   state.metadata.generatedTimestamps.intelEvents = intelEvents.generated_at;
 
-  /* ======================
-     KB OPPORTUNITIES
-     ====================== */
   state.kbOpportunities = kbOpportunities;
   state.loadStatus.kbOpportunities = 'success';
   state.metadata.schemaVersions.kbOpportunities =
@@ -1959,24 +1938,15 @@ async function runIngestDryRun() {
   state.metadata.generatedTimestamps.kbOpportunities =
     kbOpportunities.generated_at;
 
-  /* ======================
-     PROJECTS  ✅ FIXED
-     ====================== */
-  state.projects = mockProjects; // ← THIS WAS THE BUG
+  state.projects = mockProjects;
   state.loadStatus.projects = 'success';
   state.metadata.schemaVersions.projects = mockProjects.schema_version;
   state.metadata.generatedTimestamps.projects = mockProjects.generated_at;
 
-  /* ======================
-     ACTION LOG
-     ====================== */
   state.actionLog = actionLog;
   state.loadStatus.actionLog = 'success';
   state.metadata.schemaVersions.actionLog = actionLog.schema_version;
 
-  /* ======================
-     RENDER UI
-     ====================== */
   renderIntelEvents();
   renderKbOpportunities();
   renderProjects();
@@ -1988,9 +1958,6 @@ async function runIngestDryRun() {
   setPresenceState(PRESENCE_STATES.OBSERVED);
 }
 
-/**
- * Wire up ingest dry-run button
- */
 function wireIngestDryRun() {
   const btn = document.getElementById('ingest-dry-run-btn');
   if (!btn) return;
@@ -2013,24 +1980,19 @@ function wireIngestDryRun() {
    ---------------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Theme + basic boot (safe in all modes)
   initThemeToggle?.();
 
-  // Icon + presence (safe in all modes)
   setIconState?.('idle');
   setPresenceState?.(PRESENCE_STATES?.IDLE || 'idle');
 
-  // Wire UI (safe in all modes)
   wireIconEvents?.();
   wireExplanationPanels?.();
   wireNotesSubmit?.();
   wireCommandChips?.();
   wireIngestDryRun?.();
 
-  // Metadata timestamp (safe in all modes)
   updateLastUpdatedTime?.();
 
-  // ✅ FILE MODE: no auto-fetch; show demo data immediately
   if (IS_FILE_PROTOCOL) {
     console.warn(
       '[Future Hause] file:// detected — auto-load disabled; running ingest demo'
@@ -2039,7 +2001,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // ✅ HTTP MODE: normal behavior
   loadAllData?.().then(() => {
     const hasErrors = Object.values(state?.loadStatus || {}).some(
       (s) => s === 'error'
