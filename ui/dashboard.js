@@ -154,11 +154,21 @@ const state = {
    UTILITY FUNCTIONS
    ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
+
 /**
  * Format ISO timestamp to human-readable format
  * @param {string} isoString - ISO 8601 timestamp
  * @returns {string} Formatted date/time string
  */
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
+
 function formatTimestamp(isoString) {
   if (!isoString) return '—';
   try {
@@ -175,6 +185,10 @@ function formatTimestamp(isoString) {
     return '—';
   }
 }
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
 
 /**
  * Truncate string to max length with ellipsis
@@ -182,6 +196,11 @@ function formatTimestamp(isoString) {
  * @param {number} maxLength - Maximum length
  * @returns {string} Truncated string
  */
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
+
 function truncate(str, maxLength = 50) {
   if (!str || typeof str !== 'string') return '';
   return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
@@ -194,6 +213,11 @@ function truncate(str, maxLength = 50) {
  * @param {*} defaultValue - Default if not found
  * @returns {*} Value or default
  */
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
+
 function getNestedValue(obj, path, defaultValue = null) {
   if (!obj || !path) return defaultValue;
   return path
@@ -281,6 +305,10 @@ async function loadAllData() {
   if (results[3]) {
     state.metadata.schemaVersions.actionLog = results[3].schema_version;
   }
+  /* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
   // Render all sections
   renderIntelEvents();
@@ -327,6 +355,10 @@ function renderIntelEvents() {
 /* ----------------------------------------------------------------------------
    RENDERING — KB OPPORTUNITIES COLUMN
    ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderKbOpportunities() {
   const container = document.getElementById('kb-opportunities-content');
@@ -415,6 +447,10 @@ function renderProjects() {
 /* ----------------------------------------------------------------------------
    RENDERING — RECENT RECOMMENDATIONS COLUMN
    ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderRecentRecommendations() {
   const container = document.getElementById('recommendations-content');
@@ -457,6 +493,10 @@ function renderRecentRecommendations() {
 /* ----------------------------------------------------------------------------
    RENDERING — ACTION LOG TABLE (FULL LIST)
    ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderActionLogTable() {
   const container = document.getElementById('action-log-table-body');
@@ -488,6 +528,11 @@ function renderActionLogTable() {
   /* ----------------------------------------------------------------------------
    FUTURE HAUSE RESPONSE RENDER
    ---------------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
+
   function renderFutureHauseResponse(text) {
     const panel = document.getElementById('future-hause-response');
     if (!panel) {
@@ -522,6 +567,10 @@ function renderActionLogTable() {
 /* ----------------------------------------------------------------------------
    RENDERING — SYSTEM METADATA
    ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderSystemMetadata() {
   const container = document.getElementById('metadata-content');
@@ -556,6 +605,10 @@ function renderSystemMetadata() {
     </div>
   `;
 }
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderSchemaVersions(versions) {
   const files = ['intelEvents', 'kbOpportunities', 'projects', 'actionLog'];
@@ -573,6 +626,10 @@ function renderSchemaVersions(versions) {
     })
     .join('');
 }
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderGeneratedTimestamps(timestamps) {
   const files = ['intelEvents', 'kbOpportunities', 'projects'];
@@ -590,6 +647,10 @@ function renderGeneratedTimestamps(timestamps) {
     })
     .join('');
 }
+/* ----------------------------------------------------------------------------
+   UI HELPERS — DOM Rendering & UI State
+   (No event listeners here)
+---------------------------------------------------------------------------- */
 
 function renderLoadStatus(loadStatus) {
   const files = ['intelEvents', 'kbOpportunities', 'projects', 'actionLog'];
@@ -1384,6 +1445,20 @@ const MANDATORY_GUARDRAILS = [
  * @param {object} params - Response parameters
  * @throws {Error} If required fields are missing or invalid
  */
+
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
+/**
+ * Format a standardized Future Hause response
+ * @param {object} payload
+ * @returns {string}
+ */
+function formatResponse(payload) {
+  return JSON.stringify(payload, null, 2);
+}
+
 function validateResponseSchema(params) {
   const { presenceState, summary, whatIDid, whatIDidNot } = params;
 
@@ -1422,6 +1497,11 @@ function validateResponseSchema(params) {
    * @param {object} params.routingDecision - Result from routeLLM() (optional)
    * @returns {string} Formatted response
    */
+  /* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+  ---------------------------------------------------------------------------- */
+
   function formatResponse({
     presenceState,
     summary,
@@ -1489,6 +1569,11 @@ function validateResponseSchema(params) {
  * @param {string} prompt - The user's draft request
  * @returns {Promise<string>} Draft content from Ollama
  */
+/* ----------------------------------------------------------------------------
+   BUSINESS / ORCHESTRATION LOGIC
+   (Decision-making, routing, coordination)
+---------------------------------------------------------------------------- */
+
 async function callOllama(prompt) {
   try {
     const res = await fetch('http://127.0.0.1:11434/api/generate', {
@@ -1726,6 +1811,11 @@ async function handleUserSubmission(text) {
 /**
  * Wire up notes form submission handler
  */
+/* ----------------------------------------------------------------------------
+   WIRING — Event Listeners Only
+   (No logic, no rendering)
+---------------------------------------------------------------------------- */
+
 function wireNotesSubmit() {
   // Support both legacy IDs and current class-based selectors
   const textarea =
@@ -1831,6 +1921,10 @@ function wireCommandChips() {
 /* ----------------------------------------------------------------------------
    RELATIVE TIME FORMATTING — UI Helper
    ---------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   PURE HELPERS — No DOM, No State
+   Safe everywhere
+---------------------------------------------------------------------------- */
 
 function formatRelativeTime(date) {
   const now = new Date();
