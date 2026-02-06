@@ -11,25 +11,8 @@
 
 <body>
 
-  <!-- =========================
-       APP HEADER
-       ========================= -->
-  <header class="app-header">
-    <div class="header-content">
-      <div class="header-left">
-        <span class="header-title">Future Hause</span>
-        <span class="header-version">v0.1</span>
-      </div>
-
-      <div class="header-status">
-        <span class="header-status-dot"></span>
-        <span>Read-Only Dashboard</span>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode">
-          Dark
-        </button>
-      </div>
-    </div>
-  </header>
+  <!-- Theme toggle (floating) -->
+  <button class="theme-toggle-floating" id="theme-toggle" aria-label="Toggle dark/light mode">◐</button>
 
   <!-- =========================
        MAIN DASHBOARD CONTENT
@@ -361,8 +344,9 @@
         - Data Passed: { schema_versions, load_status, timestamps }
         - Purpose: Health + trust indicators, pure observability
       -->
-      <section class="secondary-section metadata-section" aria-label="System Metadata" data-section="metadata">
-        <div class="secondary-section-header">
+      <section class="secondary-section metadata-section collapsible-section" aria-label="System Metadata" data-section="metadata">
+        <div class="secondary-section-header collapsible-header" role="button" tabindex="0" aria-expanded="true" aria-controls="metadata-content">
+          <button type="button" class="collapse-toggle" aria-label="Toggle section">▼</button>
           <h2 class="secondary-section-title">System Metadata</h2>
           <span class="info-tooltip" data-tooltip="Health and trust indicators. Schema versions, load status, and timestamps.">ⓘ</span>
           <span id="last-updated-time" class="last-updated">Last updated: —</span>
@@ -371,7 +355,7 @@
             <span class="ingest-btn-hint">Manual · Non-persistent · Safe</span>
           </button>
         </div>
-        <div id="metadata-content" class="secondary-section-content metadata-content">
+        <div id="metadata-content" class="secondary-section-content metadata-content collapsible-content">
           <div class="intel-empty">
             <div class="intel-empty-icon">⚙️</div>
             <div class="intel-empty-text">Loading metadata...</div>
