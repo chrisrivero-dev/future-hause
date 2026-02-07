@@ -160,6 +160,18 @@ const state = {
     generatedTimestamps: {},
   },
 };
+state.reviewsByDraft = {
+  'demo-draft-1': [
+    {
+      review_id: 'rev-demo',
+      model: 'ollama',
+      confidence: 0.0,
+      risk_flags: ['stub_review'],
+      review: 'Stub review generated. Ollama not running.',
+      created_at: new Date().toISOString(),
+    },
+  ],
+};
 
 /* ----------------------------------------------------------------------------
    UTILITY FUNCTIONS
@@ -379,7 +391,7 @@ function renderIntelEvents() {
  */
 function wireIntelRowActions(container) {
   // Draft action: prefill message box
-  container.querySelectorAll('.draft-action').forEach(btn => {
+  container.querySelectorAll('.draft-action').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const prompt = btn.dataset.prompt || '';
@@ -392,7 +404,7 @@ function wireIntelRowActions(container) {
   });
 
   // Dismiss action: hide row (UI-only, no persistence)
-  container.querySelectorAll('.dismiss-action').forEach(btn => {
+  container.querySelectorAll('.dismiss-action').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const row = btn.closest('.intel-row');
@@ -1741,7 +1753,7 @@ function renderReviewResults(reviewsByDraft) {
  * @param {object} reviewPayload - Review payload from engine/review
  */
 function renderReviewResult(reviewPayload) {
-  const container = document.getElementById("review-results-container");
+  const container = document.getElementById('review-results-container');
   if (!container) return;
 
   const {
@@ -1757,7 +1769,9 @@ function renderReviewResult(reviewPayload) {
   const confidencePercent = Math.round((confidence || 0) * 100);
   const flagsHtml =
     risk_flags && risk_flags.length > 0
-      ? risk_flags.map((f) => `<span class="review-flag">${escapeHtml(f)}</span>`).join("")
+      ? risk_flags
+          .map((f) => `<span class="review-flag">${escapeHtml(f)}</span>`)
+          .join('')
       : '<span class="review-flag-none">No flags</span>';
 
   const entryHtml = `
@@ -1766,12 +1780,12 @@ function renderReviewResult(reviewPayload) {
         ⚠️ Advisory review — human judgment required
       </div>
       <div class="review-result-header">
-        <span class="review-model-badge">${escapeHtml(model || "unknown")}</span>
+        <span class="review-model-badge">${escapeHtml(model || 'unknown')}</span>
         <span class="review-confidence">Confidence: ${confidencePercent}%</span>
         <span class="review-timestamp">${formatTimestamp(created_at)}</span>
       </div>
       <div class="review-result-flags">${flagsHtml}</div>
-      <div class="review-result-content">${escapeHtml(review || "").replace(/\n/g, "<br>")}</div>
+      <div class="review-result-content">${escapeHtml(review || '').replace(/\n/g, '<br>')}</div>
       <div class="review-result-footer">
         <span class="review-id">ID: ${escapeHtml(review_id)}</span>
         <span class="review-draft-ref">Draft: ${escapeHtml(draft_id)}</span>
@@ -1780,7 +1794,7 @@ function renderReviewResult(reviewPayload) {
   `;
 
   // Append to container (multiple reviews can exist)
-  container.insertAdjacentHTML("beforeend", entryHtml);
+  container.insertAdjacentHTML('beforeend', entryHtml);
 }
 
 /**
@@ -1790,11 +1804,11 @@ function renderReviewResult(reviewPayload) {
  * @param {object[]} reviews - Array of review payloads
  */
 function renderReviewComparison(reviews) {
-  const container = document.getElementById("review-results-container");
+  const container = document.getElementById('review-results-container');
   if (!container) return;
 
   // Clear existing reviews
-  container.innerHTML = "";
+  container.innerHTML = '';
 
   if (!reviews || reviews.length === 0) {
     container.innerHTML = `
@@ -2231,6 +2245,8 @@ async function runIngestDryRun() {
   renderProjects();
   renderRecentRecommendations();
   renderActionLogTable();
+  renderReviewResults(state.reviewsByDraft);
+
   renderSystemMetadata();
 
   updateLastUpdatedTime();
@@ -2262,7 +2278,7 @@ function wireIngestDryRun() {
  * Wire up collapsible section toggles
  */
 function wireCollapsibleSections() {
-  document.querySelectorAll('.collapsible-header').forEach(header => {
+  document.querySelectorAll('.collapsible-header').forEach((header) => {
     header.addEventListener('click', (e) => {
       // Don't toggle if clicking on a button inside the header
       if (e.target.closest('button:not(.collapse-toggle)')) return;
