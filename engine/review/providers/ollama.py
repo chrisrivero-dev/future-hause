@@ -1,47 +1,58 @@
-# engine/review/providers/ollama.py
-"""
-Ollama review provider — Local LLM review generation.
+import requests
+from datetime import datetime, timezone
 
-Uses Ollama API at localhost:11434 for local inference.
-Falls back to stub if model unavailable.
-"""
-
-import json
-import urllib.request
-import urllib.error
 from .base import ReviewProvider
 
 
+# =============================================================================
+# Coach Mode Entrypoint (delegates — NOT a provider)
+# =============================================================================
+
+def run_coach_mode(draft_id: str, draft_text: str) -> dict:
+    """
+    Run Coach Mode using Ollama.
+    Coach Mode is advisory and NOT part of the review engine.
+    """
+    return run_coach(draft_id=draft_id, draft_text=draft_text)
+
+
+# =============================================================================
+# Ollama Review Provider (STRICT safety review only)
+# =============================================================================
+
 class OllamaReviewProvider(ReviewProvider):
     """
-    Review provider using local Ollama instance.
+    Local Ollama review provider.
 
-    Configuration:
-    - host: Ollama API host (default: localhost)
-    - port: Ollama API port (default: 11434)
-    - model: Model to use (default: mistral:latest)
+    PURPOSE:
+    - Safety / accuracy linting ONLY
+    - Binary output when no issues exist
+    - NO coaching, suggestions, or questions
     """
 
-    def __init__(
-        self,
-        host: str = "127.0.0.1",
-        port: int = 11434,
-        model: str = "mistral:latest"
-    ):
-        self.host = host
-        self.port = port
-        self.model = model
-        self.base_url = f"http://{host}:{port}"
+    name = "ollama"
+
+    OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+    MODEL = "llama3.2:3b-instruct-q4_1"
+    TIMEOUT = 60
+
+    # -------------------------------------------------------------------------
+    # Required abstract property
+    # -------------------------------------------------------------------------
 
     @property
     def model_name(self) -> str:
-        return "ollama"
+        return self.MODEL
+
+    # -------------------------------------------------------------------------
+    # Public API
+    # -------------------------------------------------------------------------
 
     def review(self, draft_text: str, draft_id: str) -> dict:
         """
-        Generate a review using local Ollama instance.
+        Generate a safety review using local Ollama.
 
-        Falls back to stub response if Ollama unavailable.
+        Falls back to stub payload if Ollama is unavailable.
         """
         prompt = self._build_review_prompt(draft_text)
 
@@ -49,87 +60,87 @@ class OllamaReviewProvider(ReviewProvider):
             response = self._call_ollama(prompt)
             review_text, confidence, risk_flags = self._parse_response(response)
         except Exception as e:
-            # Fallback to stub if Ollama unavailable
             return self._build_stub_payload(draft_id, str(e))
 
-        return self._build_payload(
+        payload = self._build_payload(
             draft_id=draft_id,
             review_text=review_text,
             confidence=confidence,
-            risk_flags=risk_flags
+            risk_flags=risk_flags,
         )
+
+        # Enforce provider identity for schema compliance
+        payload["model"] = self.name  # must be "ollama"
+
+        return payload
+
+    # -------------------------------------------------------------------------
+    # Internal helpers
+    # -------------------------------------------------------------------------
+
+    def _call_ollama(self, prompt: str) -> dict:
+        """
+        Call local Ollama server.
+        """
+        payload = {
+            "model": self.MODEL,
+            "prompt": prompt,
+            "stream": False,
+        }
+
+        r = requests.post(
+            self.OLLAMA_URL,
+            json=payload,
+            timeout=self.TIMEOUT,
+        )
+
+        if r.status_code != 200:
+            raise RuntimeError(f"Ollama HTTP {r.status_code}: {r.text}")
+
+        return r.json()
+
+    def _parse_response(self, response: dict):
+        """
+        Parse Ollama response into review components.
+        """
+        text = response.get("response", "").strip()
+
+        if not text:
+            raise ValueError("Empty response from Ollama")
+
+        confidence = 0.6
+        risk_flags = []
+
+        lowered = text.lower()
+        if "risk" in lowered or "misleading" in lowered:
+            risk_flags.append("potential_risk")
+
+        return text, confidence, risk_flags
 
     def _build_review_prompt(self, draft_text: str) -> str:
-        """Build the review prompt for the model."""
-        return f"""You are a careful reviewer. Review the following draft for:
-1. Accuracy and correctness
-2. Clarity and completeness
-3. Potential risks or issues
-
-Draft to review:
----
-{draft_text}
----
-
-Provide a brief review (2-3 paragraphs). Be specific about any concerns.
-End with a confidence level (low/medium/high) and list any risk flags."""
-
-    def _call_ollama(self, prompt: str) -> str:
-        """Make a request to the Ollama API."""
-        url = f"{self.base_url}/api/generate"
-        data = json.dumps({
-            "model": self.model,
-            "prompt": prompt,
-            "stream": False
-        }).encode('utf-8')
-
-        req = urllib.request.Request(
-            url,
-            data=data,
-            headers={"Content-Type": "application/json"}
+        """
+        STRICT safety lint contract.
+        """
+        return (
+            "You are a safety and accuracy reviewer.\n"
+            "TASK:\n"
+            "- Identify risks, ambiguities, or misleading elements.\n"
+            "- If none exist, respond with EXACTLY: 'No issues detected.'\n"
+            "- Do NOT provide suggestions, questions, examples, or explanations.\n"
+            "- Do NOT rewrite the draft.\n\n"
+            f"DRAFT:\n{draft_text}"
         )
 
-        with urllib.request.urlopen(req, timeout=60) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            return result.get("response", "")
-
-    def _parse_response(self, response: str) -> tuple[str, float, list]:
-        """
-        Parse the model response to extract review, confidence, and flags.
-
-        Returns:
-            tuple: (review_text, confidence, risk_flags)
-        """
-        review_text = response.strip()
-
-        # Extract confidence from response text
-        confidence = 0.5  # default to medium
-        lower_response = response.lower()
-        if "high confidence" in lower_response or "confidence: high" in lower_response:
-            confidence = 0.8
-        elif "low confidence" in lower_response or "confidence: low" in lower_response:
-            confidence = 0.3
-
-        # Extract risk flags (simple heuristic)
-        risk_flags = []
-        risk_keywords = [
-            "risk", "concern", "issue", "problem", "error",
-            "incorrect", "missing", "unclear", "incomplete"
-        ]
-        for keyword in risk_keywords:
-            if keyword in lower_response:
-                risk_flags.append(f"detected_{keyword}")
-
-        # Deduplicate flags
-        risk_flags = list(set(risk_flags))[:5]  # limit to 5 flags
-
-        return review_text, confidence, risk_flags
-
     def _build_stub_payload(self, draft_id: str, error: str) -> dict:
-        """Build a stub payload when Ollama is unavailable."""
-        return self._build_payload(
+        """
+        Build a stub payload when Ollama is unavailable.
+        """
+        payload = self._build_payload(
             draft_id=draft_id,
             review_text=f"[Ollama unavailable: {error}] Stub review generated.",
             confidence=0.0,
-            risk_flags=["ollama_unavailable", "stub_review"]
+            risk_flags=["ollama_unavailable", "stub_review"],
         )
+
+        payload["model"] = self.name  # must be "ollama"
+        return payload
