@@ -7,6 +7,17 @@
    ROUTER IMPLEMENTATION: ui/llmRouter.js
    ============================================================================ */
 
+// --- ROBOT STATE GLOBAL (must run once) ---
+window.setRobotState = function (state) {
+  const el = document.getElementById('dashboard-icon');
+  if (!el) {
+    console.warn('[Robot] #dashboard-icon not found');
+    return;
+  }
+  el.dataset.state = state;
+  console.log('[Robot] state =>', state);
+};
+
 /* ============================================================================
    SECTION SEMANTICS (CANONICAL DEFINITIONS)
    ============================================================================
@@ -1627,6 +1638,54 @@ function renderDraftWork(content) {
   // Clear empty state and add entry
   entriesContainer.innerHTML = entryHtml;
 }
+function renderReviewResults(reviewsByDraft) {
+  const container = document.getElementById('review-results');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  const draftIds = Object.keys(reviewsByDraft || {});
+  if (draftIds.length === 0) {
+    container.innerHTML = `<p class="muted">No reviews yet.</p>`;
+    return;
+  }
+
+  draftIds.forEach((draftId) => {
+    const group = document.createElement('div');
+    group.className = 'review-group';
+
+    const header = document.createElement('h3');
+    header.className = 'review-group-title';
+    header.textContent = `Draft ${draftId}`;
+    group.appendChild(header);
+
+    const row = document.createElement('div');
+    row.className = 'review-row';
+
+    reviewsByDraft[draftId].forEach((review) => {
+      const card = document.createElement('div');
+      card.className = 'review-card';
+
+      card.innerHTML = `
+        <div class="review-meta">
+          <span class="review-model">${review.model || 'Unknown model'}</span>
+          <span class="review-confidence">Confidence: ${review.confidence ?? '—'}</span>
+        </div>
+        ${
+          review.risk_flags && review.risk_flags.length
+            ? `<div class="review-flags">Flags: ${review.risk_flags.join(', ')}</div>`
+            : ''
+        }
+        <pre class="review-text">${review.review || ''}</pre>
+      `;
+
+      row.appendChild(card);
+    });
+
+    group.appendChild(row);
+    container.appendChild(group);
+  });
+}
 
 /**
  * Send message to LLM and get response
@@ -2105,3 +2164,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+let dashboardIcon = null;
+
+// Cache the icon once the dashboard is ready
+loadAllData?.().then(() => {
+  dashboardIcon = document.getElementById('dashboard-icon');
+
+  const hasErrors = Object.values(state?.loadStatus || {}).some(
+    (s) => s === 'error'
+  );
+
+  if (hasErrors) {
+    setRobotState('error');
+    setTimeout(() => setRobotState('idle'), 3000);
+  }
+});
+
+function setRobotState(state) {
+  if (!dashboardIcon) return;
+  dashboardIcon.dataset.state = state;
+}
+
+// expose for console + other scripts
+window.setRobotState = setRobotState;

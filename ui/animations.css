@@ -207,6 +207,51 @@
 .state-glow .background-circle circle:first-child {
   filter: brightness(1.2);
 }
+/* Robot size */
+.robot-container {
+  width: 300px;
+  margin: auto;
+}
+
+.robot-container img,
+.robot-container svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* IDLE */
+.idle .robot-head-group {
+  animation: idleFloat 4s ease-in-out infinite;
+}
+
+@keyframes idleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+/* THINKING */
+.thinking .eyes {
+  animation: eyePulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes eyePulse {
+  from { opacity: 1; filter: brightness(1.2) drop-shadow(0 0 5px #60a5fa); }
+  to   { opacity: 0.5; filter: brightness(0.8); }
+}
+
+/* ACTIVE */
+.active .robot-head-group {
+  animation: activeTilt 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes activeTilt {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
 
    This file is no longer active. Animations are handled by dashboard.css.
 

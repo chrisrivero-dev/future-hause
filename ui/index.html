@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <span>Future Hause Dashboard v0.1 — Read-Only Intelligence Dashboard</span>
 
     <!-- Core Styles -->
     <link rel="stylesheet" href="./dashboard.css" />
@@ -525,6 +524,21 @@
                 </div>
               </div>
             </section>
+            <section
+              class="secondary-section review-results-section"
+              aria-label="Review Results"
+              data-section="review-results"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Review Results</h2>
+              </div>
+
+              <div class="secondary-section-content">
+                <div id="review-results" class="review-results">
+                  <p class="muted">No reviews yet.</p>
+                </div>
+              </div>
+            </section>
 
             <!--
         System Metadata
@@ -597,7 +611,6 @@
     <!-- LLM Router: docs/llm-routing.md (disabled for file:// compatibility) -->
     <!-- <script type="module" src="./llmRouter.js"></script> -->
     <script src="./llmRouter.js"></script>
-    <script src="./dashboard.js"></script>
     <script src="./dashboard.js"></script>
   </body>
 </html>
