@@ -205,7 +205,10 @@ body {
   color: var(--text-secondary);
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1005,14 +1008,17 @@ body {
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
   border-bottom: 1px solid var(--border-color-subtle);
-  transition: opacity 0.3s ease, transform 0.3s ease, background 0.15s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    background 0.15s ease;
 }
 
 .intel-row:hover {
   background: rgba(255, 255, 255, 0.02);
 }
 
-[data-theme="light"] .intel-row:hover {
+[data-theme='light'] .intel-row:hover {
   background: rgba(0, 0, 0, 0.02);
 }
 
@@ -1070,7 +1076,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .action-icon:hover {
@@ -1099,7 +1108,9 @@ body {
   color: var(--status-error);
   cursor: pointer;
   margin-left: var(--spacing-xs);
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .retry-btn:hover {
@@ -1286,7 +1297,10 @@ body {
 }
 
 .collapsible-content {
-  transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.2s ease,
+    padding 0.3s ease;
   overflow: hidden;
 }
 
@@ -1702,8 +1716,13 @@ body {
 }
 
 @keyframes pulse-advisory {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .draft-worklog-helper-text {
@@ -2402,7 +2421,7 @@ body {
   font-family: var(--font-mono);
 }
 
-[data-theme="light"] .review-result-footer {
+[data-theme='light'] .review-result-footer {
   background: rgba(0, 0, 0, 0.03);
 }
 
@@ -2411,4 +2430,13 @@ body {
   padding: var(--spacing-xl);
   color: var(--text-muted);
   font-size: 0.8rem;
+}
+.future-hause-response {
+  max-height: 240px;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.future-hause-response.expanded {
+  max-height: 80vh;
 }

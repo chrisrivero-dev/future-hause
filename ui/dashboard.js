@@ -191,6 +191,29 @@ state.reviewsByDraft = {
    PURE HELPERS — No DOM, No State
    Safe everywhere
 ---------------------------------------------------------------------------- */
+function renderFutureHauseResponse(text) {
+  const panel = document.getElementById('future-hause-response');
+  if (!panel) return;
+
+  panel.textContent = text;
+  panel.classList.add('expanded');
+}
+async function runCoachMode() {
+  const draftText = getCurrentDraftText?.();
+  if (!draftText) return;
+
+  const res = await fetch('/api/coach', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      draft_id: crypto.randomUUID(),
+      draft_text: draftText,
+    }),
+  });
+
+  const data = await res.json();
+  renderFutureHauseResponse(data.coach_response);
+}
 
 function formatTimestamp(isoString) {
   if (!isoString) return '—';
