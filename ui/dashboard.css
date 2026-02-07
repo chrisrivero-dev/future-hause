@@ -14,22 +14,33 @@
 }
 
 :root {
-  /* Color Palette — Dark Mode (Default) */
-  --bg-primary: #0a0e27;
-  --bg-secondary: #1a1f3a;
-  --bg-tertiary: #14182d;
-  --bg-card: rgba(20, 25, 45, 0.6);
-  --bg-card-hover: rgba(30, 35, 55, 0.8);
-  --text-primary: #e0e6ff;
-  --text-secondary: #a0a9c8;
-  --text-muted: #7a88b0;
-  --accent-cyan: #00f5ff;
-  --accent-purple: #b19cff;
-  --accent-success: #4ade80;
-  --accent-error: #ff4444;
-  --accent-warning: #fbbf24;
-  --border-color: rgba(255, 255, 255, 0.1);
-  --border-color-subtle: rgba(255, 255, 255, 0.05);
+  /* BASE MATERIAL — Fallout Industrial */
+  --bg-primary: #e9e4d9;        /* Aged paper / concrete */
+  --bg-secondary: #ddd8cc;
+  --bg-tertiary: #f0ebe0;
+  --bg-card: #e9e4d9;
+  --bg-card-hover: #e9e4d9;
+  --text-primary: #000000;       /* Black ink */
+  --text-secondary: #333333;
+  --text-muted: #555555;
+  --accent-cyan: #004a99;        /* Vault-Tec authority blue */
+  --accent-purple: #3d4a35;      /* Military green */
+  --accent-success: #3d4a35;
+  --accent-error: #9a2a2a;       /* Industrial rust */
+  --accent-warning: #ffcb05;     /* Warning yellow */
+  --border-color: #000000;
+  --border-color-subtle: #333333;
+
+  /* FALLOUT INDUSTRIAL PALETTE */
+  --vault-blue: #004a99;
+  --warning-yellow: #ffcb05;
+  --industrial-rust: #9a2a2a;
+  --military-green: #3d4a35;
+
+  /* Status colors */
+  --status-success: #3d4a35;
+  --status-warning: #ffcb05;
+  --status-error: #9a2a2a;
 
   /* Spacing */
   --spacing-xs: 0.5rem;
@@ -40,8 +51,7 @@
   --spacing-2xl: 3rem;
 
   /* Typography */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   --font-mono: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
 
   /* Layout */
@@ -49,18 +59,18 @@
   --max-width: 1600px;
 }
 
-/* Light Mode Theme — Improved Contrast */
+/* Light Mode Theme — High Contrast */
 [data-theme='light'] {
   --bg-primary: #f5f7fa;
   --bg-secondary: #e8ecf2;
   --bg-tertiary: #ffffff;
   --bg-card: rgba(255, 255, 255, 0.85);
   --bg-card-hover: rgba(240, 243, 248, 0.98);
-  --text-primary: #0f1629; /* Darker for better contrast */
-  --text-secondary: #3d4663; /* Darker for better contrast */
-  --text-muted: #5a6380; /* Darker for better contrast */
-  --accent-cyan: #0e7490; /* Slightly darker for light bg */
-  --accent-purple: #6d28d9; /* Slightly darker for light bg */
+  --text-primary: #0f1629;
+  --text-secondary: #3d4663;
+  --text-muted: #5a6380;
+  --accent-cyan: #0e7490;
+  --accent-purple: #6d28d9;
   --accent-success: #15803d;
   --accent-error: #b91c1c;
   --accent-warning: #b45309;
@@ -70,11 +80,7 @@
 
 body {
   font-family: var(--font-sans);
-  background: linear-gradient(
-    135deg,
-    var(--bg-primary) 0%,
-    var(--bg-secondary) 100%
-  );
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;

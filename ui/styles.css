@@ -1,8 +1,26 @@
+/* ============================================================================
+   FUTURE HAUSE — Fallout Industrial / Vault-Tec Editorial Theme
+   Atomic-age utilitarian. Heavy. High-contrast. Warning-label typography.
+   ============================================================================ */
+
+:root {
+  /* BASE MATERIAL */
+  --bg-color: #e9e4d9;        /* Aged paper / concrete */
+  --text-main: #000000;       /* Black ink */
+  --card-bg: #e9e4d9;
+
+  /* FALLOUT INDUSTRIAL PALETTE */
+  --vault-blue: #004a99;      /* Vault-Tec authority blue */
+  --warning-yellow: #ffcb05;  /* High-visibility hazard yellow */
+  --industrial-rust: #9a2a2a; /* Oxidized steel / dried rust */
+  --military-green: #3d4a35;  /* Olive drab metal */
+}
+
 body {
   margin: 0;
-  background: #0f1117;
-  color: #e5e7eb;
-  font-family: system-ui, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: 'Inter', 'Roboto Condensed', -apple-system, sans-serif;
 }
 
 .app {
@@ -12,27 +30,27 @@ body {
 
 .sidebar {
   width: 220px;
-  background: #111827;
+  background: var(--military-green);
   padding: 16px;
 }
 
 .board {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
   padding: 16px;
 }
 
 .column {
-  background: #1f2937;
-  border-radius: 12px;
+  background: var(--card-bg);
+  border-top: 10px solid var(--vault-blue);
   padding: 12px;
 }
 
 .card {
-  background: #111827;
-  border-radius: 8px;
+  background: var(--card-bg);
+  border-top: 4px solid var(--industrial-rust);
   padding: 10px;
   margin-top: 8px;
 }
