@@ -1,6 +1,13 @@
 # engine/review/providers/claude.py
 """
-Claude (Anthropic) review provider — API-based review generation.
+Claude (Anthropic) review provider — SAFETY LINT ONLY.
+
+Role (FINALIZED):
+- Safety lint only
+- Human-triggered only
+- Last resort
+- Advisory only
+- No reasoning, no drafting, no iteration
 
 Uses Anthropic API for Claude model inference.
 Requires ANTHROPIC_API_KEY environment variable.
@@ -15,15 +22,20 @@ from .base import ReviewProvider
 
 class ClaudeReviewProvider(ReviewProvider):
     """
-    Review provider using Anthropic Claude API.
+    Claude provider — SAFETY LINT ONLY.
 
-    Configuration:
-    - api_key: Anthropic API key (from env or parameter)
-    - model: Model to use (default: claude-3-haiku-20240307)
+    Claude is NOT a peer provider. It serves as:
+    - Binary safety check
+    - Last resort escalation
+    - Human-triggered only
+
+    Output: Short list of issues OR "No issues detected."
+    No reasoning. No rewrites. No alternatives.
     """
 
     API_BASE = "https://api.anthropic.com/v1"
     API_VERSION = "2023-06-01"
+    MAX_TOKENS = 150  # Hard limit for lint output
 
     def __init__(
         self,
@@ -39,28 +51,28 @@ class ClaudeReviewProvider(ReviewProvider):
 
     def review(self, draft_text: str, draft_id: str) -> dict:
         """
-        Generate a review using Claude API.
+        Perform safety lint on draft.
 
-        Minimal config, single call, no streaming.
-        Returns stub response if API key missing or call fails.
+        Binary output: list of issues OR empty.
+        No reasoning. No rewrites. No alternatives.
         """
         if not self.api_key:
             return self._build_payload(
                 draft_id=draft_id,
-                review_text="[Anthropic API key not configured] Stub review.",
+                review_text="[Anthropic API key not configured]",
                 confidence=0.0,
                 risk_flags=["api_key_missing", "stub_review"]
             )
 
-        prompt = self._build_review_prompt(draft_text)
+        prompt = self._build_lint_prompt(draft_text)
 
         try:
             response = self._call_api(prompt)
-            review_text, confidence, risk_flags = self._parse_response(response)
+            review_text, confidence, risk_flags = self._parse_lint_response(response)
         except Exception as e:
             return self._build_payload(
                 draft_id=draft_id,
-                review_text=f"[Claude API error: {e}] Stub review.",
+                review_text=f"[Claude API error: {e}]",
                 confidence=0.0,
                 risk_flags=["api_error", "stub_review"]
             )
@@ -72,29 +84,32 @@ class ClaudeReviewProvider(ReviewProvider):
             risk_flags=risk_flags
         )
 
-    def _build_review_prompt(self, draft_text: str) -> str:
-        """Build the review prompt."""
-        return f"""Please review the following draft for:
-1. Accuracy and correctness
-2. Clarity and completeness
-3. Potential risks or issues
+    def _build_lint_prompt(self, draft_text: str) -> str:
+        """
+        Build binary lint prompt.
 
-Draft:
----
+        Instruction-only. One-pass. No reasoning.
+        """
+        return f"""Analyze the following text for risks, ambiguities, or misleading elements.
+
+TEXT:
 {draft_text}
----
 
-Provide:
-- A brief review (2-3 paragraphs)
-- Your confidence level (low/medium/high)
-- Any specific risk flags or concerns"""
+RULES:
+- List issues as bullet points (max 5)
+- Do NOT explain reasoning
+- Do NOT rewrite content
+- Do NOT suggest alternatives
+- If no issues exist, respond only: "No issues detected."
+
+OUTPUT:"""
 
     def _call_api(self, prompt: str) -> str:
         """Make a single request to the Anthropic API."""
         url = f"{self.API_BASE}/messages"
         data = json.dumps({
             "model": self.model,
-            "max_tokens": 1024,
+            "max_tokens": self.MAX_TOKENS,
             "messages": [
                 {"role": "user", "content": prompt}
             ]
@@ -110,9 +125,8 @@ Provide:
             }
         )
 
-        with urllib.request.urlopen(req, timeout=60) as response:
+        with urllib.request.urlopen(req, timeout=30) as response:
             result = json.loads(response.read().decode('utf-8'))
-            # Claude returns content as list of blocks
             content_blocks = result.get("content", [])
             text_content = ""
             for block in content_blocks:
@@ -120,33 +134,43 @@ Provide:
                     text_content += block.get("text", "")
             return text_content
 
-    def _parse_response(self, response: str) -> tuple[str, float, list]:
-        """Parse response to extract review, confidence, and flags."""
-        review_text = response.strip()
+    def _parse_lint_response(self, response: str) -> tuple[str, float, list]:
+        """
+        Parse binary lint response.
 
-        # Extract confidence
-        confidence = 0.5
-        lower = response.lower()
-        if "high confidence" in lower or "confidence: high" in lower:
+        Returns:
+            tuple: (review_text, confidence, risk_flags)
+        """
+        review_text = response.strip()
+        lower = review_text.lower()
+
+        # Check for clean result
+        if "no issues detected" in lower or review_text == "":
+            return "No issues detected.", 1.0, []
+
+        # Count issues (bullet points)
+        lines = [l.strip() for l in review_text.split('\n') if l.strip()]
+        issue_count = sum(1 for l in lines if l.startswith(('-', '•', '*')))
+
+        # Confidence inversely proportional to issues
+        if issue_count == 0:
             confidence = 0.8
-        elif "medium confidence" in lower or "confidence: medium" in lower:
+        elif issue_count <= 2:
             confidence = 0.5
-        elif "low confidence" in lower or "confidence: low" in lower:
+        else:
             confidence = 0.3
 
-        # Extract risk flags
+        # Extract risk flags from content
         risk_flags = []
-        risk_keywords = [
-            ("inaccurate", "accuracy_issue"),
-            ("incorrect", "potential_errors"),
-            ("missing", "incomplete_content"),
-            ("unclear", "clarity_issue"),
-            ("risk", "risk_identified"),
-            ("concern", "concerns_noted"),
-            ("error", "error_detected"),
-        ]
-        for keyword, flag in risk_keywords:
-            if keyword in lower:
-                risk_flags.append(flag)
+        if "risk" in lower:
+            risk_flags.append("risk_identified")
+        if "ambig" in lower:
+            risk_flags.append("ambiguity_detected")
+        if "mislead" in lower:
+            risk_flags.append("misleading_content")
+        if "unclear" in lower:
+            risk_flags.append("clarity_issue")
+        if "error" in lower or "incorrect" in lower:
+            risk_flags.append("potential_error")
 
         return review_text, confidence, list(set(risk_flags))

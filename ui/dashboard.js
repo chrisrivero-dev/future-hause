@@ -1574,6 +1574,90 @@ function renderDraftWork(content) {
 }
 
 /**
+ * Render a review result (ADVISORY ONLY)
+ *
+ * Review results are:
+ * - Visually marked as ADVISORY
+ * - Have NO action buttons
+ * - Cannot trigger state changes
+ * - Cannot be mistaken for decisions
+ *
+ * @param {object} reviewPayload - Review payload from engine/review
+ */
+function renderReviewResult(reviewPayload) {
+  const container = document.getElementById("review-results-container");
+  if (!container) return;
+
+  const {
+    review_id,
+    draft_id,
+    model,
+    confidence,
+    risk_flags,
+    review,
+    created_at,
+  } = reviewPayload;
+
+  const confidencePercent = Math.round((confidence || 0) * 100);
+  const flagsHtml =
+    risk_flags && risk_flags.length > 0
+      ? risk_flags.map((f) => `<span class="review-flag">${escapeHtml(f)}</span>`).join("")
+      : '<span class="review-flag-none">No flags</span>';
+
+  const entryHtml = `
+    <div class="review-result-card" data-review-id="${escapeHtml(review_id)}">
+      <div class="review-advisory-banner">
+        ⚠️ Advisory review — human judgment required
+      </div>
+      <div class="review-result-header">
+        <span class="review-model-badge">${escapeHtml(model || "unknown")}</span>
+        <span class="review-confidence">Confidence: ${confidencePercent}%</span>
+        <span class="review-timestamp">${formatTimestamp(created_at)}</span>
+      </div>
+      <div class="review-result-flags">${flagsHtml}</div>
+      <div class="review-result-content">${escapeHtml(review || "").replace(/\n/g, "<br>")}</div>
+      <div class="review-result-footer">
+        <span class="review-id">ID: ${escapeHtml(review_id)}</span>
+        <span class="review-draft-ref">Draft: ${escapeHtml(draft_id)}</span>
+      </div>
+    </div>
+  `;
+
+  // Append to container (multiple reviews can exist)
+  container.insertAdjacentHTML("beforeend", entryHtml);
+}
+
+/**
+ * Render multiple review results for a draft
+ * Reviews are displayed side-by-side for comparison
+ *
+ * @param {object[]} reviews - Array of review payloads
+ */
+function renderReviewComparison(reviews) {
+  const container = document.getElementById("review-results-container");
+  if (!container) return;
+
+  // Clear existing reviews
+  container.innerHTML = "";
+
+  if (!reviews || reviews.length === 0) {
+    container.innerHTML = `
+      <div class="review-empty-state">
+        <span>No reviews available</span>
+      </div>
+    `;
+    return;
+  }
+
+  // Render each review
+  reviews.forEach((review) => renderReviewResult(review));
+}
+
+// Expose for external use
+window.renderReviewResult = renderReviewResult;
+window.renderReviewComparison = renderReviewComparison;
+
+/**
  * Send message to LLM and get response
  *
  * Routing contract: docs/llm-routing.md

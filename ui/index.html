@@ -337,6 +337,32 @@
       </section>
 
       <!--
+        Review Results (ADVISORY ONLY)
+        NAVIGATION CONTRACT:
+        - Click Target: None (read-only display)
+        - Route: None
+        - Data Passed: { review_id, draft_id, model, confidence, risk_flags, review }
+        - Purpose: Advisory review output — human judgment required
+        - NO action buttons
+        - NO state changes
+        - Cannot be mistaken for decisions
+      -->
+      <section class="secondary-section review-results-section" aria-label="Review Results" data-section="review-results">
+        <div class="secondary-section-header">
+          <h2 class="secondary-section-title">Review Results</h2>
+          <span class="advisory-badge">ADVISORY</span>
+          <span class="info-tooltip" data-tooltip="Advisory review output. Human judgment required. No actions triggered.">ⓘ</span>
+        </div>
+        <div class="secondary-section-content">
+          <div id="review-results-container" class="review-results-container">
+            <div class="review-empty-state">
+              <span>No reviews available</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!--
         System Metadata
         NAVIGATION CONTRACT:
         - Click Target: None (informational display only)
