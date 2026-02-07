@@ -190,6 +190,38 @@ body {
   outline-offset: 2px;
 }
 
+/* Floating Theme Toggle (top-right corner) */
+.theme-toggle-floating {
+  position: fixed;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 1000;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle-floating:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  transform: scale(1.1);
+}
+
+.theme-toggle-floating:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
 /* ----------------------------------------------------------------------------
    DASHBOARD ICON — Wrapper-Based CSS Animation States
    Source: ui/icon.svg (APPROVED_FH_ICON_v1_SHA: 7d3c9e1)
@@ -965,6 +997,116 @@ body {
   font-family: var(--font-mono);
 }
 
+/* Intel Row (simplified card for feed items) */
+.intel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--border-color-subtle);
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.15s ease;
+}
+
+.intel-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="light"] .intel-row:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.intel-row.dismissed {
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
+}
+
+.intel-row-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.intel-row-content strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.intel-row-content .meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.intel-row-content .desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.intel-row-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.intel-row:hover .intel-row-actions {
+  opacity: 1;
+}
+
+.action-icon {
+  background: transparent;
+  border: 1px solid var(--border-color-subtle);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.action-icon:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.action-icon.draft-action:hover {
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.action-icon.dismiss-action:hover {
+  color: var(--status-error);
+  border-color: var(--status-error);
+}
+
+/* Retry Button (for error states) */
+.retry-btn {
+  background: transparent;
+  border: 1px solid var(--status-error);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  color: var(--status-error);
+  cursor: pointer;
+  margin-left: var(--spacing-xs);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.retry-btn:hover {
+  background: var(--status-error);
+  color: var(--bg-primary);
+}
+
 /* Empty State */
 .intel-empty {
   text-align: center;
@@ -1115,6 +1257,44 @@ body {
   padding: var(--spacing-md) var(--spacing-lg);
   max-height: 400px;
   overflow-y: auto;
+}
+
+/* Collapsible Section */
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapse-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  padding: 0;
+  margin-right: var(--spacing-xs);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.collapsible-section.collapsed .collapse-toggle {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+  max-height: 0 !important;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1507,6 +1687,23 @@ body {
   background: var(--accent-warning);
   color: #000;
   border-radius: 3px;
+}
+
+.advisory-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  background: var(--status-warning);
+  color: #000;
+  border-radius: 3px;
+  animation: pulse-advisory 2s ease-in-out infinite;
+}
+
+@keyframes pulse-advisory {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .draft-worklog-helper-text {
@@ -2097,4 +2294,121 @@ body {
 /* Ensure message panel has enough width */
 .command-bar {
   min-width: 360px; /* ✅ this is the key */
+}
+
+/* ----------------------------------------------------------------------------
+   REVIEW RESULTS — ADVISORY ONLY
+   - Visually marked as advisory
+   - No action buttons
+   - Cannot trigger state changes
+   - Cannot be mistaken for decisions
+   ---------------------------------------------------------------------------- */
+
+.review-results-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.review-result-card {
+  flex: 1;
+  min-width: 280px;
+  max-width: 400px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.review-advisory-banner {
+  background: var(--status-warning);
+  color: #000;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.review-result-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--border-color-subtle);
+}
+
+.review-model-badge {
+  background: var(--accent-cyan);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.review-confidence {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.review-timestamp {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.review-result-flags {
+  padding: var(--spacing-xs) var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.review-flag {
+  background: rgba(255, 100, 100, 0.2);
+  color: var(--status-error);
+  font-size: 0.6rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+}
+
+.review-flag-none {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-style: italic;
+}
+
+.review-result-content {
+  padding: var(--spacing-md);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.review-result-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-xs) var(--spacing-md);
+  background: rgba(0, 0, 0, 0.1);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+[data-theme="light"] .review-result-footer {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.review-empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }

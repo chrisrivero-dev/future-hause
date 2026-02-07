@@ -354,12 +354,53 @@ function renderIntelEvents() {
   events.forEach((evt) => {
     const row = document.createElement('div');
     row.className = 'intel-row';
+    row.dataset.id = evt.id || '';
     row.innerHTML = `
-      <strong>${escapeHtml(evt.title || 'Event')}</strong>
-      <div class="meta">${escapeHtml(evt.source || '')} • ${escapeHtml(evt.priority || '')}</div>
-      <div class="desc">${escapeHtml(evt.description || '')}</div>
+      <div class="intel-row-content">
+        <strong>${escapeHtml(evt.title || 'Event')}</strong>
+        <div class="meta">${escapeHtml(evt.source || '')} • ${escapeHtml(evt.priority || '')}</div>
+        <div class="desc">${escapeHtml(evt.description || '')}</div>
+      </div>
+      <div class="intel-row-actions">
+        <button class="action-icon draft-action" data-prompt="Draft response for: ${escapeHtml(evt.title || '')}" title="Draft response">✎</button>
+        <button class="action-icon dismiss-action" data-id="${escapeHtml(evt.id || '')}" title="Dismiss (UI only)">✕</button>
+      </div>
     `;
     container.appendChild(row);
+  });
+
+  // Wire up action buttons
+  wireIntelRowActions(container);
+}
+
+/**
+ * Wire up intel row action buttons
+ * @param {HTMLElement} container - Parent container
+ */
+function wireIntelRowActions(container) {
+  // Draft action: prefill message box
+  container.querySelectorAll('.draft-action').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const prompt = btn.dataset.prompt || '';
+      const textarea = document.getElementById('notes-textarea');
+      if (textarea) {
+        textarea.value = prompt;
+        textarea.focus();
+      }
+    });
+  });
+
+  // Dismiss action: hide row (UI-only, no persistence)
+  container.querySelectorAll('.dismiss-action').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const row = btn.closest('.intel-row');
+      if (row) {
+        row.classList.add('dismissed');
+        setTimeout(() => row.remove(), 300);
+      }
+    });
   });
 }
 
@@ -691,6 +732,7 @@ function renderLoadStatus(loadStatus) {
       <div class="metadata-status">
         <span class="metadata-status-dot ${dotClass}"></span>
         <span>${labels[file]}: ${statusText}</span>
+        ${retryBtn}
       </div>
     `;
     })
@@ -1688,6 +1730,90 @@ function renderReviewResults(reviewsByDraft) {
 }
 
 /**
+ * Render a review result (ADVISORY ONLY)
+ *
+ * Review results are:
+ * - Visually marked as ADVISORY
+ * - Have NO action buttons
+ * - Cannot trigger state changes
+ * - Cannot be mistaken for decisions
+ *
+ * @param {object} reviewPayload - Review payload from engine/review
+ */
+function renderReviewResult(reviewPayload) {
+  const container = document.getElementById("review-results-container");
+  if (!container) return;
+
+  const {
+    review_id,
+    draft_id,
+    model,
+    confidence,
+    risk_flags,
+    review,
+    created_at,
+  } = reviewPayload;
+
+  const confidencePercent = Math.round((confidence || 0) * 100);
+  const flagsHtml =
+    risk_flags && risk_flags.length > 0
+      ? risk_flags.map((f) => `<span class="review-flag">${escapeHtml(f)}</span>`).join("")
+      : '<span class="review-flag-none">No flags</span>';
+
+  const entryHtml = `
+    <div class="review-result-card" data-review-id="${escapeHtml(review_id)}">
+      <div class="review-advisory-banner">
+        ⚠️ Advisory review — human judgment required
+      </div>
+      <div class="review-result-header">
+        <span class="review-model-badge">${escapeHtml(model || "unknown")}</span>
+        <span class="review-confidence">Confidence: ${confidencePercent}%</span>
+        <span class="review-timestamp">${formatTimestamp(created_at)}</span>
+      </div>
+      <div class="review-result-flags">${flagsHtml}</div>
+      <div class="review-result-content">${escapeHtml(review || "").replace(/\n/g, "<br>")}</div>
+      <div class="review-result-footer">
+        <span class="review-id">ID: ${escapeHtml(review_id)}</span>
+        <span class="review-draft-ref">Draft: ${escapeHtml(draft_id)}</span>
+      </div>
+    </div>
+  `;
+
+  // Append to container (multiple reviews can exist)
+  container.insertAdjacentHTML("beforeend", entryHtml);
+}
+
+/**
+ * Render multiple review results for a draft
+ * Reviews are displayed side-by-side for comparison
+ *
+ * @param {object[]} reviews - Array of review payloads
+ */
+function renderReviewComparison(reviews) {
+  const container = document.getElementById("review-results-container");
+  if (!container) return;
+
+  // Clear existing reviews
+  container.innerHTML = "";
+
+  if (!reviews || reviews.length === 0) {
+    container.innerHTML = `
+      <div class="review-empty-state">
+        <span>No reviews available</span>
+      </div>
+    `;
+    return;
+  }
+
+  // Render each review
+  reviews.forEach((review) => renderReviewResult(review));
+}
+
+// Expose for external use
+window.renderReviewResult = renderReviewResult;
+window.renderReviewComparison = renderReviewComparison;
+
+/**
  * Send message to LLM and get response
  *
  * Routing contract: docs/llm-routing.md
@@ -2125,6 +2251,53 @@ function wireIngestDryRun() {
       btn.disabled = false;
       btn.innerHTML = `Run ingest (dry-run)<span class="ingest-btn-hint">Manual · Non-persistent · Safe</span>`;
     }
+  });
+}
+
+/* ----------------------------------------------------------------------------
+   COLLAPSIBLE SECTIONS
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Wire up collapsible section toggles
+ */
+function wireCollapsibleSections() {
+  document.querySelectorAll('.collapsible-header').forEach(header => {
+    header.addEventListener('click', (e) => {
+      // Don't toggle if clicking on a button inside the header
+      if (e.target.closest('button:not(.collapse-toggle)')) return;
+
+      const section = header.closest('.collapsible-section');
+      if (section) {
+        section.classList.toggle('collapsed');
+        const isExpanded = !section.classList.contains('collapsed');
+        header.setAttribute('aria-expanded', isExpanded);
+      }
+    });
+
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        if (e.target.closest('button:not(.collapse-toggle)')) return;
+        e.preventDefault();
+        header.click();
+      }
+    });
+  });
+}
+
+/**
+ * Wire up retry buttons for failed data loads
+ */
+function wireRetryButtons() {
+  document.addEventListener('click', (e) => {
+    const retryBtn = e.target.closest('.retry-btn');
+    if (!retryBtn) return;
+
+    const file = retryBtn.dataset.file;
+    if (!file) return;
+
+    // Re-run ingest as a simple retry mechanism
+    runIngestDryRun();
   });
 }
 

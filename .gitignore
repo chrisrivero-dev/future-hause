@@ -2,6 +2,7 @@
 data/
 engine/state.json
 engine/log.json
+payloads/
 
 # ---- Python ----
 __pycache__/
