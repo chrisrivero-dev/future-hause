@@ -14,96 +14,107 @@
 /** @typedef {"low"|"medium"|"high"} Risk */
 /** @typedef {"ephemeral"|"draft_only"|"record_adjacent"} Permanence */
 
-export function classifyIntent(text) {
-  const t = (text || "").toLowerCase().trim();
+function classifyIntent(text) {
+  const t = (text || '').toLowerCase().trim();
 
   // Meta
   if (
-    t.includes("what is your purpose") ||
-    t.includes("what do you do") ||
-    t.includes("who are you") ||
-    t.includes("what is future hause") ||
-    t.includes("explain yourself")
-  ) return "meta";
+    t.includes('what is your purpose') ||
+    t.includes('what do you do') ||
+    t.includes('who are you') ||
+    t.includes('what is future hause') ||
+    t.includes('explain yourself')
+  )
+    return 'meta';
 
   // Action
   if (
-    t.startsWith("do ") ||
-    t.startsWith("run ") ||
-    t.includes("commit") ||
-    t.includes("push") ||
-    t.includes("write to") ||
-    t.includes("update the file") ||
-    t.includes("change the code") ||
-    t.includes("log this")
-  ) return "action";
+    t.startsWith('do ') ||
+    t.startsWith('run ') ||
+    t.includes('commit') ||
+    t.includes('push') ||
+    t.includes('write to') ||
+    t.includes('update the file') ||
+    t.includes('change the code') ||
+    t.includes('log this')
+  )
+    return 'action';
 
   // Draft request
   if (
-    t.includes("draft") ||
-    t.includes("write me") ||
-    t.includes("create a") ||
-    t.includes("generate a") ||
-    t.includes("timesheet") ||
-    t.includes("work log")
-  ) return "draft_request";
+    t.includes('draft') ||
+    t.includes('write me') ||
+    t.includes('create a') ||
+    t.includes('generate a') ||
+    t.includes('timesheet') ||
+    t.includes('work log')
+  )
+    return 'draft_request';
 
   // Question (simple heuristic: question mark OR question words)
   if (
-    t.includes("?") ||
-    t.startsWith("what ") ||
-    t.startsWith("why ") ||
-    t.startsWith("how ") ||
-    t.startsWith("when ") ||
-    t.startsWith("can you")
-  ) return "question";
+    t.includes('?') ||
+    t.startsWith('what ') ||
+    t.startsWith('why ') ||
+    t.startsWith('how ') ||
+    t.startsWith('when ') ||
+    t.startsWith('can you')
+  )
+    return 'question';
 
-  return "observation";
+  return 'observation';
 }
 
-export function classifyRisk(text) {
-  const t = (text || "").toLowerCase();
+function classifyRisk(text) {
+  const t = (text || '').toLowerCase();
 
   if (
-    t.includes("legal") ||
-    t.includes("medical") ||
-    t.includes("financial") ||
-    t.includes("invoice") ||
-    t.includes("compliance") ||
-    t.includes("lawsuit")
-  ) return "high";
+    t.includes('legal') ||
+    t.includes('medical') ||
+    t.includes('financial') ||
+    t.includes('invoice') ||
+    t.includes('compliance') ||
+    t.includes('lawsuit')
+  )
+    return 'high';
 
   if (
-    t.includes("record") ||
-    t.includes("audit") ||
-    t.includes("action log") ||
-    t.includes("publish") ||
-    t.includes("send") ||
-    t.includes("customer") ||
-    t.includes("ticket")
-  ) return "medium";
+    t.includes('record') ||
+    t.includes('audit') ||
+    t.includes('action log') ||
+    t.includes('publish') ||
+    t.includes('send') ||
+    t.includes('customer') ||
+    t.includes('ticket')
+  )
+    return 'medium';
 
-  return "low";
+  return 'low';
 }
 
-export function classifyPermanence(text) {
-  const t = (text || "").toLowerCase();
+function classifyPermanence(text) {
+  const t = (text || '').toLowerCase();
 
   if (
-    t.includes("action log") ||
-    t.includes("save") ||
-    t.includes("persist") ||
-    t.includes("record") ||
-    t.includes("publish") ||
-    t.includes("ticket") ||
-    t.includes("kb")
-  ) return "record_adjacent";
+    t.includes('action log') ||
+    t.includes('save') ||
+    t.includes('persist') ||
+    t.includes('record') ||
+    t.includes('publish') ||
+    t.includes('ticket') ||
+    t.includes('kb')
+  )
+    return 'record_adjacent';
 
-  if (t.includes("draft") || t.includes("timesheet") || t.includes("work log")) {
-    return "draft_only";
+  if (
+    t.includes('draft') ||
+    t.includes('timesheet') ||
+    t.includes('work log')
+  ) {
+    return 'draft_only';
   }
 
-  return "ephemeral";
+  return 'ephemeral';
 }
 
 /**
@@ -116,13 +127,13 @@ export function classifyPermanence(text) {
  *   must_answer_directly: boolean
  * }}
  */
-export function routeLLM(text) {
+function routeLLM(text) {
   const intent = classifyIntent(text);
   const risk = classifyRisk(text);
   const permanence = classifyPermanence(text);
 
-  const must_answer_directly = intent === "question" || intent === "meta";
-  const allow_draft = intent === "draft_request";
+  const must_answer_directly = intent === 'question' || intent === 'meta';
+  const allow_draft = intent === 'draft_request';
 
   return { intent, risk, permanence, allow_draft, must_answer_directly };
 }

@@ -1,13 +1,5 @@
-"""
-Future Hause — Agent Runner (Skeleton)
-
-This file is a safe agent gatekeeper.
-It accepts events and determines routing, but does NOT execute agents.
-
-No side effects. No agent imports. Blocking by default.
-"""
-
 from typing import Dict
+from config import config
 
 
 def dispatch(event: Dict):
@@ -18,9 +10,10 @@ def dispatch(event: Dict):
     - Receive system or human events
     - Validate event structure
     - Determine which agent *could* run
-    - Block execution by default
+    - Enforce runtime mode policy
+    - Signal whether an agent is allowed or blocked
 
-    This file must remain side-effect free.
+    No side effects. No execution. Policy only.
     """
 
     event_type = event.get("event")
@@ -39,12 +32,37 @@ def dispatch(event: Dict):
         "EVT_PROJECT_SELECTED": "ProjectFocusAgent",
     }
 
+    ALLOWED_MODES = {
+        "EVT_DRAFT_REQUESTED": {"LOCAL", "WORK_REMOTE", "DEMO"},
+        "EVT_DOC_REVIEW_REQUESTED": {"WORK_REMOTE", "DEMO"},
+        "EVT_CODE_REVIEW_REQUESTED": {"LOCAL", "WORK_REMOTE"},
+    }
+
     agent = ROUTES.get(event_type)
 
     if not agent:
         return {
             "status": "ignored",
             "reason": "No agent registered for event",
+        }
+
+    allowed_modes = ALLOWED_MODES.get(event_type)
+    current_mode = config.runtimeMode
+
+    # Enforce runtime mode restrictions first
+    if allowed_modes is not None and current_mode not in allowed_modes:
+        return {
+            "status": "blocked",
+            "agent": agent,
+            "reason": f"Event not permitted in runtime mode {current_mode}",
+        }
+
+    # DraftAgent is explicitly allowed for autonomous execution (draft-only)
+    if agent == "DraftAgent":
+        return {
+            "status": "allowed",
+            "agent": agent,
+            "reason": "DraftAgent allowed for autonomous draft execution",
         }
 
     return {

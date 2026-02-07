@@ -29,10 +29,7 @@ def write_state(payload: dict):
         raise TypeError("write_state expects a dict payload")
 
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATE_PATH.write_text(
-        json.dumps(payload, indent=2)
-    )
-
+    STATE_PATH.write_text(json.dumps(payload, indent=2))
 
 
 def log_event(message: str):
@@ -50,10 +47,7 @@ def log_event(message: str):
         "message": message
     })
 
-
-    LOG_PATH.write_text(
-        json.dumps(logs, indent=2)
-    )
+    LOG_PATH.write_text(json.dumps(logs, indent=2))
 
 
 def load_config() -> dict:
@@ -86,11 +80,7 @@ def run_reddit_collector_stub():
         "posts": []
     }
 
-
-    RAW_REDDIT_PATH.write_text(
-        json.dumps(stub_payload, indent=2)
-    )
-
+    RAW_REDDIT_PATH.write_text(json.dumps(stub_payload, indent=2))
     log_event("Reddit raw data stub written to data/raw/reddit_stub.json")
 
 
@@ -99,17 +89,10 @@ def run_reddit_collector_stub():
 # ============================
 
 def run():
-    # --- Initial state ---
     current_state = "collecting"
-
     log_event("Future Hause run started")
 
-    # --- Resolve animation ---
-    current_animation = resolve_animation(
-        "engine_status",
-        current_state
-    )
-
+    current_animation = resolve_animation("engine_status", current_state)
 
     write_state({
         "state": current_state,
@@ -117,7 +100,6 @@ def run():
         "updated_at": datetime.now(timezone.utc).isoformat()
     })
 
-    # --- Load config ---
     config = load_config()
     fh_config = config.get("future_hause", {})
     scope = fh_config.get("scope", {})
@@ -126,22 +108,16 @@ def run():
     log_event(f"Loaded config version: {fh_config.get('version', 'unknown')}")
     log_event(f"Collection scope: {collect_scope}")
 
-    # --- Run collectors ---
     if collect_scope.get("reddit", False):
         run_reddit_collector_stub()
     else:
         log_event("Reddit collector disabled by config")
 
-    # --- v0.1 scope ends here ---
     log_event("No analysis or drafting executed (v0.1 scope)")
 
-       # --- Final state ---
     write_state({
         "state": "done",
-        "current_animation": resolve_animation(
-            "engine_status",
-            "done"
-        ),
+        "current_animation": resolve_animation("engine_status", "done"),
         "updated_at": datetime.now(timezone.utc).isoformat()
     })
 
