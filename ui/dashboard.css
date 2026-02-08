@@ -86,6 +86,24 @@ body {
   overflow-x: hidden;
 }
 
+/* =========================================================
+   CANONICAL HEADER — SINGLE SOURCE OF TRUTH
+   All section headers MUST inherit from this.
+   ========================================================= */
+.canonical-header,
+.intel-column-header,
+.secondary-section-header,
+.canvas-tabs {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
 /* ----------------------------------------------------------------------------
    HEADER
    ---------------------------------------------------------------------------- */
@@ -652,29 +670,16 @@ body {
 }
 
 .intel-column-header {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 2px solid var(--border-color);
-  background: var(--bg-secondary);
-  display: flex;
-  align-items: center;
+  /* Inherits from canonical-header above */
   justify-content: space-between;
   flex-shrink: 0;
   cursor: pointer;
-  transition: background 0.2s ease-out;
-}
-
-.intel-column-header:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-[data-theme='dark'] .intel-column-header:hover {
-  background: rgba(255, 255, 255, 0.02);
 }
 
 .intel-column-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
 .intel-column-count {
@@ -1197,28 +1202,15 @@ body {
 }
 
 .secondary-section-header {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 2px solid var(--border-color);
-  background: var(--bg-secondary);
-  display: flex;
-  align-items: center;
+  /* Inherits from canonical-header above */
   justify-content: space-between;
   cursor: pointer;
-  transition: background 0.2s ease-out;
-}
-
-.secondary-section-header:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-[data-theme='dark'] .secondary-section-header:hover {
-  background: rgba(255, 255, 255, 0.02);
 }
 
 .secondary-section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
 }
 
 .secondary-section-content {
@@ -1237,9 +1229,8 @@ body {
 }
 
 .canvas-tabs {
-  display: flex;
-  border-bottom: 2px solid var(--border-color);
-  background: var(--bg-secondary);
+  /* Inherits from canonical-header above */
+  gap: 0;
 }
 
 .canvas-tab {
@@ -1249,8 +1240,8 @@ body {
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   color: var(--text-muted);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
@@ -1261,7 +1252,7 @@ body {
 
 .canvas-tab.active {
   color: var(--text-primary);
-  border-bottom-color: var(--accent-cyan);
+  border-bottom-color: var(--border-color);
 }
 
 .canvas-content {
