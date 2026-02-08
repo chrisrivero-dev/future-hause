@@ -365,71 +365,6 @@
                   </div>
                 </div>
               </section>
-
-              <!--
-          Action Log
-          NAVIGATION CONTRACT:
-          - Click Target: Expand row to show full rationale (in-place)
-          - Route: None (read-only audit trail, no navigation)
-          - Data Passed: { id, timestamp, action_type, rationale, actor }
-          - Purpose: Immutable record, no actions allowed
-        -->
-              <section
-                class="secondary-section action-log-section"
-                aria-label="Action Log"
-                data-section="action-log"
-              >
-                <div class="secondary-section-header">
-                  <h2 class="secondary-section-title">Action Log</h2>
-                  <span
-                    class="info-tooltip"
-                    data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
-                    >ⓘ</span
-                  >
-                </div>
-                <div class="secondary-section-content">
-                  <table class="action-log-table">
-                    <thead>
-                      <tr>
-                        <th class="col-time">
-                          Timestamp
-                          <span
-                            class="filter-icon"
-                            data-filter="time"
-                            title="Filter by time"
-                            >⏱</span
-                          >
-                        </th>
-                        <th class="col-id">ID</th>
-                        <th class="col-action">
-                          Action
-                          <span
-                            class="filter-icon"
-                            data-filter="action"
-                            title="Filter by type"
-                            >🔽</span
-                          >
-                        </th>
-                        <th class="col-rationale">Rationale</th>
-                      </tr>
-                    </thead>
-                    <tbody id="action-log-table-body">
-                      <tr>
-                        <td colspan="4" class="intel-empty">
-                          <div class="intel-empty-icon">📝</div>
-                          <div class="intel-empty-text">
-                            No actions logged yet
-                          </div>
-                          <div class="intel-empty-hint">
-                            Decisions will appear here with timestamps and
-                            rationale
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </section>
             </div>
 
             <!-- ===============================
@@ -534,6 +469,42 @@
                 <div id="review-results" class="review-results">
                   <p class="muted">No reviews yet.</p>
                 </div>
+              </div>
+            </section>
+
+            <!-- Action Log — moved to stack under Review Results -->
+            <section
+              class="secondary-section action-log-section action-log-full"
+              aria-label="Action Log"
+              data-section="action-log"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Action Log</h2>
+                <span
+                  class="info-tooltip"
+                  data-tooltip="Immutable audit trail of decisions and actions."
+                  >ⓘ</span
+                >
+              </div>
+              <div class="secondary-section-content">
+                <table class="action-log-table">
+                  <thead>
+                    <tr>
+                      <th class="col-time">Timestamp</th>
+                      <th class="col-id">ID</th>
+                      <th class="col-action">Action</th>
+                      <th class="col-rationale">Rationale</th>
+                    </tr>
+                  </thead>
+                  <tbody id="action-log-body">
+                    <tr>
+                      <td colspan="4" class="intel-empty">
+                        <div class="intel-empty-icon">📝</div>
+                        <div class="intel-empty-text">No actions logged yet</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </section>
 
