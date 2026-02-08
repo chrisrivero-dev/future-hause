@@ -1168,46 +1168,95 @@ const THEME_STORAGE_KEY = 'future-hause-theme';
  * Get current theme from localStorage or default to 'dark'
  * @returns {'dark' | 'light'}
  */
-function getStoredTheme() {
-  return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
-}
+//function getStoredTheme() {
+//return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
 
 /**
  * Apply theme to document and update toggle button text
  * @param {'dark' | 'light'} theme
  */
-function applyTheme(theme) {
-  if (theme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
-  } else {
-    document.documentElement.removeAttribute('data-theme');
-  }
+// File: ui/dashboard.js
+// Inside: THEME TOGGLE section
 
+//function applyTheme(theme) {
+//document.documentElement.setAttribute('data-theme', theme);
+
+function updateToggleLabel(theme) {
   const toggleBtn = document.getElementById('theme-toggle');
-  if (toggleBtn) {
-    toggleBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
-  }
+  if (!toggleBtn) return;
+  toggleBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
 }
 
 /**
  * Toggle between dark and light themes
  */
-function toggleTheme() {
-  const current = getStoredTheme();
-  const next = current === 'dark' ? 'light' : 'dark';
-  localStorage.setItem(THEME_STORAGE_KEY, next);
-  applyTheme(next);
-}
+//function toggleTheme() {
+//const current = getStoredTheme();
+//const next = current === 'dark' ? 'light' : 'dark';
+//localStorage.setItem(THEME_STORAGE_KEY, next);
+//applyTheme(next);
 
 /**
- * Initialize theme toggle button
+ * Initialize theme toggle button (authoritative)
+ * - Always sets data-theme explicitly ('light' or 'dark')
+ * - Does not depend on other theme helpers
+ */
+/**
+ * Initialize theme toggle button (FINAL, AUTHORITATIVE)
  */
 function initThemeToggle() {
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  const STORAGE_KEY = 'fh_theme';
+
+  if (!btn) {
+    console.warn('[ThemeToggle] Button not found');
+    return;
+  }
+
+  function setTheme(theme) {
+    const safe = theme === 'dark' ? 'dark' : 'light';
+    root.setAttribute('data-theme', safe);
+    localStorage.setItem(STORAGE_KEY, safe);
+    btn.textContent = safe === 'dark' ? 'Dark' : 'Light';
+  }
+
+  // Initialize
+  const saved = localStorage.getItem(STORAGE_KEY);
+  setTheme(saved);
+
+  // Click handler (HARD BIND)
+  btn.onclick = () => {
+    const current = root.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  };
+}
+
+
+  // Apply theme regardless of button existence (so console test works)
+  function applyTheme(theme) {
+    const safe = theme === 'dark' || theme === 'light' ? theme : 'light';
+    root.setAttribute('data-theme', safe);
+    localStorage.setItem(THEME_KEY, safe);
+
+    const toggleBtn = document.getElementById('theme-toggle');
+    if (toggleBtn) {
+      toggleBtn.textContent = safe === 'dark' ? 'Dark' : 'Light';
+    }
+  }
+
+  // Initialize
+  const stored = localStorage.getItem(THEME_KEY);
+  applyTheme(stored);
+
+  // Wire click handler (if button exists)
   const toggleBtn = document.getElementById('theme-toggle');
   if (!toggleBtn) return;
 
-  toggleBtn.addEventListener('click', toggleTheme);
-  applyTheme(getStoredTheme());
+  toggleBtn.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
 }
 
 /* ----------------------------------------------------------------------------
@@ -2399,3 +2448,7 @@ function setRobotState(state) {
 
 // expose for console + other scripts
 window.setRobotState = setRobotState;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initThemeToggle();
+});

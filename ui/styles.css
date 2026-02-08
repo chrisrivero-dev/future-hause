@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: #e9e4d9; /* aged concrete / paper */
+/* DISABLED */   background: /* DISABLED #e9e4d9 */; /* aged concrete / paper */
   color: #000000;
   font-family: 'Inter', 'Roboto Condensed', system-ui, sans-serif;
 }
@@ -12,7 +12,7 @@ body {
 
 .sidebar {
   width: 220px;
-  background: #d6cfbf;
+/* DISABLED */   background: /* DISABLED #d6cfbf */;
   padding: 1.5rem 1.25rem;
   border-right: 8px solid #004a99;
   border-radius: 0;
@@ -38,7 +38,7 @@ body {
 }
 
 .column {
-  background: #e9e4d9;
+/* DISABLED */   background: /* DISABLED #e9e4d9 */;
   border-radius: 0;
   padding: 3.5rem 2rem;
   border-top: 10px solid #004a99; /* default Vault-Tec */
@@ -48,7 +48,7 @@ body {
   display: block;
   height: 2px;
   margin-top: 1.5rem;
-  background: rgba(0, 0, 0, 0.15);
+/* DISABLED */   background: rgba(0, 0, 0, 0.15);
 }
 /* NOTE:
    Positional variants are active by default.
@@ -99,7 +99,7 @@ body {
 }
 
 .card {
-  background: transparent;
+/* DISABLED */   background: transparent;
   border-radius: 0;
   padding: 0;
   margin-top: 1.25rem;
@@ -109,7 +109,7 @@ body {
   display: block;
   height: 10px;
   margin-bottom: 1.25rem;
-  background: repeating-linear-gradient(
+/* DISABLED */   background: repeating-linear-gradient(
     45deg,
     #ffcb05,
     #ffcb05 10px,
