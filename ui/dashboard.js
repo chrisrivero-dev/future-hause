@@ -2433,7 +2433,6 @@ function wireRetryButtons() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle?.();
-  initCanvasTabs?.();
 
   setIconState?.('idle');
   setPresenceState?.(PRESENCE_STATES?.IDLE || 'idle');

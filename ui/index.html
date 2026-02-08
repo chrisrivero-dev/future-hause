@@ -424,57 +424,41 @@
             </div>
 
             <!-- ===============================
-     FUTURE HAUSE RESPONSE PANEL (Main Canvas)
-     - Contains tabbed content: Response + Project Focus
+     FUTURE HAUSE RESPONSE PANEL
      =============================== -->
             <section
-              class="secondary-section main-canvas-panel"
+              class="secondary-section future-hause-response-panel"
               id="future-hause-response"
               aria-label="Future Hause Response"
               data-section="future-response"
             >
-              <div class="secondary-section-header canvas-header">
-                <div class="canvas-tabs" role="tablist">
-                  <button
-                    class="canvas-tab active"
-                    role="tab"
-                    aria-selected="true"
-                    data-tab="response"
-                  >
-                    Future Hause Response
-                  </button>
-                  <button
-                    class="canvas-tab"
-                    role="tab"
-                    aria-selected="false"
-                    data-tab="project"
-                  >
-                    Project Focus
-                  </button>
-                </div>
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Future Hause Response</h2>
               </div>
-              <div class="secondary-section-content canvas-content">
-                <!-- Tab: Future Hause Response -->
-                <div
-                  class="canvas-tab-panel active"
-                  data-panel="response"
-                  role="tabpanel"
-                >
-                  <div class="future-hause-response-content">
-                    <em class="empty-state">No response yet.</em>
-                  </div>
-                </div>
-                <!-- Tab: Project Focus -->
-                <div
-                  class="canvas-tab-panel"
-                  data-panel="project"
-                  role="tabpanel"
-                  hidden
-                >
-                  <div id="active-project-panel" class="active-project-panel">
-                    <div class="active-project-empty">
-                      <em class="empty-state">No project selected</em>
-                    </div>
+              <div class="secondary-section-content future-hause-response-content">
+                <em>No response yet.</em>
+              </div>
+            </section>
+
+            <!--
+        Active Project Focus
+        PURPOSE:
+        - Display currently selected project context
+        - Show project metadata and status
+        - Read-only, no mutations
+      -->
+            <section
+              class="secondary-section active-project-section"
+              aria-label="Active Project Focus"
+              data-section="active-project"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Active Project Focus</h2>
+              </div>
+              <div class="secondary-section-content active-project-content">
+                <div id="active-project-panel" class="active-project-panel">
+                  <div class="active-project-empty">
+                    <div class="intel-empty-text">No project selected</div>
                   </div>
                 </div>
               </div>
