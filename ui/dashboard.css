@@ -1268,6 +1268,33 @@ body {
 
 .canvas-content {
   min-height: 200px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Coach Response */
+.coach-response {
+  padding: var(--spacing-md);
+}
+
+.coach-response-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-purple);
+  margin-bottom: var(--spacing-sm);
+}
+
+.coach-response-text {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.error-text {
+  color: var(--accent-error);
 }
 
 .canvas-panel {
@@ -1429,6 +1456,28 @@ body {
   display: flex;
   gap: var(--spacing-sm);
   align-items: flex-end;
+}
+
+.command-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.coach-action {
+  background: transparent;
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+.coach-action:hover {
+  background: rgba(109, 40, 217, 0.1);
+  border-color: var(--accent-purple);
+}
+
+.coach-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .command-input {

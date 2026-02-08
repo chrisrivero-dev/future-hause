@@ -2428,6 +2428,63 @@ function wireRetryButtons() {
 }
 
 /* ----------------------------------------------------------------------------
+   COACH MODE — Manual trigger, renders to Future Hause Response panel
+   ---------------------------------------------------------------------------- */
+function wireCoachMode() {
+  const coachBtn = document.getElementById('coach-btn');
+  const textarea = document.getElementById('notes-textarea');
+  const responsePanel = document.querySelector('.canvas-panel[data-panel="response"]');
+
+  if (!coachBtn || !textarea || !responsePanel) return;
+
+  coachBtn.addEventListener('click', async () => {
+    const draftText = textarea.value.trim();
+    if (!draftText) {
+      responsePanel.innerHTML = '<em>Enter text to coach.</em>';
+      return;
+    }
+
+    coachBtn.disabled = true;
+    coachBtn.textContent = 'Coaching...';
+    responsePanel.innerHTML = '<em>Generating coaching feedback...</em>';
+
+    try {
+      const res = await fetch('/api/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          draft_id: 'manual-' + Date.now(),
+          draft_text: draftText
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      const coaching = data.coaching || data.response || 'No feedback returned.';
+
+      responsePanel.innerHTML = `
+        <div class="coach-response">
+          <div class="coach-response-label">Coach Feedback</div>
+          <div class="coach-response-text">${escapeHtml(coaching)}</div>
+        </div>
+      `;
+    } catch (err) {
+      responsePanel.innerHTML = `<em class="error-text">Coach error: ${escapeHtml(err.message)}</em>`;
+    } finally {
+      coachBtn.disabled = false;
+      coachBtn.textContent = 'Coach';
+    }
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ----------------------------------------------------------------------------
    CANVAS TABS — Simple tab switching
    ---------------------------------------------------------------------------- */
 function wireCanvasTabs() {
@@ -2465,6 +2522,7 @@ function wireCanvasTabs() {
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle?.();
   wireCanvasTabs?.();
+  wireCoachMode?.();
 
   setIconState?.('idle');
   setPresenceState?.(PRESENCE_STATES?.IDLE || 'idle');
