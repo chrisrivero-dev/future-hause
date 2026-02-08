@@ -160,6 +160,18 @@ const state = {
     generatedTimestamps: {},
   },
 };
+state.reviewsByDraft = {
+  'demo-draft-1': [
+    {
+      review_id: 'rev-demo',
+      model: 'ollama',
+      confidence: 0.0,
+      risk_flags: ['stub_review'],
+      review: 'Stub review generated. Ollama not running.',
+      created_at: new Date().toISOString(),
+    },
+  ],
+};
 
 /* ----------------------------------------------------------------------------
    UTILITY FUNCTIONS
@@ -179,6 +191,29 @@ const state = {
    PURE HELPERS — No DOM, No State
    Safe everywhere
 ---------------------------------------------------------------------------- */
+function renderFutureHauseResponse(text) {
+  const panel = document.getElementById('future-hause-response');
+  if (!panel) return;
+
+  panel.textContent = text;
+  panel.classList.add('expanded');
+}
+async function runCoachMode() {
+  const draftText = getCurrentDraftText?.();
+  if (!draftText) return;
+
+  const res = await fetch('/api/coach', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      draft_id: crypto.randomUUID(),
+      draft_text: draftText,
+    }),
+  });
+
+  const data = await res.json();
+  renderFutureHauseResponse(data.coach_response);
+}
 
 function formatTimestamp(isoString) {
   if (!isoString) return '—';
@@ -379,7 +414,7 @@ function renderIntelEvents() {
  */
 function wireIntelRowActions(container) {
   // Draft action: prefill message box
-  container.querySelectorAll('.draft-action').forEach(btn => {
+  container.querySelectorAll('.draft-action').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const prompt = btn.dataset.prompt || '';
@@ -392,7 +427,7 @@ function wireIntelRowActions(container) {
   });
 
   // Dismiss action: hide row (UI-only, no persistence)
-  container.querySelectorAll('.dismiss-action').forEach(btn => {
+  container.querySelectorAll('.dismiss-action').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const row = btn.closest('.intel-row');
@@ -1134,46 +1169,95 @@ const THEME_STORAGE_KEY = 'future-hause-theme';
  * Get current theme from localStorage or default to 'light'
  * @returns {'dark' | 'light'}
  */
-function getStoredTheme() {
-  return localStorage.getItem(THEME_STORAGE_KEY) || 'light';
-}
+//function getStoredTheme() {
+//return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
 
 /**
  * Apply theme to document and update toggle button text
  * @param {'dark' | 'light'} theme
  */
-function applyTheme(theme) {
-  if (theme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  } else {
-    document.documentElement.removeAttribute('data-theme');
-  }
+// File: ui/dashboard.js
+// Inside: THEME TOGGLE section
 
+//function applyTheme(theme) {
+//document.documentElement.setAttribute('data-theme', theme);
+
+function updateToggleLabel(theme) {
   const toggleBtn = document.getElementById('theme-toggle');
-  if (toggleBtn) {
-    toggleBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
-  }
+  if (!toggleBtn) return;
+  toggleBtn.textContent = theme === 'dark' ? 'Dark' : 'Light';
 }
 
 /**
  * Toggle between dark and light themes
  */
-function toggleTheme() {
-  const current = getStoredTheme();
-  const next = current === 'dark' ? 'light' : 'dark';
-  localStorage.setItem(THEME_STORAGE_KEY, next);
-  applyTheme(next);
-}
+//function toggleTheme() {
+//const current = getStoredTheme();
+//const next = current === 'dark' ? 'light' : 'dark';
+//localStorage.setItem(THEME_STORAGE_KEY, next);
+//applyTheme(next);
 
 /**
- * Initialize theme toggle button
+ * Initialize theme toggle button (authoritative)
+ * - Always sets data-theme explicitly ('light' or 'dark')
+ * - Does not depend on other theme helpers
+ */
+/**
+ * Initialize theme toggle button (FINAL, AUTHORITATIVE)
  */
 function initThemeToggle() {
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle');
+  const STORAGE_KEY = 'fh_theme';
+
+  if (!btn) {
+    console.warn('[ThemeToggle] Button not found');
+    return;
+  }
+
+  function setTheme(theme) {
+    const safe = theme === 'dark' ? 'dark' : 'light';
+    root.setAttribute('data-theme', safe);
+    localStorage.setItem(STORAGE_KEY, safe);
+    btn.textContent = safe === 'dark' ? 'Dark' : 'Light';
+  }
+
+  // Initialize
+  const saved = localStorage.getItem(STORAGE_KEY);
+  setTheme(saved);
+
+  // Click handler (HARD BIND)
+  btn.onclick = () => {
+    const current = root.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
+  };
+}
+
+
+  // Apply theme regardless of button existence (so console test works)
+  function applyTheme(theme) {
+    const safe = theme === 'dark' || theme === 'light' ? theme : 'light';
+    root.setAttribute('data-theme', safe);
+    localStorage.setItem(THEME_KEY, safe);
+
+    const toggleBtn = document.getElementById('theme-toggle');
+    if (toggleBtn) {
+      toggleBtn.textContent = safe === 'dark' ? 'Dark' : 'Light';
+    }
+  }
+
+  // Initialize
+  const stored = localStorage.getItem(THEME_KEY);
+  applyTheme(stored);
+
+  // Wire click handler (if button exists)
   const toggleBtn = document.getElementById('theme-toggle');
   if (!toggleBtn) return;
 
-  toggleBtn.addEventListener('click', toggleTheme);
-  applyTheme(getStoredTheme());
+  toggleBtn.addEventListener('click', () => {
+    const current = root.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
 }
 
 /* ----------------------------------------------------------------------------
@@ -1742,7 +1826,7 @@ function renderReviewResults(reviewsByDraft) {
  * @param {object} reviewPayload - Review payload from engine/review
  */
 function renderReviewResult(reviewPayload) {
-  const container = document.getElementById("review-results-container");
+  const container = document.getElementById('review-results-container');
   if (!container) return;
 
   const {
@@ -1758,7 +1842,9 @@ function renderReviewResult(reviewPayload) {
   const confidencePercent = Math.round((confidence || 0) * 100);
   const flagsHtml =
     risk_flags && risk_flags.length > 0
-      ? risk_flags.map((f) => `<span class="review-flag">${escapeHtml(f)}</span>`).join("")
+      ? risk_flags
+          .map((f) => `<span class="review-flag">${escapeHtml(f)}</span>`)
+          .join('')
       : '<span class="review-flag-none">No flags</span>';
 
   const entryHtml = `
@@ -1767,12 +1853,12 @@ function renderReviewResult(reviewPayload) {
         ⚠️ Advisory review — human judgment required
       </div>
       <div class="review-result-header">
-        <span class="review-model-badge">${escapeHtml(model || "unknown")}</span>
+        <span class="review-model-badge">${escapeHtml(model || 'unknown')}</span>
         <span class="review-confidence">Confidence: ${confidencePercent}%</span>
         <span class="review-timestamp">${formatTimestamp(created_at)}</span>
       </div>
       <div class="review-result-flags">${flagsHtml}</div>
-      <div class="review-result-content">${escapeHtml(review || "").replace(/\n/g, "<br>")}</div>
+      <div class="review-result-content">${escapeHtml(review || '').replace(/\n/g, '<br>')}</div>
       <div class="review-result-footer">
         <span class="review-id">ID: ${escapeHtml(review_id)}</span>
         <span class="review-draft-ref">Draft: ${escapeHtml(draft_id)}</span>
@@ -1781,7 +1867,7 @@ function renderReviewResult(reviewPayload) {
   `;
 
   // Append to container (multiple reviews can exist)
-  container.insertAdjacentHTML("beforeend", entryHtml);
+  container.insertAdjacentHTML('beforeend', entryHtml);
 }
 
 /**
@@ -1791,11 +1877,11 @@ function renderReviewResult(reviewPayload) {
  * @param {object[]} reviews - Array of review payloads
  */
 function renderReviewComparison(reviews) {
-  const container = document.getElementById("review-results-container");
+  const container = document.getElementById('review-results-container');
   if (!container) return;
 
   // Clear existing reviews
-  container.innerHTML = "";
+  container.innerHTML = '';
 
   if (!reviews || reviews.length === 0) {
     container.innerHTML = `
@@ -2232,6 +2318,8 @@ async function runIngestDryRun() {
   renderProjects();
   renderRecentRecommendations();
   renderActionLogTable();
+  renderReviewResults(state.reviewsByDraft);
+
   renderSystemMetadata();
 
   updateLastUpdatedTime();
@@ -2263,7 +2351,7 @@ function wireIngestDryRun() {
  * Wire up collapsible section toggles
  */
 function wireCollapsibleSections() {
-  document.querySelectorAll('.collapsible-header').forEach(header => {
+  document.querySelectorAll('.collapsible-header').forEach((header) => {
     header.addEventListener('click', (e) => {
       // Don't toggle if clicking on a button inside the header
       if (e.target.closest('button:not(.collapse-toggle)')) return;
@@ -2361,3 +2449,7 @@ function setRobotState(state) {
 
 // expose for console + other scripts
 window.setRobotState = setRobotState;
+
+document.addEventListener('DOMContentLoaded', () => {
+  initThemeToggle();
+});
