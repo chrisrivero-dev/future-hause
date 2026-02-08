@@ -1,3 +1,21 @@
+/* ============================================================================
+   FUTURE HAUSE — Fallout Industrial / Vault-Tec Editorial Theme
+   Atomic-age utilitarian. Heavy. High-contrast. Warning-label typography.
+   ============================================================================ */
+
+:root {
+  /* BASE MATERIAL */
+  --bg-color: #e9e4d9;        /* Aged paper / concrete */
+  --text-main: #000000;       /* Black ink */
+  --card-bg: #e9e4d9;
+
+  /* FALLOUT INDUSTRIAL PALETTE */
+  --vault-blue: #004a99;      /* Vault-Tec authority blue */
+  --warning-yellow: #ffcb05;  /* High-visibility hazard yellow */
+  --industrial-rust: #9a2a2a; /* Oxidized steel / dried rust */
+  --military-green: #3d4a35;  /* Olive drab metal */
+}
+
 body {
   margin: 0;
 /* DISABLED */   background: /* DISABLED #e9e4d9 */; /* aged concrete / paper */
