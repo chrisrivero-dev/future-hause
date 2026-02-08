@@ -1233,33 +1233,6 @@ function initThemeToggle() {
   };
 }
 
-
-  // Apply theme regardless of button existence (so console test works)
-  function applyTheme(theme) {
-    const safe = theme === 'dark' || theme === 'light' ? theme : 'light';
-    root.setAttribute('data-theme', safe);
-    localStorage.setItem(THEME_KEY, safe);
-
-    const toggleBtn = document.getElementById('theme-toggle');
-    if (toggleBtn) {
-      toggleBtn.textContent = safe === 'dark' ? 'Dark' : 'Light';
-    }
-  }
-
-  // Initialize
-  const stored = localStorage.getItem(THEME_KEY);
-  applyTheme(stored);
-
-  // Wire click handler (if button exists)
-  const toggleBtn = document.getElementById('theme-toggle');
-  if (!toggleBtn) return;
-
-  toggleBtn.addEventListener('click', () => {
-    const current = root.getAttribute('data-theme');
-    applyTheme(current === 'dark' ? 'light' : 'dark');
-  });
-}
-
 /* ----------------------------------------------------------------------------
    CANVAS TABS — Tab switching for main canvas panel
    ---------------------------------------------------------------------------- */
@@ -2491,18 +2464,18 @@ function wireCanvasTabs() {
   const tabs = document.querySelectorAll('.canvas-tab');
   const panels = document.querySelectorAll('.canvas-panel');
 
-  tabs.forEach(tab => {
+  tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       const target = tab.getAttribute('data-tab');
 
-      tabs.forEach(t => {
+      tabs.forEach((t) => {
         t.classList.remove('active');
         t.setAttribute('aria-selected', 'false');
       });
       tab.classList.add('active');
       tab.setAttribute('aria-selected', 'true');
 
-      panels.forEach(p => {
+      panels.forEach((p) => {
         if (p.getAttribute('data-panel') === target) {
           p.classList.add('active');
           p.removeAttribute('hidden');
