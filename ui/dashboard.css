@@ -1229,6 +1229,55 @@ body {
   overflow-y: auto;
 }
 
+/* Combined Canvas — Tabbed Container */
+.combined-canvas {
+  grid-column: 1 / -1;
+}
+
+.canvas-header {
+  padding: 0;
+}
+
+.canvas-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.canvas-tab {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.canvas-tab:hover {
+  color: var(--text-secondary);
+}
+
+.canvas-tab.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent-cyan);
+}
+
+.canvas-content {
+  min-height: 200px;
+}
+
+.canvas-panel {
+  display: none;
+}
+
+.canvas-panel.active {
+  display: block;
+}
+
 /* Collapsible Section */
 .collapsible-header {
   cursor: pointer;

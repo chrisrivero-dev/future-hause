@@ -424,41 +424,29 @@
             </div>
 
             <!-- ===============================
-     FUTURE HAUSE RESPONSE PANEL
+     COMBINED CANVAS: Response + Project Focus
      =============================== -->
             <section
-              class="secondary-section future-hause-response-panel"
-              id="future-hause-response"
-              aria-label="Future Hause Response"
-              data-section="future-response"
+              class="secondary-section combined-canvas"
+              id="combined-canvas"
+              aria-label="Future Hause Canvas"
+              data-section="canvas"
             >
-              <div class="secondary-section-header">
-                <h2 class="secondary-section-title">Future Hause Response</h2>
+              <div class="secondary-section-header canvas-header">
+                <div class="canvas-tabs" role="tablist">
+                  <button class="canvas-tab active" data-tab="response" role="tab" aria-selected="true">Future Hause Response</button>
+                  <button class="canvas-tab" data-tab="project" role="tab" aria-selected="false">Active Project Focus</button>
+                </div>
               </div>
-              <div class="secondary-section-content future-hause-response-content">
-                <em>No response yet.</em>
-              </div>
-            </section>
-
-            <!--
-        Active Project Focus
-        PURPOSE:
-        - Display currently selected project context
-        - Show project metadata and status
-        - Read-only, no mutations
-      -->
-            <section
-              class="secondary-section active-project-section"
-              aria-label="Active Project Focus"
-              data-section="active-project"
-            >
-              <div class="secondary-section-header">
-                <h2 class="secondary-section-title">Active Project Focus</h2>
-              </div>
-              <div class="secondary-section-content active-project-content">
-                <div id="active-project-panel" class="active-project-panel">
-                  <div class="active-project-empty">
-                    <div class="intel-empty-text">No project selected</div>
+              <div class="secondary-section-content canvas-content">
+                <div class="canvas-panel active" data-panel="response">
+                  <em>No response yet.</em>
+                </div>
+                <div class="canvas-panel" data-panel="project" hidden>
+                  <div id="active-project-panel" class="active-project-panel">
+                    <div class="active-project-empty">
+                      <div class="intel-empty-text">No project selected</div>
+                    </div>
                   </div>
                 </div>
               </div>

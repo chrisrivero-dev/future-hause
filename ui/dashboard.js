@@ -2428,11 +2428,43 @@ function wireRetryButtons() {
 }
 
 /* ----------------------------------------------------------------------------
+   CANVAS TABS — Simple tab switching
+   ---------------------------------------------------------------------------- */
+function wireCanvasTabs() {
+  const tabs = document.querySelectorAll('.canvas-tab');
+  const panels = document.querySelectorAll('.canvas-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      panels.forEach(p => {
+        if (p.getAttribute('data-panel') === target) {
+          p.classList.add('active');
+          p.removeAttribute('hidden');
+        } else {
+          p.classList.remove('active');
+          p.setAttribute('hidden', '');
+        }
+      });
+    });
+  });
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle?.();
+  wireCanvasTabs?.();
 
   setIconState?.('idle');
   setPresenceState?.(PRESENCE_STATES?.IDLE || 'idle');
