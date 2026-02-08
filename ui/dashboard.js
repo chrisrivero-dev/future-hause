@@ -1124,17 +1124,18 @@ function wireExplanationPanels() {
 /* ----------------------------------------------------------------------------
    THEME TOGGLE — Dark/Light Mode
    - Persists to localStorage (theme preference only)
-   - Dark mode is default
+   - Light mode is default (no attribute)
+   - Dark mode = data-theme="dark"
    ---------------------------------------------------------------------------- */
 
 const THEME_STORAGE_KEY = 'future-hause-theme';
 
 /**
- * Get current theme from localStorage or default to 'dark'
+ * Get current theme from localStorage or default to 'light'
  * @returns {'dark' | 'light'}
  */
 function getStoredTheme() {
-  return localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+  return localStorage.getItem(THEME_STORAGE_KEY) || 'light';
 }
 
 /**
@@ -1142,8 +1143,8 @@ function getStoredTheme() {
  * @param {'dark' | 'light'} theme
  */
 function applyTheme(theme) {
-  if (theme === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light');
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
   } else {
     document.documentElement.removeAttribute('data-theme');
   }
