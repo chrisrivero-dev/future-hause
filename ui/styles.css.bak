@@ -1,0 +1,119 @@
+body {
+  margin: 0;
+  background: #e9e4d9; /* aged concrete / paper */
+  color: #000000;
+  font-family: 'Inter', 'Roboto Condensed', system-ui, sans-serif;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: #d6cfbf;
+  padding: 1.5rem 1.25rem;
+  border-right: 8px solid #004a99;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* ================================
+   VAULT SIDEBAR SECTION DIVIDERS
+   ================================ */
+
+.sidebar > * + * {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid rgba(0, 0, 0, 0.25);
+}
+
+.board {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.column {
+  background: #e9e4d9;
+  border-radius: 0;
+  padding: 3.5rem 2rem;
+  border-top: 10px solid #004a99; /* default Vault-Tec */
+}
+.column::after {
+  content: '';
+  display: block;
+  height: 2px;
+  margin-top: 1.5rem;
+  background: rgba(0, 0, 0, 0.15);
+}
+/* NOTE:
+   Positional variants are active by default.
+   Class-based variants override if applied. */
+
+/* ================================
+   VAULT COLOR VARIANTS (POSITIONAL)
+   ================================ */
+
+.board > .column:nth-child(1) {
+  border-top-color: #004a99; /* Vault-Tec Blue */
+}
+
+.board > .column:nth-child(2) {
+  border-top-color: #ffcb05; /* Warning Yellow */
+}
+
+.board > .column:nth-child(3) {
+  border-top-color: #9a2a2a; /* Industrial Rust */
+}
+
+.board > .column:nth-child(4) {
+  border-top-color: #3d4a35; /* Military Green */
+}
+
+/* ================================
+   VAULT COLOR VARIANTS PER COLUMN
+   ================================ */
+
+/* INTEL — Vault-Tec Blue */
+.column.vault-intel {
+  border-top-color: #004a99;
+}
+
+/* KNOWLEDGE BASE — Warning Yellow */
+.column.vault-kb {
+  border-top-color: #ffcb05;
+}
+
+/* PROJECTS — Industrial Rust */
+.column.vault-projects {
+  border-top-color: #9a2a2a;
+}
+
+/* RECOMMENDATIONS — Military Green */
+.column.vault-recommendations {
+  border-top-color: #3d4a35;
+}
+
+.card {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 1.25rem;
+}
+.sidebar::before {
+  content: '';
+  display: block;
+  height: 10px;
+  margin-bottom: 1.25rem;
+  background: repeating-linear-gradient(
+    45deg,
+    #ffcb05,
+    #ffcb05 10px,
+    #000 10px,
+    #000 20px
+  );
+}

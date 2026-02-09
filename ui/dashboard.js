@@ -1271,6 +1271,43 @@ function initCanvasTabs() {
 }
 
 /* ----------------------------------------------------------------------------
+   CANVAS TABS — Tab switching for main canvas panel
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Initialize canvas tab switching
+ */
+function initCanvasTabs() {
+  const tabs = document.querySelectorAll('.canvas-tab');
+  const panels = document.querySelectorAll('.canvas-tab-panel');
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetPanel = tab.getAttribute('data-tab');
+
+      // Update tab states
+      tabs.forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+
+      // Update panel visibility
+      panels.forEach((panel) => {
+        if (panel.getAttribute('data-panel') === targetPanel) {
+          panel.classList.add('active');
+          panel.removeAttribute('hidden');
+        } else {
+          panel.classList.remove('active');
+          panel.setAttribute('hidden', '');
+        }
+      });
+    });
+  });
+}
+
+/* ----------------------------------------------------------------------------
    PHASE 1 — NOTES SUBMISSION + LLM RESPONSE
 
    HARD CONSTRAINTS (NON-NEGOTIABLE):
@@ -2494,8 +2531,7 @@ function wireCanvasTabs() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initThemeToggle?.();
-  wireCanvasTabs?.();
-  wireCoachMode?.();
+  initCanvasTabs?.();
 
   setIconState?.('idle');
   setPresenceState?.(PRESENCE_STATES?.IDLE || 'idle');
