@@ -1174,8 +1174,20 @@ body {
 .secondary-sections {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "message   canvas"
+    "worklog   review"
+    "metadata  actionlog";
   gap: 16px;
 }
+
+/* Grid area assignments */
+.notes-section       { grid-area: message; }
+.combined-canvas     { grid-area: canvas; }
+.draft-worklog-section { grid-area: worklog; }
+.review-results-section { grid-area: review; }
+.metadata-section    { grid-area: metadata; }
+.action-log-section  { grid-area: actionlog; }
 
 .secondary-section {
   background: var(--bg-card);
@@ -1220,9 +1232,6 @@ body {
 }
 
 /* Combined Canvas — Tabbed Container */
-.combined-canvas {
-  grid-column: 1 / -1;
-}
 
 .canvas-header {
   padding: 0;
@@ -1294,10 +1303,7 @@ body {
   display: block;
 }
 
-/* Action Log — full width when stacked under Review Results */
-.action-log-full {
-  grid-column: 1 / -1;
-}
+/* Action Log — placement via grid-area in .secondary-sections */
 
 /* Collapsible Section */
 .collapsible-header {
