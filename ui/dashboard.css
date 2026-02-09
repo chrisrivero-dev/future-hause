@@ -86,6 +86,23 @@ body {
   overflow-x: hidden;
 }
 
+/* =========================================================
+   CANONICAL HEADER — SINGLE SOURCE OF TRUTH
+   All section headers MUST inherit from this.
+   ========================================================= */
+.canonical-header,
+.intel-column-header,
+.secondary-section-header {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 2px solid var(--border-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
 /* ----------------------------------------------------------------------------
    HEADER
    ---------------------------------------------------------------------------- */
@@ -1171,6 +1188,7 @@ body {
     "worklog   review"
     "metadata  actionlog";
   gap: 16px;
+  align-items: stretch;
 }
 
 /* Grid area assignments */
@@ -1190,6 +1208,8 @@ body {
   transition:
     border-color 0.2s ease-out,
     box-shadow 0.2s ease-out;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Notes section override: primary interaction surface must never clip */
@@ -1219,14 +1239,17 @@ body {
   background: rgba(255, 255, 255, 0.02);
 }
 
-/* Combined Canvas — Tabbed Container */
-
-.canvas-header {
-  padding: 0;
+.secondary-section-content {
+  padding: var(--spacing-md) var(--spacing-lg);
+  max-height: 400px;
+  overflow-y: auto;
+  flex: 1;
 }
 
+/* Combined Canvas — Tabbed Container */
+
 .canvas-tabs {
-  /* Inherits from canonical-header above */
+  display: flex;
   gap: 0;
 }
 
