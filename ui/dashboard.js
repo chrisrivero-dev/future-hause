@@ -767,7 +767,12 @@ function renderLoadStatus(loadStatus) {
       <div class="metadata-status">
         <span class="metadata-status-dot ${dotClass}"></span>
         <span>${labels[file]}: ${statusText}</span>
-        ${retryBtn}
+        ${
+          status === 'error'
+            ? `<button class="metadata-retry-btn" data-file="${file}">Retry</button>`
+            : ''
+        }
+
       </div>
     `;
     })
@@ -2443,7 +2448,9 @@ function wireRetryButtons() {
 function wireCoachMode() {
   const coachBtn = document.getElementById('coach-btn');
   const textarea = document.getElementById('notes-textarea');
-  const responsePanel = document.querySelector('.canvas-panel[data-panel="response"]');
+  const responsePanel = document.querySelector(
+    '.canvas-panel[data-panel="response"]'
+  );
 
   if (!coachBtn || !textarea || !responsePanel) return;
 
@@ -2464,14 +2471,15 @@ function wireCoachMode() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           draft_id: 'manual-' + Date.now(),
-          draft_text: draftText
-        })
+          draft_text: draftText,
+        }),
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const data = await res.json();
-      const coaching = data.coaching || data.response || 'No feedback returned.';
+      const coaching =
+        data.coaching || data.response || 'No feedback returned.';
 
       responsePanel.innerHTML = `
         <div class="coach-response">
