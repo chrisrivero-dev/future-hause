@@ -88,19 +88,20 @@ body {
 
 /* =========================================================
    CANONICAL HEADER — SINGLE SOURCE OF TRUTH
-   All section headers MUST inherit from this.
    ========================================================= */
-.canonical-header,
 .intel-column-header,
-.secondary-section-header {
+.secondary-section-header,
+.canvas-header {
   padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--bg-secondary);
   border-bottom: 2px solid var(--border-color);
   font-size: 0.95rem;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--text-primary);
+
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1193,7 +1194,7 @@ body {
 
 /* Grid area assignments */
 .notes-section       { grid-area: message; }
-.combined-canvas     { grid-area: canvas; }
+.main-canvas-panel   { grid-area: canvas; }
 .draft-worklog-section { grid-area: worklog; }
 .review-results-section { grid-area: review; }
 .metadata-section    { grid-area: metadata; }
@@ -1277,31 +1278,7 @@ body {
    ============================================================================ */
 
 .main-canvas-panel {
-  grid-column: 1 / -1;
   min-height: 300px;
-}
-
-.canvas-header {
-  padding: 0;
-  border-bottom: none;
-}
-
-.canvas-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border-color-subtle);
-}
-
-.canvas-tab {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
 .canvas-tab:hover {

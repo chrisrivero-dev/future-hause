@@ -328,101 +328,66 @@
                       </button>
                     </div>
                   </div>
+                </div>
+              </section>
 
-                  <!-- Response Panel (collapsible, hidden until response received) -->
+              <!-- ===============================
+     FUTURE HAUSE RESPONSE PANEL (Main Canvas)
+     - Contains tabbed content: Response + Project Focus
+     =============================== -->
+              <section
+                class="secondary-section main-canvas-panel"
+                id="future-hause-response"
+                aria-label="Future Hause Response"
+                data-section="future-response"
+              >
+                <div class="secondary-section-header canvas-header">
+                  <div class="canvas-tabs" role="tablist">
+                    <button
+                      class="canvas-tab active"
+                      role="tab"
+                      aria-selected="true"
+                      data-tab="response"
+                    >
+                      Future Hause Response
+                    </button>
+                    <button
+                      class="canvas-tab"
+                      role="tab"
+                      aria-selected="false"
+                      data-tab="project"
+                    >
+                      Project Focus
+                    </button>
+                  </div>
+                </div>
+                <div class="secondary-section-content canvas-content">
+                  <!-- Tab: Future Hause Response -->
                   <div
-                    id="notes-response-panel"
-                    class="notes-response-panel"
+                    class="canvas-tab-panel active"
+                    data-panel="response"
+                    role="tabpanel"
+                  >
+                    <div class="future-hause-response-content">
+                      <em class="empty-state">No response yet.</em>
+                    </div>
+                  </div>
+                  <!-- Tab: Project Focus -->
+                  <div
+                    class="canvas-tab-panel"
+                    data-panel="project"
+                    role="tabpanel"
                     hidden
                   >
-                    <div
-                      class="notes-response-header"
-                      id="notes-response-header"
-                      role="button"
-                      tabindex="0"
-                      aria-expanded="true"
-                      aria-controls="notes-response-body"
-                    >
-                      <span class="notes-response-title"
-                        >Future Hause Response</span
-                      >
-                      <span class="notes-response-toggle" aria-hidden="true"
-                        >▼</span
-                      >
-                    </div>
-                    <div
-                      id="notes-response-body"
-                      class="notes-response-body expanded"
-                    >
-                      <div
-                        id="notes-response-content"
-                        class="notes-response-content"
-                      ></div>
-                      <div class="notes-response-footer">
-                        Nothing was committed.
+                    <div id="active-project-panel" class="active-project-panel">
+                      <div class="active-project-empty">
+                        <em class="empty-state">No project selected</em>
                       </div>
                     </div>
                   </div>
                 </div>
               </section>
             </div>
-
-            <!-- ===============================
-     FUTURE HAUSE RESPONSE PANEL (Main Canvas)
-     - Contains tabbed content: Response + Project Focus
-     =============================== -->
-            <section
-              class="secondary-section main-canvas-panel"
-              id="future-hause-response"
-              aria-label="Future Hause Response"
-              data-section="future-response"
-            >
-              <div class="secondary-section-header canvas-header">
-                <div class="canvas-tabs" role="tablist">
-                  <button
-                    class="canvas-tab active"
-                    role="tab"
-                    aria-selected="true"
-                    data-tab="response"
-                  >
-                    Future Hause Response
-                  </button>
-                  <button
-                    class="canvas-tab"
-                    role="tab"
-                    aria-selected="false"
-                    data-tab="project"
-                  >
-                    Project Focus
-                  </button>
-                </div>
-              </div>
-              <div class="secondary-section-content canvas-content">
-                <!-- Tab: Future Hause Response -->
-                <div
-                  class="canvas-tab-panel active"
-                  data-panel="response"
-                  role="tabpanel"
-                >
-                  <div class="future-hause-response-content">
-                    <em class="empty-state">No response yet.</em>
-                  </div>
-                </div>
-                <!-- Tab: Project Focus -->
-                <div
-                  class="canvas-tab-panel"
-                  data-panel="project"
-                  role="tabpanel"
-                  hidden
-                >
-                  <div id="active-project-panel" class="active-project-panel">
-                    <div class="active-project-empty">
-                      <em class="empty-state">No project selected</em>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
 
             <!--
         Draft Work Log (Assistant-Generated)
