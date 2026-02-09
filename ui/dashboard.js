@@ -1857,6 +1857,98 @@ function wireNotesSubmit() {
   });
 }
 
+/**
+ * Coach Mode — Direct, practical writing coach
+ * Manual trigger only. POSTs to /api/coach.
+ */
+const COACH_PROMPT = `You are a direct, practical writing coach for support and documentation work.
+
+When given draft text:
+1. Identify the single biggest improvement opportunity
+2. Explain why it matters (1 sentence)
+3. Show a concrete rewrite of the weakest section
+4. Stop. Do not pad with praise or caveats.
+
+Be brief. Be specific. Be useful.`;
+
+function wireCoachMode() {
+  const coachBtn = document.getElementById('coach-btn');
+  const textarea = document.getElementById('notes-textarea');
+  const responsePanel = document.getElementById('notes-response-panel');
+  const responseContent = document.getElementById('notes-response-content');
+
+  if (!coachBtn || !textarea) return;
+
+  coachBtn.addEventListener('click', async () => {
+    const draftText = textarea.value.trim();
+    if (!draftText) return;
+
+    // Show loading state
+    coachBtn.disabled = true;
+    coachBtn.textContent = 'Coaching...';
+
+    try {
+      const response = await fetch('/api/coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          draft_id: `draft-${Date.now()}`,
+          draft_text: draftText,
+          system_prompt: COACH_PROMPT,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Coach API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const coachResponse = data.response || data.content || 'No response received.';
+
+      // Render in response panel
+      if (responseContent) {
+        responseContent.innerHTML = `
+          <div class="coach-response">
+            <div class="coach-response-label">Coach Feedback</div>
+            <div class="coach-response-text">${escapeHtml(coachResponse)}</div>
+          </div>
+        `;
+      }
+
+      // Show panel if hidden
+      if (responsePanel) {
+        responsePanel.hidden = false;
+      }
+
+    } catch (err) {
+      console.error('[Coach Mode]', err);
+      if (responseContent) {
+        responseContent.innerHTML = `
+          <div class="coach-response coach-error">
+            <div class="coach-response-label">Coach Error</div>
+            <div class="coach-response-text">${escapeHtml(err.message)}</div>
+          </div>
+        `;
+      }
+      if (responsePanel) {
+        responsePanel.hidden = false;
+      }
+    } finally {
+      coachBtn.disabled = false;
+      coachBtn.textContent = 'Coach';
+    }
+  });
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // Wire up collapsible response panel
 const responseHeader = document.getElementById('notes-response-header');
 if (responseHeader) {
@@ -2082,6 +2174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireIconEvents?.();
   wireExplanationPanels?.();
   wireNotesSubmit?.();
+  wireCoachMode?.();
   wireCommandChips?.();
   wireIngestDryRun?.();
 

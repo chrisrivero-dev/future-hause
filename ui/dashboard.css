@@ -2098,3 +2098,56 @@ body {
 .command-bar {
   min-width: 360px; /* ✅ this is the key */
 }
+
+/* ----------------------------------------------------------------------------
+   COACH MODE — Minimal Styling
+   ---------------------------------------------------------------------------- */
+
+.command-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.coach-action {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.coach-action:hover {
+  background: rgba(0, 200, 200, 0.1);
+}
+
+.coach-action:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.coach-response {
+  padding: var(--spacing-md);
+}
+
+.coach-response-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.coach-response-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.coach-error .coach-response-label {
+  color: var(--accent-error);
+}
+
+.coach-error .coach-response-text {
+  color: var(--accent-error);
+}
