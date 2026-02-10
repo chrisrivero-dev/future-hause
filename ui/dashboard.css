@@ -681,17 +681,26 @@ body {
      - Double borders if title underlines are added
      - Header clipping if flex-shrink removed
    ===================================================================== */
+/* HEADER CONTAINER — wrap-safe for long editorial titles
+   Fixes overflow for headers like "RECOMMENDATIONS"
+   without touching typography or underline rules.
+*/
 .intel-column-header {
   padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--border-color-subtle);
+
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  /* allow multi-line titles */
   justify-content: space-between;
+  flex-wrap: wrap;
+  /* CRITICAL: prevents overflow */
+
   flex-shrink: 0;
-  cursor: pointer; /* Clickable for explanation panel */
+  cursor: pointer;
+  /* Clickable for explanation panel */
   transition: background 0.2s ease-out;
 }
-
 .intel-column-header:hover {
   background: rgba(255, 255, 255, 0.02);
 }
@@ -768,40 +777,46 @@ body {
    HEADER TYPOGRAPHY SYSTEM — IMPLEMENTATION
    Fallout / Vault-Tec Editorial
    ===================================================================== */
+/* =====================================================================
+   HEADER TYPOGRAPHY SYSTEM — INTER-ONLY (DISPLAY SIMULATION)
+   Single source of truth for ALL headers
+   ===================================================================== */
 
 /* Tier 1 — Primary Section Headers */
 .intel-column-title,
 .secondary-section-title {
-  font-family: 'Roboto Condensed', 'Inter', -apple-system, sans-serif;
-  font-size: 1.4rem;
-  /* Compact but assertive */
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 1.2rem;
   font-weight: 900;
-  /* Heavy / stamped */
-  line-height: 1.1;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
+  line-height: 1.15;
   text-transform: uppercase;
-
   color: var(--text-main);
 
-  display: inline-block;
-  /* underline hugs text width */
-  padding-bottom: 0.35rem;
-  border-bottom: 3px solid currentColor;
+  display: block;
+  max-width: 100%;
+  word-break: break-word;
 
+  padding-bottom: 0.4rem;
+  border-bottom: 3px solid currentColor;
   margin: 0;
 }
 
 /* Tier 2 — Subsection / Panel Headers */
 .notes-response-title,
 .explanation-panel-title {
-  font-family: 'Roboto Condensed', 'Inter', -apple-system, sans-serif;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
   font-size: 0.85rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.05em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.1;
   text-transform: uppercase;
 
   color: var(--text-main);
+
+  display: inline-block;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid currentColor;
 
   margin: 0;
 }
