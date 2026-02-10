@@ -533,7 +533,7 @@ function renderActionLogTable() {
    (No event listeners here)
 ---------------------------------------------------------------------------- */
 
-  function renderFutureHauseResponse(text) {
+  function renderFutureHauseResponse(response) {
     const panel = document.getElementById('future-hause-response');
     if (!panel) {
       console.error('[Future Hause] Response panel missing from DOM');
@@ -543,7 +543,24 @@ function renderActionLogTable() {
     const content = panel.querySelector('.future-hause-response-content');
     if (!content) return;
 
-    content.textContent = text;
+    // Coach Mode
+    if (response?.mode === 'coach') {
+      content.innerHTML = `
+      <div class="coach-response">
+        <div class="coach-response-label">Coach Feedback</div>
+        <div class="coach-response-text">
+          ${escapeHtml(response.content)}
+        </div>
+      </div>
+    `;
+    }
+    // Send / normal Future Hause response
+    else {
+      content.innerHTML = formatResponse(response);
+    }
+
+    // Expand dropdown if collapsed
+    toggleResponsePanel?.();
   }
 
   // Render actual action log entries
@@ -1903,23 +1920,19 @@ function wireCoachMode() {
       }
 
       const data = await response.json();
-      const coachResponse = data.response || data.content || 'No response received.';
+      const coachResponse =
+        data.response || data.content || 'No response received.';
 
       // Render in response panel
-      if (responseContent) {
-        responseContent.innerHTML = `
-          <div class="coach-response">
-            <div class="coach-response-label">Coach Feedback</div>
-            <div class="coach-response-text">${escapeHtml(coachResponse)}</div>
-          </div>
-        `;
-      }
+      renderFutureHauseResponse({
+        mode: 'coach',
+        content: coachResponse,
+      });
 
       // Show panel if hidden
       if (responsePanel) {
         responsePanel.hidden = false;
       }
-
     } catch (err) {
       console.error('[Coach Mode]', err);
       if (responseContent) {
