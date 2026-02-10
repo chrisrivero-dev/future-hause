@@ -525,44 +525,6 @@ function renderActionLogTable() {
     `;
     return;
   }
-  /* ----------------------------------------------------------------------------
-   FUTURE HAUSE RESPONSE RENDER
-   ---------------------------------------------------------------------------- */
-  /* ----------------------------------------------------------------------------
-   UI HELPERS — DOM Rendering & UI State
-   (No event listeners here)
----------------------------------------------------------------------------- */
-
-  function renderFutureHauseResponse(response) {
-    const panel = document.getElementById('future-hause-response');
-    if (!panel) {
-      console.error('[Future Hause] Response panel missing from DOM');
-      return;
-    }
-
-    const content = panel.querySelector('.future-hause-response-content');
-    if (!content) return;
-
-    // Coach Mode
-    if (response?.mode === 'coach') {
-      content.innerHTML = `
-      <div class="coach-response">
-        <div class="coach-response-label">Coach Feedback</div>
-        <div class="coach-response-text">
-          ${escapeHtml(response.content)}
-        </div>
-      </div>
-    `;
-    }
-    // Send / normal Future Hause response
-    else {
-      content.innerHTML = formatResponse(response);
-    }
-
-    // Expand dropdown if collapsed
-    toggleResponsePanel?.();
-  }
-
   // Render actual action log entries
   container.innerHTML = actions
     .map(
@@ -1799,8 +1761,20 @@ function renderFutureHauseResponse(response) {
   const content = panel.querySelector('.future-hause-response-content');
   if (!content) return;
 
-  content.textContent =
-    typeof response === 'string' ? response : JSON.stringify(response, null, 2);
+  // Coach Mode — render with coach styling
+  if (response?.mode === 'coach') {
+    content.innerHTML = `
+      <div class="coach-response">
+        <div class="coach-response-label">Coach Feedback</div>
+        <div class="coach-response-text">${escapeHtml(response.content || '')}</div>
+      </div>
+    `;
+  }
+  // Everything else — plain text or JSON fallback
+  else {
+    content.textContent =
+      typeof response === 'string' ? response : JSON.stringify(response, null, 2);
+  }
 
   panel.hidden = false;
 }
