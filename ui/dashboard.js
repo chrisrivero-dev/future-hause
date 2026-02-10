@@ -46,6 +46,12 @@
    - No auto-promotion between sections
    - All state transitions require explicit engine action
    - All actions must be logged to action_log.json
+   // ⚠️ IMPORTANT
+// This file is intentionally large and order-sensitive.
+// Do NOT duplicate function names.
+// Do NOT move async logic into wiring without checks.
+// Make one change at a time and test immediately.
+
    ============================================================================ */
 
 // Configuration
@@ -1859,7 +1865,10 @@ function wireNotesSubmit() {
       renderActionLogTable();
 
       // 2) Intent routing
-      const intent = getActiveIntent();
+      const routingDecision =
+        typeof window.routeLLM === "function" ? window.routeLLM(text) : null;
+
+      const intent = routingDecision?.intent || "unknown";
 
       if (intent === "analyze_recent_intel") {
         analyzeRecentIntel();
