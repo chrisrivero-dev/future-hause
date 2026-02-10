@@ -1652,24 +1652,8 @@ async function sendToLLM(message) {
   if (intent === 'draft_request' && allow_draft) {
     const ollamaResponse = await callOllama(message);
     renderDraftWork(ollamaResponse);
-
-    return formatResponse({
-      presenceState: PRESENCE_STATES.OBSERVING,
-      summary: 'Draft generated and displayed in Draft Work section.',
-      whatIDid: [
-        'Classified intent as draft_request',
-        'Called Ollama to generate draft',
-        'Rendered output to Draft Work section',
-      ],
-      whatIDidNot: [
-        'No data was saved or persisted',
-        'No Excel or Freshdesk writes',
-        'No action log entries created',
-        'No auto-promotion to KB or Projects',
-      ],
-      nextStep:
-        'Review the draft in the Draft Work section. Edit or discard as needed.',
-    });
+    // Draft renders ONLY to Draft Work — return null to skip Future Hause Response
+    return null;
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -1783,7 +1767,7 @@ async function handleUserSubmission(text) {
   // 1) Presence: Idle → Thinking
   setPresenceState?.(PRESENCE_STATES?.THINKING || 'thinking');
 
-  // 2) Ask the router/LLM layer for a response (drafts may render into Draft Work)
+  // 2) Route to LLM — drafts render to Draft Work, others return response
   let response;
   try {
     response = await sendToLLM(text);
@@ -1792,8 +1776,10 @@ async function handleUserSubmission(text) {
     response = `Error: ${err?.message || err}`;
   }
 
-  // 3) Render Future Hause Response panel
-  renderFutureHauseResponse?.(response);
+  // 3) Render to Future Hause Response (skip if null — draft already rendered elsewhere)
+  if (response !== null) {
+    renderFutureHauseResponse?.(response);
+  }
 
   // 4) Presence: Thinking → Observing
   setPresenceState?.(PRESENCE_STATES?.OBSERVING || 'observing');
