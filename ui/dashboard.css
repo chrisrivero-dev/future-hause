@@ -590,7 +590,23 @@ body {
    - Each column scrolls independently via .intel-column-content
    - No column dominates height or width (all equal via 1fr)
    ========================================================================== */
-.intel-column {
+/* =====================================================================
+   HEADER GROUP: STRUCTURAL CONSTRAINTS — COLUMN HEIGHT & OVERFLOW
+   Scope: Intel Columns + Secondary Sections
+   Affects:
+     - Column containers that stack header + content
+   Owns:
+     - max-height constraints
+     - overflow scroll behavior
+   Purpose:
+     - Keeps columns visually bounded
+     - Allows headers to remain visible above scroll regions
+   Risk if changed:
+     - Header underline clipping
+     - Title truncation
+     - Scroll bleed or lost affordances
+   ===================================================================== */
+   .intel-column {
   /* Grid item properties */
   min-height: 0; /* Required for overflow scroll in grid */
   min-width: 0; /* Prevent grid blowout from long content */
@@ -651,7 +667,20 @@ body {
 [data-theme='light'] .intel-column[data-section='recommendations'] {
   background: rgba(160, 169, 200, 0.06);
 }
-
+/* =====================================================================
+   HEADER GROUP: INTEL COLUMN HEADER — CONTAINER
+   Scope: Intel Columns
+   Affects: .intel-column-header
+   Purpose:
+     - Holds title + actions
+     - Provides visual separation via border-bottom
+   Structural Notes:
+     - display: flex
+     - flex-shrink: 0 prevents header compression
+   Risk if changed:
+     - Double borders if title underlines are added
+     - Header clipping if flex-shrink removed
+   ===================================================================== */
 .intel-column-header {
   padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--border-color-subtle);
@@ -670,6 +699,19 @@ body {
 [data-theme='light'] .intel-column-header:hover {
   background: rgba(0, 0, 0, 0.02);
 }
+
+/* =====================================================================
+   HEADER GROUP: INTEL COLUMN TITLE — TYPOGRAPHY
+   Scope: Intel Columns
+   Affects: .intel-column-title
+   Purpose: Base typography for intel column headers
+   Depends on: .intel-column-header layout + theme variables
+   Conflicts:
+     - Overridden by late-file font-weight rule (~2052)
+   Risk if changed:
+     - Inconsistent weight across themes
+     - Visual mismatch with secondary headers
+   ===================================================================== */
 
 .intel-column-title {
   font-size: 0.9rem;
@@ -1085,7 +1127,27 @@ body {
 [data-theme='light'] .secondary-section:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-
+/* =====================================================================
+   HEADER GROUP: SECONDARY SECTION HEADER — CONTAINER
+   Scope: Secondary Sections
+   Affects: .secondary-section-header
+   Purpose: Container for secondary section titles + controls
+   Structural Notes:
+     - display: flex
+     - border-bottom provides separation
+   Risk if changed:
+     - Interaction regression (click targets)
+     - Visual inconsistency across sections
+   ===================================================================== */
+     /* =====================================================================
+     HEADER GROUP: SECONDARY SECTION HEADER — DRAFT WORKLOG VARIANT
+     Scope: Draft Worklog
+     Affects: .draft-worklog-section .secondary-section-header
+     Purpose: Adjusts layout for worklog-specific controls
+     Risk if changed:
+       - Misalignment of header actions
+     ===================================================================== */
+   
 .secondary-section-header {
   padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--border-color-subtle);
@@ -1099,10 +1161,34 @@ body {
 .secondary-section-header:hover {
   background: rgba(255, 255, 255, 0.02);
 }
-
+/* =====================================================================
+   HEADER GROUP: THEME OVERRIDES — HEADER STYLES
+   Scope: Light Theme
+   Affects:
+     - .intel-column-title (indirect)
+     - .secondary-section-title (indirect)
+     - .notes-response-title
+     - .explanation-panel-title
+   Purpose:
+     - Adjust contrast for light backgrounds
+   Risk if changed:
+     - Header styles reverting unexpectedly
+     - Cross-theme inconsistency
+   ===================================================================== */
 [data-theme='light'] .secondary-section-header:hover {
   background: rgba(0, 0, 0, 0.02);
 }
+/* =====================================================================
+   HEADER GROUP: SECONDARY SECTION TITLE — TYPOGRAPHY
+   Scope: Secondary Sections
+   Affects: .secondary-section-title
+   Purpose: Base typography for secondary headers
+   Depends on: Section header container + theme
+   Conflicts:
+     - Late-file font-weight override (~2053)
+   Risk if changed:
+     - Divergence from intel column hierarchy
+   ===================================================================== */
 
 .secondary-section-title {
   font-size: 0.9rem;
@@ -1340,7 +1426,17 @@ body {
   outline: 2px solid var(--accent-cyan);
   outline-offset: -2px;
 }
-
+/* =====================================================================
+   HEADER GROUP: NOTES RESPONSE TITLE — TYPOGRAPHY
+   Scope: Notes Panel
+   Affects: .notes-response-title
+   Purpose: Compact, label-style header for collapsible notes
+   Depends on: Theme accent variables
+   Theme Overrides:
+     - Light theme color override (~1352)
+   Risk if changed:
+     - Loss of visual distinction from body text
+   ===================================================================== */
 .notes-response-title {
   font-size: 0.75rem;
   font-weight: 600;
@@ -1595,7 +1691,17 @@ body {
   padding: var(--spacing-md) var(--spacing-lg);
   border-top-color: var(--border-color-subtle);
 }
-
+/* =====================================================================
+   HEADER GROUP: EXPLANATION PANEL TITLE — TYPOGRAPHY
+   Scope: Explanation Panels
+   Affects: .explanation-panel-title
+   Purpose: Label-style header for expandable explanation sections
+   Depends on: Theme accent variables
+   Theme Overrides:
+     - Light theme color override (~1608)
+   Risk if changed:
+     - Visual inconsistency with notes response titles
+   ===================================================================== */
 .explanation-panel-title {
   font-size: 0.7rem;
   font-weight: 600;
