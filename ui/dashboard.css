@@ -712,7 +712,30 @@ body {
      - Inconsistent weight across themes
      - Visual mismatch with secondary headers
    ===================================================================== */
+/* =====================================================================
+   HEADER TYPOGRAPHY SYSTEM — DESIGN CONTRACT
+   This file defines ALL header typography.
 
+   Header tiers:
+     Tier 1: Primary section titles
+       - .intel-column-title
+       - .secondary-section-title
+
+     Tier 2: Subsection / panel titles
+       - .notes-response-title
+       - .explanation-panel-title
+
+     Tier 3: App-level headers
+       - .header-title
+
+   Visual rules (decision-only, not implemented yet):
+     - Underline will live on TITLE TEXT (not containers)
+     - Header containers may retain structural borders
+     - Typography scale and weight will be unified per tier
+
+   DO NOT redefine header font-size, weight, or decoration
+   outside this system without updating this comment.
+   ===================================================================== */
 .intel-column-title {
   font-size: 0.9rem;
   font-weight: 600;
