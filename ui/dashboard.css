@@ -2365,3 +2365,26 @@ body {
 .coach-error .coach-response-text {
   color: var(--accent-error);
 }
+/* =====================================================================
+   FINAL LAYOUT OVERRIDE — ACTION LOG TERMINAL POSITION
+   Purpose:
+   - Action Log spans full width at the bottom
+   - Does NOT affect intel grid or other sections
+   - CSS-only, HTML untouched
+   ===================================================================== */
+
+.secondary-sections {
+  grid-auto-flow: row;
+}
+
+/* Ensure Action Log is full-width and terminal */
+.secondary-section.action-log-section {
+  grid-column: 1 / -1;
+  /* span both columns */
+  align-self: stretch;
+}
+
+/* Prevent notes-log-row from constraining Action Log */
+.notes-log-row {
+  grid-column: 1 / -1;
+}
