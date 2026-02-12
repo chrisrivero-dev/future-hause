@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "version": "1.0",
+    "last_updated": "2026-02-12T05:30:05.210689"
+  },
+  "perception": {
+    "inputs": [],
+    "signals": [],
+    "sources": []
+  },
+  "interpretation": {
+    "summaries": [],
+    "classifications": [],
+    "confidence_scores": []
+  },
+  "proposals": {
+    "kb_candidates": [],
+    "project_candidates": [],
+    "action_candidates": []
+  },
+  "decisions": {
+    "approved": [],
+    "rejected": [],
+    "modified": []
+  },
+  "state_mutations": {
+    "projects": [],
+    "kb": [],
+    "action_log": [
+      {
+        "timestamp": "2026-02-12T05:30:05.208Z",
+        "type": "manual",
+        "description": "Cognition spine operational",
+        "confidence": 1
+      }
+    ]
+  },
+  "memory_links": {
+    "related_sessions": [],
+    "related_entities": [],
+    "embedding_ids": []
+  },
+  "system_health": {
+    "errors": [],
+    "latency_ms": null,
+    "model_used": null
+  }
+}

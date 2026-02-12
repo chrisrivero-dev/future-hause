@@ -280,7 +280,7 @@ async function loadAllData() {
     fetchOutputFile(CONFIG.files.intelEvents),
     fetchOutputFile(CONFIG.files.kbOpportunities),
     fetchOutputFile(CONFIG.files.projects),
-    fetchOutputFile(CONFIG.files.actionLog),
+    fetch('/api/action-log').then((res) => res.json()),
   ]);
 
   // Store results and update load status

@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.draft_work_log import create_draft, DRAFT_WORK_LOG
-
+from engine.state_manager import load_state, append_action, get_action_log
+from flask import jsonify, request
 import uuid
 
 
@@ -12,6 +13,23 @@ app = Flask(__name__, static_folder="ui", static_url_path="/ui")
 def root():
     return app.send_static_file("index.html")
 
+
+@app.route("/api/state", methods=["GET"])
+def get_state():
+    return jsonify(load_state())
+
+@app.route("/api/action", methods=["POST"])
+def add_action():
+    data = request.json
+    append_action(data)
+    return jsonify({"status": "ok"})
+
+@app.route("/api/action-log", methods=["GET"])
+def action_log():
+    return jsonify({
+        "schema_version": "1.0",
+        "actions": get_action_log()
+    })
 
 
 
