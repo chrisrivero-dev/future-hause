@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
+from engine.state_manager import get_intel_signals
 
 app = Flask(__name__)
 
@@ -43,6 +44,17 @@ def coach():
     )
 
     return jsonify(result)
+
+
+# ─────────────────────────────────────────────
+# Intel API
+# ─────────────────────────────────────────────
+@app.route("/api/intel", methods=["GET"])
+def get_intel():
+    return jsonify({
+        "schema_version": "1.0",
+        "intel_events": get_intel_signals()
+    })
 
 
 if __name__ == "__main__":

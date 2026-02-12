@@ -272,7 +272,10 @@ async function fetchOutputFile(filename) {
  */
 async function loadAllData() {
   const results = await Promise.all([
-    fetchOutputFile(CONFIG.files.intelEvents),
+    fetch("/api/intel").then(res => res.json()).then(data => ({
+      schema_version: data.schema_version,
+      events: data.intel_events
+    })).catch(() => null),
     fetchOutputFile(CONFIG.files.kbOpportunities),
     fetchOutputFile(CONFIG.files.projects),
     fetchOutputFile(CONFIG.files.actionLog),
