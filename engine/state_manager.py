@@ -1,72 +1,80 @@
 """State manager for cognition_state.json"""
+
 import json
 from pathlib import Path
+from datetime import datetime
 
 STATE_PATH = Path("state/cognition_state.json")
 
-# Full baseline schema for initialization
-BASELINE_SCHEMA = {
-    "meta": {"version": "1.0", "last_updated": None},
-    "perception": {"inputs": [], "signals": [], "sources": []},
-    "interpretation": {"summaries": [], "classifications": [], "confidence_scores": []},
-    "proposals": {"kb_candidates": [], "project_candidates": [], "action_candidates": []},
-    "decisions": {"approved": [], "rejected": [], "modified": []},
-    "state_mutations": {"projects": [], "kb": [], "action_log": []},
-    "memory_links": {"related_sessions": [], "related_entities": [], "embedding_ids": []},
-    "system_health": {"errors": [], "latency_ms": None, "model_used": None},
-}
-
 
 def load_state():
-    """Load cognition state from disk."""
     if not STATE_PATH.exists():
-        # Initialize with full baseline schema
-        save_state(BASELINE_SCHEMA)
-        return BASELINE_SCHEMA.copy()
+        raise FileNotFoundError("Cognition state not initialized.")
     with open(STATE_PATH, "r") as f:
-        state = json.load(f)
-    # Validate schema integrity
-    if "state_mutations" not in state or "action_log" not in state.get("state_mutations", {}):
-        raise ValueError("cognition_state.json missing required schema fields (state_mutations.action_log)")
-    return state
+        return json.load(f)
 
 
 def save_state(state):
-    """Save cognition state to disk."""
+    state["meta"]["last_updated"] = datetime.utcnow().isoformat()
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(STATE_PATH, "w") as f:
         json.dump(state, f, indent=2)
 
 
 # ─────────────────────────────────────────────
-# Action Log Functions
+# Ingestion Layer
+# ─────────────────────────────────────────────
+
+def append_input(input_object):
+    state = load_state()
+    state["perception"]["inputs"].append(input_object)
+    save_state(state)
+
+
+def get_inputs():
+    state = load_state()
+    return state["perception"]["inputs"]
+
+
+# ─────────────────────────────────────────────
+# Signal Layer
+# ─────────────────────────────────────────────
+
+def get_intel_signals():
+    state = load_state()
+    return state["perception"]["signals"]
+
+
+def replace_intel_signals(signals):
+    state = load_state()
+    state["perception"]["signals"] = signals
+    save_state(state)
+
+
+# ─────────────────────────────────────────────
+# Proposal Layer
+# ─────────────────────────────────────────────
+
+def get_kb_candidates():
+    state = load_state()
+    return state["proposals"]["kb_candidates"]
+
+
+def get_projects():
+    state = load_state()
+    return state["state_mutations"]["projects"]
+
+
+# ─────────────────────────────────────────────
+# Action Log
 # ─────────────────────────────────────────────
 
 def append_action(action_entry):
-    """Append an action entry to state_mutations.action_log."""
     state = load_state()
     state["state_mutations"]["action_log"].append(action_entry)
     save_state(state)
 
 
 def get_action_log():
-    """Get action log from state_mutations.action_log."""
     state = load_state()
     return state["state_mutations"]["action_log"]
-
-
-# ─────────────────────────────────────────────
-# Intel Functions
-# ─────────────────────────────────────────────
-
-def get_intel_signals():
-    """Get intel signals from perception.signals."""
-    state = load_state()
-    return state["perception"]["signals"]
-
-
-def replace_intel_signals(signals):
-    """Replace intel signals in perception.signals."""
-    state = load_state()
-    state["perception"]["signals"] = signals
-    save_state(state)

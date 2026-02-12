@@ -3,8 +3,7 @@ from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.draft_work_log import create_draft, DRAFT_WORK_LOG
 from engine.state_manager import load_state, append_action, get_action_log, get_intel_signals
 from engine.signal_extractor import run_signal_extraction
-from engine.state_manager import get_projects
-from engine.state_manager import get_kb_candidates
+
 import uuid
 
 
@@ -16,6 +15,18 @@ app = Flask(__name__, static_folder="ui", static_url_path="/ui")
 def root():
     return app.send_static_file("index.html")
 
+from engine.proposal_generator import run_proposal_generation
+
+@app.route("/api/run-proposal-generation", methods=["POST"])
+def run_proposals():
+    try:
+        result = run_proposal_generation()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 # ─────────────────────────────────────────────
 # Signal Extraction API
@@ -52,12 +63,6 @@ def action_log():
     return jsonify({
         "schema_version": "1.0",
         "actions": get_action_log()
-    })
-@app.route("/api/intel", methods=["GET"])
-def get_intel():
-    return jsonify({
-        "schema_version": "1.0",
-        "intel_events": get_intel_signals()
     })
 
 @app.route("/api/kb", methods=["GET"])
