@@ -606,7 +606,7 @@ body {
      - Title truncation
      - Scroll bleed or lost affordances
    ===================================================================== */
-   .intel-column {
+.intel-column {
   /* Grid item properties */
   min-height: 0; /* Required for overflow scroll in grid */
   min-width: 0; /* Prevent grid blowout from long content */
@@ -762,7 +762,6 @@ body {
      - Underline matches text color
    --------------------------------------------------------------------- */
 
-
 /* ---------------------------------------------------------------------
    Tier 2 — Subsection / Panel Headers
    Applies to:
@@ -785,7 +784,11 @@ body {
 /* Tier 1 — Primary Section Headers */
 .intel-column-title,
 .secondary-section-title {
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 1.2rem;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -805,7 +808,11 @@ body {
 /* Tier 2 — Subsection / Panel Headers */
 .notes-response-title,
 .explanation-panel-title {
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -832,7 +839,6 @@ body {
 
   margin: 0;
 }
-  
 
 .intel-column-count {
   font-size: 0.75rem;
@@ -1253,7 +1259,7 @@ body {
      - Interaction regression (click targets)
      - Visual inconsistency across sections
    ===================================================================== */
-     /* =====================================================================
+/* =====================================================================
      HEADER GROUP: SECONDARY SECTION HEADER — DRAFT WORKLOG VARIANT
      Scope: Draft Worklog
      Affects: .draft-worklog-section .secondary-section-header
@@ -1261,7 +1267,7 @@ body {
      Risk if changed:
        - Misalignment of header actions
      ===================================================================== */
-   
+
 .secondary-section-header {
   padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--border-color-subtle);
@@ -1303,7 +1309,6 @@ body {
    Risk if changed:
      - Divergence from intel column hierarchy
    ===================================================================== */
-
 
 .secondary-section-content {
   padding: var(--spacing-md) var(--spacing-lg);
@@ -2255,7 +2260,6 @@ body {
 }
 
 @media (prefers-contrast: high) {
-
   .intel-column,
   .secondary-section,
   .intel-card,
