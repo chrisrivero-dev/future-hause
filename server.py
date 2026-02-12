@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.draft_work_log import create_draft, DRAFT_WORK_LOG
-from engine.state_manager import load_state, append_action, get_action_log
-from flask import jsonify, request
+from engine.state_manager import load_state, append_action, get_action_log, get_intel_signals
+from engine.signal_extractor import run_signal_extraction
+from engine.state_manager import get_projects
+from engine.state_manager import get_kb_candidates
 import uuid
 
 
@@ -13,6 +15,26 @@ app = Flask(__name__, static_folder="ui", static_url_path="/ui")
 def root():
     return app.send_static_file("index.html")
 
+
+# ─────────────────────────────────────────────
+# Signal Extraction API
+# ─────────────────────────────────────────────
+@app.route("/api/run-signal-extraction", methods=["POST"])
+def run_extraction():
+    try:
+        new_signals = run_signal_extraction()
+
+        return jsonify({
+            "status": "ok",
+            "signals_created": len(new_signals),
+            "signals": new_signals
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route("/api/state", methods=["GET"])
 def get_state():
@@ -30,7 +52,26 @@ def action_log():
         "schema_version": "1.0",
         "actions": get_action_log()
     })
+@app.route("/api/intel", methods=["GET"])
+def get_intel():
+    return jsonify({
+        "schema_version": "1.0",
+        "intel_events": get_intel_signals()
+    })
 
+@app.route("/api/kb", methods=["GET"])
+def get_kb():
+    return jsonify({
+        "schema_version": "1.0",
+        "kb_opportunities": get_kb_candidates()
+    })
+
+@app.route("/api/projects", methods=["GET"])
+def get_projects_api():
+    return jsonify({
+        "schema_version": "1.0",
+        "projects": get_projects()
+    })
 
 
 
@@ -142,4 +183,4 @@ def send():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=8000, debug=True, use_reloader=False)

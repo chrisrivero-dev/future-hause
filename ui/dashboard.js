@@ -277,9 +277,9 @@ async function fetchOutputFile(filename) {
  */
 async function loadAllData() {
   const results = await Promise.all([
-    fetchOutputFile(CONFIG.files.intelEvents),
-    fetchOutputFile(CONFIG.files.kbOpportunities),
-    fetchOutputFile(CONFIG.files.projects),
+    fetch('/api/intel').then((res) => res.json()),
+    fetch('/api/kb').then((res) => res.json()),
+    fetch('/api/projects').then((res) => res.json()),
     fetch('/api/action-log').then((res) => res.json()),
   ]);
 
@@ -2232,4 +2232,26 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => setIconState?.('idle'), 3000);
     }
   });
+});
+async function runSignalExtraction() {
+  try {
+    const res = await fetch('/api/run-signal-extraction', {
+      method: 'POST',
+    });
+
+    const data = await res.json();
+
+    console.log('Signal extraction result:', data);
+
+    // Reload dashboard data
+    await loadAllData();
+  } catch (err) {
+    console.error('Signal extraction failed:', err);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('run-extraction-btn');
+  if (btn) {
+    btn.addEventListener('click', runSignalExtraction);
+  }
 });

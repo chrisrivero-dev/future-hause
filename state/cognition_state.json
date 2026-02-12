@@ -1,11 +1,57 @@
 {
   "meta": {
     "version": "1.0",
-    "last_updated": "2026-02-12T05:30:05.210689"
+    "last_updated": "2026-02-12T19:00:38.667316"
   },
   "perception": {
-    "inputs": [],
-    "signals": [],
+    "inputs": [
+      {
+        "id": "aa408947-bb52-442e-8914-86af68c6c297",
+        "source": "reddit",
+        "external_id": null,
+        "content": "Test ingestion object",
+        "content_type": "post",
+        "author": null,
+        "url": null,
+        "tags": [],
+        "created_at": null,
+        "ingested_at": "2026-02-12T18:42:05.091988",
+        "metadata": {}
+      },
+      {
+        "id": "dbb64c0a-4133-4ff8-a363-21763127141d",
+        "source": "reddit",
+        "external_id": null,
+        "content": "FutureBit firmware update causing hash drop discussion",
+        "content_type": "post",
+        "author": null,
+        "url": null,
+        "tags": [],
+        "created_at": null,
+        "ingested_at": "2026-02-12T18:58:48.011863",
+        "metadata": {}
+      }
+    ],
+    "signals": [
+      {
+        "id": "8b7ab809-fb47-4255-97ab-e14c6cb6b3a3",
+        "source_input_id": "aa408947-bb52-442e-8914-86af68c6c297",
+        "source": "reddit",
+        "summary": "Test ingestion object",
+        "category": "discussion",
+        "confidence": 0.6,
+        "created_at": "2026-02-12T19:00:04.151381"
+      },
+      {
+        "id": "205258e8-d04b-4928-b967-93b98343a76b",
+        "source_input_id": "dbb64c0a-4133-4ff8-a363-21763127141d",
+        "source": "reddit",
+        "summary": "FutureBit firmware update causing hash drop discussion",
+        "category": "announcement",
+        "confidence": 0.6,
+        "created_at": "2026-02-12T19:00:04.151395"
+      }
+    ],
     "sources": []
   },
   "interpretation": {
