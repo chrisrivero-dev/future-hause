@@ -1,38 +1,83 @@
-"""
-Future Hause — Review Engine Adapter (Interface)
-
-Review engines critique and improve outputs produced by agents.
-They NEVER execute actions and NEVER mutate state.
-"""
-
-from typing import Dict, List
-from abc import ABC, abstractmethod
+from engine.draft_work_log import (
+    DRAFT_WORK_LOG,
+    DraftReview,
+    attach_review,
+)
 
 
-class ReviewResult(Dict):
-    """
-    Standard review output contract.
-    """
-    review: str
-    confidence: float
-    risk_flags: List[str]
-    model: str
+from datetime import datetime
+import uuid
 
 
-class ReviewEngineAdapter(ABC):
-    """
-    All review engines must implement this interface.
-    """
+class ReviewEngineAdapter:
+    def __init__(
+        self,
+        provider_name: str = "local",
+        persist: bool = True,
+        allow_claude: bool = False,
+    ):
+        self.provider_name = provider_name
+        self.persist = persist
+        self.allow_claude = allow_claude
 
-    @abstractmethod
-    def review(self, payload: Dict) -> ReviewResult:
-        """
-        Review a draft or agent output.
+    def run(
+        self,
+        *,
+        draft_id: str,
+        draft_text: str,
+        human_triggered: bool = False,
+    ):
+        if draft_id not in DRAFT_WORK_LOG:
+            raise ValueError("Draft does not exist")
 
-        HARD RULES:
-        - No execution
-        - No delegation
-        - No agent spawning
-        - No state mutation
-        """
-        pass
+        draft = DRAFT_WORK_LOG[draft_id]
+
+        # ─────────────────────────────────────────────
+        # Move to reviewing state
+        # ─────────────────────────────────────────────
+        if draft.status == "drafted":
+            draft.status = "reviewing"
+
+        # ─────────────────────────────────────────────
+        # Minimal deterministic review logic
+        # ─────────────────────────────────────────────
+        severity = "low"
+        notes = "No major issues detected."
+
+        if len(draft_text.strip()) < 40:
+            severity = "medium"
+            notes = "Draft is very short. Consider expanding."
+
+        review_id = str(uuid.uuid4())
+
+        review = DraftReview(
+            draft_id=draft_id,
+            reviewer="agent",
+            review_type="clarity",
+            severity=severity,
+            notes=notes,
+            references=[],
+        )
+
+        # ─────────────────────────────────────────────
+        # Finalize state
+        # ─────────────────────────────────────────────
+        draft.status = "reviewed"
+        draft.review = {
+            "review_id": review_id,
+            "notes": notes,
+            "severity": severity,
+            "status": "flagged" if severity != "low" else "approved",
+            "reviewed_at": datetime.utcnow().isoformat(),
+        }
+
+        if self.persist:
+            attach_review(review)
+
+        return {
+            "review_id": review_id,
+            "draft_id": draft_id,
+            "status": draft.status,
+            "severity": severity,
+            "notes": notes,
+        }

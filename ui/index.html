@@ -373,33 +373,32 @@
           - Data Passed: { id, timestamp, action_type, rationale, actor }
           - Purpose: Immutable record, no actions allowed
         -->
-              
 
-            <!--
+              <!--
         Active Project Focus
         PURPOSE:
         - Display currently selected project context
         - Show project metadata and status
         - Read-only, no mutations
       -->
-            <section
-              class="secondary-section active-project-section"
-              aria-label="Active Project Focus"
-              data-section="active-project"
-            >
-              <div class="secondary-section-header">
-                <h2 class="secondary-section-title">Active Project Focus</h2>
-              </div>
-              <div class="secondary-section-content active-project-content">
-                <div id="active-project-panel" class="active-project-panel">
-                  <div class="active-project-empty">
-                    <div class="intel-empty-text">No project selected</div>
+              <section
+                class="secondary-section active-project-section"
+                aria-label="Active Project Focus"
+                data-section="active-project"
+              >
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">Active Project Focus</h2>
+                </div>
+                <div class="secondary-section-content active-project-content">
+                  <div id="active-project-panel" class="active-project-panel">
+                    <div class="active-project-empty">
+                      <div class="intel-empty-text">No project selected</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <!--
+              <!--
         Draft Work Log (Assistant-Generated)
         PURPOSE:
         - Help draft daily work entries for FutureBit timesheet
@@ -413,54 +412,54 @@
         - Do NOT assume hours unless explicitly provided
         - This is memory-assist and drafting, not execution
       -->
-            <section
-              class="secondary-section draft-worklog-section"
-              aria-label="Draft Work Log"
-              data-section="draft-worklog"
-            >
-              <div class="secondary-section-header">
-                <h2 class="secondary-section-title">Draft Work Log</h2>
-                <span class="draft-badge">DRAFT</span>
-                <span
-                  class="info-tooltip guardrails-tooltip"
-                  data-tooltip="Guardrails: No Excel writes. No Freshdesk writes. No API calls. No persistence. No assumptions about hours."
-                  >ⓘ Learn more</span
-                >
-              </div>
-              <div class="secondary-section-content draft-worklog-content">
-                <div id="draft-worklog-entries" class="draft-worklog-entries">
-                  <div class="draft-worklog-empty">
-                    <div class="intel-empty-icon">✏️</div>
-                    <div class="intel-empty-text">No draft entries yet</div>
-                    <div class="intel-empty-hint">
-                      Submit a message above to generate drafts
+              <section
+                class="secondary-section draft-worklog-section"
+                aria-label="Draft Work Log"
+                data-section="draft-worklog"
+              >
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">Draft Work Log</h2>
+                  <span class="draft-badge">DRAFT</span>
+                  <span
+                    class="info-tooltip guardrails-tooltip"
+                    data-tooltip="Guardrails: No Excel writes. No Freshdesk writes. No API calls. No persistence. No assumptions about hours."
+                    >ⓘ Learn more</span
+                  >
+                </div>
+                <div class="secondary-section-content draft-worklog-content">
+                  <div id="draft-worklog-entries" class="draft-worklog-entries">
+                    <div class="draft-worklog-empty">
+                      <div class="intel-empty-icon">✏️</div>
+                      <div class="intel-empty-text">No draft entries yet</div>
+                      <div class="intel-empty-hint">
+                        Submit a message above to generate drafts
+                      </div>
                     </div>
                   </div>
+                  <div class="draft-worklog-actions">
+                    <button
+                      type="button"
+                      class="draft-action-btn"
+                      id="copy-draft-btn"
+                      disabled
+                      title="Copy to clipboard"
+                    >
+                      📋 Copy
+                    </button>
+                    <button
+                      type="button"
+                      class="draft-action-btn"
+                      id="export-draft-btn"
+                      disabled
+                      title="Export draft"
+                    >
+                      📤 Export
+                    </button>
+                  </div>
                 </div>
-                <div class="draft-worklog-actions">
-                  <button
-                    type="button"
-                    class="draft-action-btn"
-                    id="copy-draft-btn"
-                    disabled
-                    title="Copy to clipboard"
-                  >
-                    📋 Copy
-                  </button>
-                  <button
-                    type="button"
-                    class="draft-action-btn"
-                    id="export-draft-btn"
-                    disabled
-                    title="Export draft"
-                  >
-                    📤 Export
-                  </button>
-                </div>
-              </div>
-            </section>
+              </section>
 
-            <!--
+              <!--
         System Metadata
         NAVIGATION CONTRACT:
         - Click Target: None (informational display only)
@@ -468,84 +467,101 @@
         - Data Passed: { schema_versions, load_status, timestamps }
         - Purpose: Health + trust indicators, pure observability
       -->
+              <section
+                class="secondary-section metadata-section"
+                aria-label="System Metadata"
+                data-section="metadata"
+              >
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">System Metadata</h2>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="Health and trust indicators. Schema versions, load status, and timestamps."
+                    >ⓘ</span
+                  >
+                  <span id="last-updated-time" class="last-updated"
+                    >Last updated: —</span
+                  >
+                  <button
+                    type="button"
+                    class="ingest-btn"
+                    id="ingest-dry-run-btn"
+                    title="Generate mock data files"
+                  >
+                    Run ingest (dry-run)
+                    <span class="ingest-btn-hint"
+                      >Manual · Non-persistent · Safe</span
+                    >
+                  </button>
+                </div>
+                <div
+                  id="metadata-content"
+                  class="secondary-section-content metadata-content"
+                >
+                  <div class="intel-empty">
+                    <div class="intel-empty-icon">⚙️</div>
+                    <div class="intel-empty-text">Loading metadata...</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+            <!-- closes secondary-sections -->
             <section
-              class="secondary-section metadata-section"
-              aria-label="System Metadata"
-              data-section="metadata"
+              class="secondary-section action-log-section"
+              aria-label="Action Log"
+              data-section="action-log"
             >
               <div class="secondary-section-header">
-                <h2 class="secondary-section-title">System Metadata</h2>
+                <h2 class="secondary-section-title">Action Log</h2>
                 <span
                   class="info-tooltip"
-                  data-tooltip="Health and trust indicators. Schema versions, load status, and timestamps."
+                  data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
                   >ⓘ</span
                 >
-                <span id="last-updated-time" class="last-updated"
-                  >Last updated: —</span
-                >
-                <button
-                  type="button"
-                  class="ingest-btn"
-                  id="ingest-dry-run-btn"
-                  title="Generate mock data files"
-                >
-                  Run ingest (dry-run)
-                  <span class="ingest-btn-hint"
-                    >Manual · Non-persistent · Safe</span
-                  >
-                </button>
               </div>
-              <div
-                id="metadata-content"
-                class="secondary-section-content metadata-content"
-              >
-                <div class="intel-empty">
-                  <div class="intel-empty-icon">⚙️</div>
-                  <div class="intel-empty-text">Loading metadata...</div>
-                </div>
+              <div class="secondary-section-content">
+                <table class="action-log-table">
+                  <thead>
+                    <tr>
+                      <th class="col-time">
+                        Timestamp
+                        <span
+                          class="filter-icon"
+                          data-filter="time"
+                          title="Filter by time"
+                          >⏱</span
+                        >
+                      </th>
+                      <th class="col-id">ID</th>
+                      <th class="col-action">
+                        Action
+                        <span
+                          class="filter-icon"
+                          data-filter="action"
+                          title="Filter by type"
+                          >🔽</span
+                        >
+                      </th>
+                      <th class="col-rationale">Rationale</th>
+                    </tr>
+                  </thead>
+                  <tbody id="action-log-table-body">
+                    <tr>
+                      <td colspan="4" class="intel-empty">
+                        <div class="intel-empty-icon">📝</div>
+                        <div class="intel-empty-text">
+                          No actions logged yet
+                        </div>
+                        <div class="intel-empty-hint">
+                          Decisions will appear here with timestamps and
+                          rationale
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </section>
-          </div>
-          <!-- closes secondary-sections -->
-          <section class="secondary-section action-log-section" aria-label="Action Log" data-section="action-log">
-            <div class="secondary-section-header">
-              <h2 class="secondary-section-title">Action Log</h2>
-              <span class="info-tooltip"
-                data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded.">ⓘ</span>
-            </div>
-            <div class="secondary-section-content">
-              <table class="action-log-table">
-                <thead>
-                  <tr>
-                    <th class="col-time">
-                      Timestamp
-                      <span class="filter-icon" data-filter="time" title="Filter by time">⏱</span>
-                    </th>
-                    <th class="col-id">ID</th>
-                    <th class="col-action">
-                      Action
-                      <span class="filter-icon" data-filter="action" title="Filter by type">🔽</span>
-                    </th>
-                    <th class="col-rationale">Rationale</th>
-                  </tr>
-                </thead>
-                <tbody id="action-log-table-body">
-                  <tr>
-                    <td colspan="4" class="intel-empty">
-                      <div class="intel-empty-icon">📝</div>
-                      <div class="intel-empty-text">
-                        No actions logged yet
-                      </div>
-                      <div class="intel-empty-hint">
-                        Decisions will appear here with timestamps and
-                        rationale
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
           </div>
         </div>
         <!-- closes dashboard-content -->
@@ -571,7 +587,6 @@
     <!-- LLM Router: docs/llm-routing.md (disabled for file:// compatibility) -->
     <!-- <script type="module" src="./llmRouter.js"></script> -->
     <script src="./llmRouter.js"></script>
-    <script src="./dashboard.js"></script>
     <script src="./dashboard.js"></script>
   </body>
 </html>
