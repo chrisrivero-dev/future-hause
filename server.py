@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
-from engine.state_manager import get_intel_signals
+from engine.state_manager import get_intel_signals, append_action, get_action_log
 
 app = Flask(__name__)
 
@@ -54,6 +54,24 @@ def get_intel():
     return jsonify({
         "schema_version": "1.0",
         "intel_events": get_intel_signals()
+    })
+
+
+# ─────────────────────────────────────────────
+# Action Log API
+# ─────────────────────────────────────────────
+@app.route("/api/action", methods=["POST"])
+def post_action():
+    data = request.get_json(force=True)
+    append_action(data)
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/action-log", methods=["GET"])
+def get_action_log_endpoint():
+    return jsonify({
+        "schema_version": "1.0",
+        "actions": get_action_log()
     })
 
 

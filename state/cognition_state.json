@@ -1,5 +1,10 @@
 {
-  "perception": {
-    "signals": []
-  }
+  "meta": { "version": "1.0", "last_updated": null },
+  "perception": { "inputs": [], "signals": [], "sources": [] },
+  "interpretation": { "summaries": [], "classifications": [], "confidence_scores": [] },
+  "proposals": { "kb_candidates": [], "project_candidates": [], "action_candidates": [] },
+  "decisions": { "approved": [], "rejected": [], "modified": [] },
+  "state_mutations": { "projects": [], "kb": [], "action_log": [] },
+  "memory_links": { "related_sessions": [], "related_entities": [], "embedding_ids": [] },
+  "system_health": { "errors": [], "latency_ms": null, "model_used": null }
 }

@@ -272,10 +272,7 @@ async function fetchOutputFile(filename) {
  */
 async function loadAllData() {
   const results = await Promise.all([
-    fetch("/api/intel").then(res => res.json()).then(data => ({
-      schema_version: data.schema_version,
-      events: data.intel_events
-    })).catch(() => null),
+    fetch("/api/intel").then(res => res.json()).catch(() => null),
     fetchOutputFile(CONFIG.files.kbOpportunities),
     fetchOutputFile(CONFIG.files.projects),
     fetchOutputFile(CONFIG.files.actionLog),
@@ -335,7 +332,7 @@ function renderIntelEvents() {
 
   container.innerHTML = '';
 
-  const events = state.intelEvents?.events || [];
+  const events = state.intelEvents?.intel_events || [];
   countEl.textContent = events.length;
 
   if (events.length === 0) {
