@@ -7,6 +7,34 @@
 
     <!-- Core Styles -->
     <link rel="stylesheet" href="./dashboard.css" />
+
+    <!-- Draft Status Badge Styles (minimal addition) -->
+    <style>
+      .draft-status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-left: 8px;
+      }
+      .draft-status-drafted { background: #6b7280; color: #fff; }
+      .draft-status-reviewing { background: #3b82f6; color: #fff; }
+      .draft-status-flagged { background: #f59e0b; color: #000; }
+      .draft-status-reviewed { background: #8b5cf6; color: #fff; }
+      .draft-status-approved { background: #10b981; color: #fff; }
+      .draft-status-rejected { background: #ef4444; color: #fff; }
+      .draft-entry-tags { margin: 4px 0; }
+      .draft-tag {
+        display: inline-block;
+        padding: 2px 6px;
+        margin-right: 4px;
+        background: var(--surface-elevated, #374151);
+        border-radius: 3px;
+        font-size: 0.7rem;
+      }
+    </style>
   </head>
 
   <body>

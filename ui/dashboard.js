@@ -148,6 +148,7 @@ const state = {
     schemaVersions: {},
     generatedTimestamps: {},
   },
+  currentDraftId: null,
 };
 
 /* ----------------------------------------------------------------------------
@@ -1586,25 +1587,83 @@ async function callOllama(prompt) {
 
 /**
  * Render draft content to the Draft Work section
- * @param {string} content - Draft content to display
+ * @param {Object|string} draft - Draft object or legacy string
+ * @param {string} draft.draft_id - Unique draft identifier
+ * @param {string} draft.body - Draft content
+ * @param {string} draft.status - Draft status (drafted|reviewing|flagged|reviewed|approved|rejected)
+ * @param {string[]} [draft.tags] - Optional tags
  */
-function renderDraftWork(content) {
+function renderDraftWork(draft) {
   const entriesContainer = document.getElementById('draft-worklog-entries');
   if (!entriesContainer) return;
 
+  // Handle legacy string input for backwards compatibility
+  if (typeof draft === 'string') {
+    draft = { body: draft, status: 'drafted' };
+  }
+
   const timestamp = new Date().toLocaleTimeString();
+  const status = draft.status || 'drafted';
+  const statusClass = `draft-status-${status}`;
+  const tagsHtml = draft.tags?.length
+    ? `<div class="draft-entry-tags">${draft.tags.map(t => `<span class="draft-tag">${escapeHtml(t)}</span>`).join('')}</div>`
+    : '';
+
   const entryHtml = `
-    <div class="draft-worklog-entry">
+    <div class="draft-worklog-entry" data-draft-id="${escapeHtml(draft.draft_id || '')}">
       <div class="draft-entry-header">
         <span class="draft-entry-time">${timestamp}</span>
         <span class="draft-badge">DRAFT</span>
+        <span class="draft-status-badge ${statusClass}">${escapeHtml(status)}</span>
       </div>
-      <div class="draft-entry-content">${content.replace(/\n/g, '<br>')}</div>
+      ${tagsHtml}
+      <div class="draft-entry-content">${(draft.body || '').replace(/\n/g, '<br>')}</div>
     </div>
   `;
 
+  // Store current draft_id for review operations
+  if (draft.draft_id) {
+    state.currentDraftId = draft.draft_id;
+  }
+
   // Clear empty state and add entry
   entriesContainer.innerHTML = entryHtml;
+
+  // Enable action buttons
+  const copyBtn = document.getElementById('copy-draft-btn');
+  const exportBtn = document.getElementById('export-draft-btn');
+  if (copyBtn) copyBtn.disabled = false;
+  if (exportBtn) exportBtn.disabled = false;
+}
+
+/**
+ * Fetch draft by ID from authoritative store
+ * @param {string} draftId - Draft ID to fetch
+ * @returns {Promise<Object>} Draft object with { draft_id, body, status, tags }
+ */
+async function fetchDraftById(draftId) {
+  const res = await fetch(`/api/draft/${draftId}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch draft: ${res.status}`);
+  }
+  return res.json();
+}
+
+/**
+ * Send message to /api/send and return draft_id
+ * @param {string} text - User message
+ * @returns {Promise<Object>} Response with { draft_id, response }
+ */
+async function sendToApi(text) {
+  const res = await fetch('/api/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: text }),
+  });
+  if (!res.ok) {
+    throw new Error(`Send failed: ${res.status}`);
+  }
+  return res.json();
 }
 
 /**
@@ -1767,21 +1826,26 @@ async function handleUserSubmission(text) {
   // 1) Presence: Idle → Thinking
   setPresenceState?.(PRESENCE_STATES?.THINKING || 'thinking');
 
-  // 2) Route to LLM — drafts render to Draft Work, others return response
-  let response;
   try {
-    response = await sendToLLM(text);
+    // 2) Send to /api/send
+    const sendResult = await sendToApi(text);
+
+    // 3) Fetch authoritative draft state and render to Draft Work
+    if (sendResult.draft_id) {
+      const draft = await fetchDraftById(sendResult.draft_id);
+      renderDraftWork(draft);
+    }
+
+    // 4) Render non-draft response to Future Hause Response if present
+    if (sendResult.response) {
+      renderFutureHauseResponse(sendResult.response);
+    }
   } catch (err) {
-    console.error('[Future Hause] sendToLLM failed:', err);
-    response = `Error: ${err?.message || err}`;
+    console.error('[Future Hause] handleUserSubmission failed:', err);
+    renderFutureHauseResponse(`Error: ${err?.message || err}`);
   }
 
-  // 3) Render to Future Hause Response (skip if null — draft already rendered elsewhere)
-  if (response !== null) {
-    renderFutureHauseResponse?.(response);
-  }
-
-  // 4) Presence: Thinking → Observing
+  // 5) Presence: Thinking → Observing
   setPresenceState?.(PRESENCE_STATES?.OBSERVING || 'observing');
 }
 
@@ -1836,7 +1900,8 @@ function wireNotesSubmit() {
 
 /**
  * Coach Mode — Direct, practical writing coach
- * Manual trigger only. POSTs to /api/coach.
+ * Manual trigger only. POSTs to /api/review.
+ * After review completes, re-fetches authoritative draft state.
  */
 const COACH_PROMPT = `You are a direct, practical writing coach for support and documentation work.
 
@@ -1857,48 +1922,57 @@ function wireCoachMode() {
   if (!coachBtn || !textarea) return;
 
   coachBtn.addEventListener('click', async () => {
+    // Use current draft_id if available, otherwise use textarea content
+    const draftId = state.currentDraftId;
     const draftText = textarea.value.trim();
-    if (!draftText) return;
+
+    if (!draftId && !draftText) return;
 
     // Show loading state
     coachBtn.disabled = true;
-    coachBtn.textContent = 'Coaching...';
+    coachBtn.textContent = 'Reviewing...';
 
     try {
-      const response = await fetch('/api/coach', {
+      const response = await fetch('/api/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          draft_id: `draft-${Date.now()}`,
+          draft_id: draftId || `draft-${Date.now()}`,
           draft_text: draftText,
           system_prompt: COACH_PROMPT,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Coach API error: ${response.status}`);
+        throw new Error(`Review API error: ${response.status}`);
       }
 
       const data = await response.json();
-      const coachResponse =
+      const reviewResponse =
         data.response || data.content || 'No response received.';
 
-      // Render in response panel
+      // Render review response in Future Hause Response panel
       renderFutureHauseResponse({
         mode: 'coach',
-        content: coachResponse,
+        content: reviewResponse,
       });
+
+      // Re-fetch authoritative draft state and re-render Draft Work
+      if (draftId) {
+        const updatedDraft = await fetchDraftById(draftId);
+        renderDraftWork(updatedDraft);
+      }
 
       // Show panel if hidden
       if (responsePanel) {
         responsePanel.hidden = false;
       }
     } catch (err) {
-      console.error('[Coach Mode]', err);
+      console.error('[Review Mode]', err);
       if (responseContent) {
         responseContent.innerHTML = `
           <div class="coach-response coach-error">
-            <div class="coach-response-label">Coach Error</div>
+            <div class="coach-response-label">Review Error</div>
             <div class="coach-response-text">${escapeHtml(err.message)}</div>
           </div>
         `;
