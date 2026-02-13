@@ -3,6 +3,10 @@ from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.draft_work_log import create_draft, DRAFT_WORK_LOG
 from engine.state_manager import load_state, append_action, get_action_log, get_intel_signals
 from engine.signal_extractor import run_signal_extraction
+from engine.kb_draft_generator import run_kb_draft_generation
+from engine.proposal_generator import run_proposal_generation
+from engine.state_manager import get_kb_candidates, get_projects
+
 
 import uuid
 
@@ -15,18 +19,9 @@ app = Flask(__name__, static_folder="ui", static_url_path="/ui")
 def root():
     return app.send_static_file("index.html")
 
-from engine.proposal_generator import run_proposal_generation
 
-@app.route("/api/run-proposal-generation", methods=["POST"])
-def run_proposals():
-    try:
-        result = run_proposal_generation()
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
+
+
 
 # ─────────────────────────────────────────────
 # Signal Extraction API
@@ -78,7 +73,46 @@ def get_projects_api():
         "schema_version": "1.0",
         "projects": get_projects()
     })
+def get_kb_candidates():
+    state = load_state()
+    return state["proposals"]["kb_candidates"]
 
+def get_projects():
+    state = load_state()
+    return state["state_mutations"]["projects"]
+
+# ─────────────────────────────────────────────
+# Proposal Generation API
+# ─────────────────────────────────────────────
+@app.route("/api/run-proposal-generation", methods=["POST"])
+def run_proposals():
+    try:
+        from engine.proposal_generator import run_proposal_generation
+        from engine.llm_adapter import call_llm
+
+        result = run_proposal_generation(call_llm)
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+
+# ─────────────────────────────────────────────
+# KB Draft Generation API
+# ─────────────────────────────────────────────
+@app.route("/api/run-kb-draft-generation", methods=["POST"])
+def run_kb_generation():
+    try:
+        result = run_kb_draft_generation(call_llm)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
 # ─────────────────────────────────────────────

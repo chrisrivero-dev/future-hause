@@ -351,10 +351,14 @@ function renderIntelEvents() {
     const row = document.createElement('div');
     row.className = 'intel-row';
     row.innerHTML = `
-      <strong>${escapeHtml(evt.title || 'Event')}</strong>
-      <div class="meta">${escapeHtml(evt.source || '')} • ${escapeHtml(evt.priority || '')}</div>
-      <div class="desc">${escapeHtml(evt.description || '')}</div>
+      <strong>${escapeHtml(evt.summary || 'Signal')}</strong>
+      <div class="meta">
+        ${escapeHtml(evt.source || '')}
+        ${evt.category ? ' • ' + escapeHtml(evt.category) : ''}
+        ${typeof evt.confidence === 'number' ? ' • ' + Math.round(evt.confidence * 100) + '%' : ''}
+      </div>
     `;
+
     container.appendChild(row);
   });
 }
