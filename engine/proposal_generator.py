@@ -5,16 +5,48 @@ Converts perception signals into proposal candidates:
 - discussion signals → kb_candidates
 - announcement signals → project_candidates
 
-Deterministic. No LLM calls. Uses state_manager for persistence.
+LLM-assisted synthesis for higher quality titles, summaries,
+and impact scoring.
+
+Uses state_manager for persistence.
 """
 
 import uuid
+import json
 from datetime import datetime, timezone
+
 from engine.state_manager import load_state, save_state
 
 
+# ---------------------------------------------------------
+# PROMPT TEMPLATE
+# ---------------------------------------------------------
+
+PROPOSAL_PROMPT = """
+You are an intelligence synthesis engine.
+
+Based on the following signal, generate a structured proposal.
+
+Signal:
+Category: {category}
+Summary: {summary}
+Confidence: {confidence}
+
+Respond ONLY in valid JSON:
+
+{
+  "title": "...",
+  "summary": "...",
+  "impact_score": 0-100
+}
+"""
+
+
+# ---------------------------------------------------------
+# INTERNAL HELPERS
+# ---------------------------------------------------------
+
 def _get_existing_proposal_source_ids(state: dict) -> set:
-    """Extract all source_signal_ids from existing proposals."""
     source_ids = set()
 
     for candidate in state["proposals"]["kb_candidates"]:
@@ -28,42 +60,56 @@ def _get_existing_proposal_source_ids(state: dict) -> set:
     return source_ids
 
 
-def _create_kb_candidate(signal: dict) -> dict:
-    """Create a KB candidate proposal from a discussion signal."""
+def _generate_with_llm(signal: dict, llm_callable):
+    prompt = PROPOSAL_PROMPT.format(
+        category=signal.get("category"),
+        summary=signal.get("summary"),
+        confidence=signal.get("confidence"),
+    )
+
+    try:
+        raw = llm_callable(prompt)
+        parsed = json.loads(raw)
+
+        return {
+            "title": parsed.get("title", signal.get("summary", "")[:80]),
+            "summary": parsed.get("summary", signal.get("summary", "")),
+            "impact_score": parsed.get("impact_score", 50),
+        }
+
+    except Exception:
+        # Safe fallback
+        return {
+            "title": signal.get("summary", "")[:80],
+            "summary": signal.get("summary", ""),
+            "impact_score": int(signal.get("confidence", 0.5) * 100),
+        }
+
+
+def _create_candidate(signal: dict, proposal_data: dict) -> dict:
     return {
         "id": str(uuid.uuid4()),
         "source_signal_id": signal.get("id"),
-        "title": signal.get("title", "Untitled Discussion"),
-        "summary": signal.get("content", signal.get("summary", "")),
+        "title": proposal_data["title"],
+        "summary": proposal_data["summary"],
+        "impact_score": proposal_data["impact_score"],
         "confidence": signal.get("confidence", 0.5),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
-def _create_project_candidate(signal: dict) -> dict:
-    """Create a Project candidate proposal from an announcement signal."""
-    return {
-        "id": str(uuid.uuid4()),
-        "source_signal_id": signal.get("id"),
-        "title": signal.get("title", "Untitled Announcement"),
-        "summary": signal.get("content", signal.get("summary", "")),
-        "confidence": signal.get("confidence", 0.5),
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    }
+# ---------------------------------------------------------
+# MAIN ENTRY
+# ---------------------------------------------------------
 
-
-def run_proposal_generation() -> dict:
+def run_proposal_generation(llm_callable) -> dict:
     """
     Generate proposals from perception signals.
 
-    Reads all signals from perception.signals.
-    Skips signals that have already been proposed (duplicate prevention).
-    Creates KB candidates for 'discussion' category signals.
-    Creates Project candidates for 'announcement' category signals.
-
-    Returns:
-        dict with counts of generated proposals and any skipped signals.
+    LLM synthesizes title, summary, and impact_score.
+    Duplicate-safe.
     """
+
     state = load_state()
 
     signals = state["perception"]["signals"]
@@ -77,25 +123,26 @@ def run_proposal_generation() -> dict:
     for signal in signals:
         signal_id = signal.get("id")
 
-        # Skip if already proposed
-        if signal_id and signal_id in existing_source_ids:
+        if signal_id in existing_source_ids:
             skipped_duplicate += 1
             continue
 
         category = signal.get("category", "").lower()
 
+        if category not in ["discussion", "announcement"]:
+            skipped_unknown_category += 1
+            continue
+
+        proposal_data = _generate_with_llm(signal, llm_callable)
+        candidate = _create_candidate(signal, proposal_data)
+
         if category == "discussion":
-            candidate = _create_kb_candidate(signal)
             state["proposals"]["kb_candidates"].append(candidate)
             kb_generated += 1
-        elif category == "announcement":
-            candidate = _create_project_candidate(signal)
+        else:
             state["proposals"]["project_candidates"].append(candidate)
             project_generated += 1
-        else:
-            skipped_unknown_category += 1
 
-    # Persist updated state
     save_state(state)
 
     return {

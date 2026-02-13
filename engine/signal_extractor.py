@@ -1,85 +1,111 @@
-"""
-Signal Extraction Layer
-
-Transforms perception.inputs (raw ingestion objects)
-into perception.signals (structured intelligence).
-"""
-
 import uuid
+import json
 from datetime import datetime
-from typing import Dict, List
+
+import requests
 
 from engine.state_manager import load_state, save_state
 
 
-def utc_now_iso() -> str:
-    return datetime.utcnow().isoformat()
+OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+OLLAMA_MODEL = "llama3"  # Change if desired
 
 
-def classify_content(content: str) -> str:
-    """
-    Simple deterministic classifier.
-    Replace or extend with LLM later.
-    """
-    text = content.lower()
+PROMPT_TEMPLATE = """
+You are a strict classification engine.
 
-    if "error" in text or "not working" in text:
-        return "issue"
-    if "how do i" in text or "help" in text:
-        return "support_question"
-    if "update" in text or "release" in text:
-        return "announcement"
+Classify the following content into structured JSON.
 
-    return "discussion"
+Allowed categories:
+- announcement
+- discussion
+- bug
+- confusion
+- praise
+
+Respond ONLY in valid JSON with this structure:
+
+{
+  "category": "...",
+  "summary": "...",
+  "confidence": 0.0
+}
+
+Content:
+\"\"\"
+{content}
+\"\"\"
+"""
 
 
-def summarize_content(content: str) -> str:
-    """
-    Simple deterministic summary.
-    Replace with LLM call later.
-    """
-    return content[:200]
-
-
-def create_signal_from_input(input_obj: Dict) -> Dict:
-    """
-    Transform a single ingestion object into a signal.
-    """
-
-    summary = summarize_content(input_obj["content"])
-    category = classify_content(input_obj["content"])
-
-    return {
-        "id": str(uuid.uuid4()),
-        "source_input_id": input_obj["id"],
-        "source": input_obj["source"],
-        "summary": summary,
-        "category": category,
-        "confidence": 0.6,  # static for now
-        "created_at": utc_now_iso(),
+def call_llm(prompt: str) -> str:
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
     }
 
+    try:
+        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        response.raise_for_status()
+        return response.json().get("response", "").strip()
+    except Exception:
+        # Hard fallback if Ollama fails
+        return ""
 
-def run_signal_extraction() -> List[Dict]:
-    """
-    Process all inputs that do not yet have signals.
-    """
 
+def classify_with_llm(content: str):
+    prompt = PROMPT_TEMPLATE.format(content=content)
+
+    raw_response = call_llm(prompt)
+
+    try:
+        parsed = json.loads(raw_response)
+        return {
+            "category": parsed.get("category", "discussion"),
+            "summary": parsed.get("summary", content[:120]),
+            "confidence": float(parsed.get("confidence", 0.5)),
+        }
+    except Exception:
+        # Fail safe fallback
+        return {
+            "category": "discussion",
+            "summary": content[:120],
+            "confidence": 0.5,
+        }
+
+
+def run_signal_extraction():
     state = load_state()
 
     inputs = state["perception"]["inputs"]
-    signals = state["perception"]["signals"]
-
-    existing_input_ids = {s["source_input_id"] for s in signals}
+    existing_signal_input_ids = {
+        s["source_input_id"] for s in state["perception"]["signals"]
+    }
 
     new_signals = []
 
     for input_obj in inputs:
-        if input_obj["id"] not in existing_input_ids:
-            signal = create_signal_from_input(input_obj)
-            new_signals.append(signal)
+        input_id = input_obj["id"]
 
-    state["perception"]["signals"].extend(new_signals)
+        if input_id in existing_signal_input_ids:
+            continue
+
+        classification = classify_with_llm(input_obj["content"])
+
+        signal = {
+            "id": str(uuid.uuid4()),
+            "source_input_id": input_id,
+            "source": input_obj["source"],
+            "summary": classification["summary"],
+            "category": classification["category"],
+            "confidence": classification["confidence"],
+            "created_at": datetime.utcnow().isoformat(),
+        }
+
+        state["perception"]["signals"].append(signal)
+        new_signals.append(signal)
+
     save_state(state)
 
     return new_signals
