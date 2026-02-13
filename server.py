@@ -29,12 +29,23 @@ def root():
 @app.route("/api/run-signal-extraction", methods=["POST"])
 def run_extraction():
     try:
+        from engine.snapshot_manager import create_snapshot
+
         new_signals = run_signal_extraction()
+
+        # Create regenerative snapshot after extraction
+        snapshot = create_snapshot(
+            trigger="signal_extraction",
+            extra={
+                "signals_created": len(new_signals)
+            }
+        )
 
         return jsonify({
             "status": "ok",
             "signals_created": len(new_signals),
-            "signals": new_signals
+            "signals": new_signals,
+            "snapshot": snapshot
         })
 
     except Exception as e:
@@ -42,6 +53,7 @@ def run_extraction():
             "status": "error",
             "message": str(e)
         }), 500
+
 
 @app.route("/api/state", methods=["GET"])
 def get_state():
@@ -88,16 +100,19 @@ def get_projects():
 def run_proposals():
     try:
         from engine.proposal_generator import run_proposal_generation
-        from engine.llm_adapter import call_llm
+        result = run_proposal_generation()
 
-        result = run_proposal_generation(call_llm)
+        from engine.snapshot_manager import create_snapshot
+        snapshot = create_snapshot("proposal_generation")
+
+        result["snapshot"] = snapshot
         return jsonify(result)
-
     except Exception as e:
         return jsonify({
             "status": "error",
             "message": str(e)
         }), 500
+
 
 
 # ─────────────────────────────────────────────
