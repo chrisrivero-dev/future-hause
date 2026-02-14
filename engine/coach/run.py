@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timezone
 
-from engine.system_identity import SYSTEM_IDENTITY
+from engine.system_identity import SYSTEM_IDENTITY, build_state_context
 
 # ──────────────────────────────────────────────
 # Ollama configuration
@@ -21,8 +21,12 @@ def run_coach_mode(draft_id: str, draft_text: str) -> dict:
     This is a support-asset generator.
     """
 
+    state_context = build_state_context()
+
     prompt = f"""
 {SYSTEM_IDENTITY}
+
+{state_context}
 
 You are a senior customer support architect.
 

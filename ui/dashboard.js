@@ -66,6 +66,34 @@ const SYSTEM_IDENTITY = [
   'It is NOT a semiconductor AI chip company.',
 ].join('\n');
 
+// ──────────────────────────────────────────────
+// State Context Pack
+// Fetches current state from APIs and returns a summary for LLM injection.
+// Returns empty string on failure so prompt construction never breaks.
+// ──────────────────────────────────────────────
+async function buildStateContext() {
+  try {
+    const [intelRes, kbRes, projectsRes] = await Promise.all([
+      fetch('/api/intel').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(`${CONFIG.outputsPath}/kb_opportunities.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch(`${CONFIG.outputsPath}/projects.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+    ]);
+
+    const signals = (intelRes?.intel_events || []).slice(0, 5);
+    const kbCandidates = (kbRes?.opportunities || []).slice(0, 5);
+    const projects = (projectsRes?.projects || []).slice(0, 5);
+
+    return (
+      'CURRENT STATE CONTEXT:\n\n' +
+      'Recent Intel:\n' + JSON.stringify(signals, null, 2) + '\n\n' +
+      'KB Candidates:\n' + JSON.stringify(kbCandidates, null, 2) + '\n\n' +
+      'Active Projects:\n' + JSON.stringify(projects, null, 2)
+    );
+  } catch {
+    return '';
+  }
+}
+
 // Configuration
 const CONFIG = {
   outputsPath: '/outputs',
@@ -1574,12 +1602,14 @@ function validateResponseSchema(params) {
 
 async function callOllama(prompt) {
   try {
+    const stateContext = await buildStateContext();
+
     const res = await fetch('http://127.0.0.1:11434/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'mistral:latest',
-        prompt: SYSTEM_IDENTITY + '\n\n' + prompt,
+        prompt: SYSTEM_IDENTITY + '\n\n' + stateContext + '\n\n' + prompt,
         stream: false,
       }),
     });
