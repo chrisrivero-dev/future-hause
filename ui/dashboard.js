@@ -1849,7 +1849,8 @@ function renderFutureHauseResponse(response) {
     return;
   }
 
-  const content = panel.querySelector('.future-hause-response-content');
+  const content = document.getElementById('notes-response-content');
+
   if (!content) return;
 
   // Coach Mode — render with coach styling

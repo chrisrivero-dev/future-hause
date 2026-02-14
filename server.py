@@ -100,13 +100,19 @@ def get_projects():
 def run_proposals():
     try:
         from engine.proposal_generator import run_proposal_generation
-        result = run_proposal_generation()
+        from engine.llm_adapter import generate_text  # adjust if needed
+
+        from engine.llm_adapter import call_llm
+
+        result = run_proposal_generation(call_llm)
+
 
         from engine.snapshot_manager import create_snapshot
         snapshot = create_snapshot("proposal_generation")
 
         result["snapshot"] = snapshot
         return jsonify(result)
+
     except Exception as e:
         return jsonify({
             "status": "error",
@@ -205,23 +211,42 @@ def call_llm(message: str) -> str:
     except Exception as e:
         return f"[LLM ERROR] {str(e)}"
 
+
+
 @app.route("/api/send", methods=["POST"])
 def send():
     payload = request.get_json(force=True)
     message = payload["message"]
 
     routing_decision = {
-    "intent": "draft_request" if "draft" in message.lower() else "general"
-}
+        "intent": "draft_request" if "draft" in message.lower() else "general"
+    }
 
+    SYSTEM_IDENTITY = """
+You are Future Hause.
 
-    llm_response = call_llm(message)
+Future Hause is an intelligence analyst system.
+It observes signals, drafts work entries, and organizes knowledge.
+It does NOT take autonomous action.
+
+FutureBit is a Bitcoin mining hardware company.
+It builds home Bitcoin mining nodes (Apollo series).
+It is NOT an AI semiconductor company.
+"""
+
+    final_prompt = f"""
+{SYSTEM_IDENTITY}
+
+User Message:
+{message}
+"""
+
+    llm_response = call_llm(final_prompt)
 
     response_payload = {
         "response": llm_response
     }
 
-    # 👇 THIS GOES HERE
     if routing_decision["intent"] == "draft_request":
         draft = create_draft(
             message_id=str(uuid.uuid4()),
