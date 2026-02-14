@@ -1,6 +1,8 @@
 import requests
 from datetime import datetime, timezone
 
+from engine.system_identity import SYSTEM_IDENTITY
+
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
 MODEL = "llama3.2:3b-instruct-q4_1"
 TIMEOUT = 60
@@ -8,6 +10,7 @@ TIMEOUT = 60
 
 def run_coach(draft_id: str, draft_text: str) -> dict:
     prompt = (
+        SYSTEM_IDENTITY + "\n\n"
         "You are a writing coach.\n\n"
         "Your job:\n"
         "- Suggest improvements, missing context, or clarity issues.\n"

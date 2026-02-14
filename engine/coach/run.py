@@ -1,6 +1,8 @@
 import requests
 from datetime import datetime, timezone
 
+from engine.system_identity import SYSTEM_IDENTITY
+
 # ──────────────────────────────────────────────
 # Ollama configuration
 # ──────────────────────────────────────────────
@@ -20,6 +22,8 @@ def run_coach_mode(draft_id: str, draft_text: str) -> dict:
     """
 
     prompt = f"""
+{SYSTEM_IDENTITY}
+
 You are a senior customer support architect.
 
 INPUT:

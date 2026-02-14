@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timezone
 
+from engine.system_identity import SYSTEM_IDENTITY
 from .base import ReviewProvider
 
 
@@ -122,6 +123,7 @@ class OllamaReviewProvider(ReviewProvider):
         STRICT safety lint contract.
         """
         return (
+            SYSTEM_IDENTITY + "\n\n"
             "You are a safety and accuracy reviewer.\n"
             "TASK:\n"
             "- Identify risks, ambiguities, or misleading elements.\n"
