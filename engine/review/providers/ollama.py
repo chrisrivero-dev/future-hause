@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timezone
 
-from engine.system_identity import SYSTEM_IDENTITY, build_state_context
+from engine.system_identity import SYSTEM_IDENTITY, INTENT_CONTRACT, build_state_context
 from .base import ReviewProvider
 
 
@@ -126,6 +126,7 @@ class OllamaReviewProvider(ReviewProvider):
 
         return (
             SYSTEM_IDENTITY + "\n\n"
+            + INTENT_CONTRACT + "\n\n"
             + state_context + "\n\n"
             "You are a safety and accuracy reviewer.\n"
             "TASK:\n"

@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timezone
 
-from engine.system_identity import SYSTEM_IDENTITY, build_state_context
+from engine.system_identity import SYSTEM_IDENTITY, INTENT_CONTRACT, build_state_context
 
 # ──────────────────────────────────────────────
 # Ollama configuration
@@ -25,6 +25,8 @@ def run_coach_mode(draft_id: str, draft_text: str) -> dict:
 
     prompt = f"""
 {SYSTEM_IDENTITY}
+
+{INTENT_CONTRACT}
 
 {state_context}
 

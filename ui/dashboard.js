@@ -67,6 +67,18 @@ const SYSTEM_IDENTITY = [
 ].join('\n');
 
 // ──────────────────────────────────────────────
+// Intent Contract
+// Constrains how the LLM uses each data source per intent type.
+// ──────────────────────────────────────────────
+const INTENT_CONTRACT = [
+  'Intent Rules:',
+  '- If intent is analyze: use ONLY Recent Intel.',
+  '- If intent is search: use ONLY documentation content.',
+  '- If intent is draft: ask clarifying question if missing context.',
+  '- Never fabricate external facts.',
+].join('\n');
+
+// ──────────────────────────────────────────────
 // State Context Pack
 // Fetches current state from APIs and returns a summary for LLM injection.
 // Returns empty string on failure so prompt construction never breaks.
@@ -1609,7 +1621,7 @@ async function callOllama(prompt) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'mistral:latest',
-        prompt: SYSTEM_IDENTITY + '\n\n' + stateContext + '\n\n' + prompt,
+        prompt: SYSTEM_IDENTITY + '\n\n' + INTENT_CONTRACT + '\n\n' + stateContext + '\n\n' + prompt,
         stream: false,
       }),
     });

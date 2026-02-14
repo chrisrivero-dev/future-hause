@@ -21,6 +21,21 @@ It is NOT a semiconductor AI chip company.
 
 
 # ──────────────────────────────────────────────
+# Intent Contract
+# Injected between identity and state context to constrain
+# how the LLM uses each data source.
+# ──────────────────────────────────────────────
+
+INTENT_CONTRACT = """
+Intent Rules:
+- If intent is analyze: use ONLY Recent Intel.
+- If intent is search: use ONLY documentation content.
+- If intent is draft: ask clarifying question if missing context.
+- Never fabricate external facts.
+""".strip()
+
+
+# ──────────────────────────────────────────────
 # State Context Pack
 # Loaded at call-time and appended to LLM prompts.
 # ──────────────────────────────────────────────
