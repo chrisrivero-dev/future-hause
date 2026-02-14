@@ -180,12 +180,36 @@ def get_draft(draft_id):
 def coach():
     data = request.get_json(force=True)
 
-    result = run_coach_mode(
-        draft_id=data["draft_id"],
-        draft_text=data["draft_text"],
-    )
+    draft_id = data.get("draft_id")
+    draft_text = data.get("draft_text")
 
-    return jsonify(result)
+    # If draft exists → use review engine
+    if draft_id and draft_id in DRAFT_WORK_LOG:
+        engine = ReviewEngineAdapter(provider_name="ollama")
+        result = engine.run(
+            draft_id=draft_id,
+            draft_text=draft_text,
+            human_triggered=True,
+        )
+        return jsonify(result)
+
+    # Otherwise → run direct coach LLM call
+    coach_prompt = f"""
+You are a professional writing coach.
+Improve clarity, tone, and structure.
+Do not invent new facts.
+
+Text:
+{draft_text}
+"""
+
+    response = call_llm(coach_prompt)
+
+    return jsonify({
+        "mode": "coach",
+        "content": response
+    })
+
 
 import requests
 
@@ -216,40 +240,60 @@ def call_llm(message: str) -> str:
 @app.route("/api/send", methods=["POST"])
 def send():
     payload = request.get_json(force=True)
-    message = payload["message"]
+    message = payload["message"].strip()
+    mode = payload.get("mode")
+
+    if mode == "coach":
+        coach_prompt = f"""
+You are a professional writing coach.
+Improve clarity, tone, and structure.
+Do not invent new facts.
+
+Text:
+{message}
+""".strip()
+
+        response = call_llm(coach_prompt)
+        return jsonify({"response": response})
 
     routing_decision = {
         "intent": "draft_request" if "draft" in message.lower() else "general"
     }
 
+
     SYSTEM_IDENTITY = """
 You are Future Hause.
 
-Future Hause is an intelligence analyst system.
-It observes signals, drafts work entries, and organizes knowledge.
-It does NOT take autonomous action.
-It does NOT execute commands.
-It does NOT invent operational events.
+Role:
+- You are an intelligence analyst + drafting assistant.
+- You observe signals, draft work entries, and organize knowledge.
+- You do NOT take autonomous action or execute commands.
 
-FutureBit is a Bitcoin mining hardware company.
-It builds home Bitcoin mining nodes (Apollo series).
-It is NOT an AI semiconductor company.
+Reality / Safety:
+- Bitcoin mining is legal activity in many jurisdictions, including the U.S.
+- Do NOT claim bitcoin mining is illegal.
+- Only refuse if the user asks for explicitly illegal wrongdoing (fraud, hacking, violence, etc.).
+- Writing normal business emails is allowed.
 
-Epistemic Constraints:
-- You may only analyze or draft content based on explicitly provided user input.
-- You must NOT invent events, firmware releases, deployments, signals, or real-world changes.
-- If required information is missing, you MUST ask a clarifying question.
-- If the user says "draft email" without a topic, you MUST ask what the email should be about.
-- Do NOT simulate system logs or deployment activity.
+Company grounding:
+- FutureBit is a Bitcoin mining hardware company.
+- It builds home Bitcoin mining nodes (Apollo series).
+- It is NOT an AI semiconductor company.
+
+Epistemic constraints:
+- Use only the user’s message + existing system state.
+- Do NOT invent deployments, firmware releases, outages, or system logs.
+- If the user provides a clear topic, draft the email using reasonable professional defaults.
+- Only ask clarifying questions if the request is ambiguous or unsafe.
+
 """.strip()
-
 
     final_prompt = f"""
 {SYSTEM_IDENTITY}
 
 User Message:
 {message}
-"""
+""".strip()
 
     llm_response = call_llm(final_prompt)
 
@@ -270,6 +314,7 @@ User Message:
         response_payload["draft_id"] = draft.draft_id
 
     return jsonify(response_payload)
+
 
 
 # ─────────────────────────────────────────────

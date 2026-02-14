@@ -1989,70 +1989,51 @@ function wireCoachMode() {
   if (!coachBtn || !textarea) return;
 
   coachBtn.addEventListener('click', async () => {
-    // Use current draft_id if available, otherwise use textarea content
-    const draftId = state.currentDraftId;
-    const draftText = textarea.value.trim();
-
-    if (!draftId && !draftText) return;
-
-    // Show loading state
     coachBtn.disabled = true;
-    coachBtn.textContent = 'Reviewing...';
+    coachBtn.textContent = 'Coaching...';
 
     try {
-      const response = await fetch('/api/review', {
+      const response = await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          draft_id: draftId || `draft-${Date.now()}`,
-          draft_text: draftText,
-          system_prompt: COACH_PROMPT,
+          message: textarea.value,
+          mode: 'coach',
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Review API error: ${response.status}`);
+        throw new Error(`Coach API error: ${response.status}`);
       }
 
       const data = await response.json();
-      const reviewResponse =
+      const coachResponse =
         data.response || data.content || 'No response received.';
 
-      // Render review response in Future Hause Response panel
+      // Render in Future Hause Response panel
       renderFutureHauseResponse({
         mode: 'coach',
-        content: reviewResponse,
+        content: coachResponse,
       });
 
-      // Re-fetch authoritative draft state and re-render Draft Work
-      if (draftId) {
-        const updatedDraft = await fetchDraftById(draftId);
-        renderDraftWork(updatedDraft);
-      }
-
-      // Show panel if hidden
+      // Ensure panel is visible
+      const responsePanel = document.getElementById('future-hause-response');
       if (responsePanel) {
         responsePanel.hidden = false;
       }
     } catch (err) {
-      console.error('[Review Mode]', err);
-      if (responseContent) {
-        responseContent.innerHTML = `
-          <div class="coach-response coach-error">
-            <div class="coach-response-label">Review Error</div>
-            <div class="coach-response-text">${escapeHtml(err.message)}</div>
-          </div>
-        `;
-      }
-      if (responsePanel) {
-        responsePanel.hidden = false;
-      }
+      console.error('[Coach Mode]', err);
+
+      renderFutureHauseResponse({
+        mode: 'coach',
+        content: `Error: ${err.message}`,
+      });
     } finally {
       coachBtn.disabled = false;
       coachBtn.textContent = 'Coach';
     }
-  });
-}
+  }); // closes addEventListener
+} // <-- THIS closes wireCoachMode
 
 /**
  * Escape HTML to prevent XSS
