@@ -29,22 +29,60 @@ def root():
 @app.route("/api/run-signal-extraction", methods=["POST"])
 def run_extraction():
     try:
+        from engine.signal_extraction import run_signal_extraction
+        from engine.proposal_generator import run_proposal_generation
         from engine.snapshot_manager import create_snapshot
+        from engine.state_manager import load_state, save_state, append_action
+        from engine.llm_adapter import call_llm
 
+        # 1️⃣ Run signal extraction
         new_signals = run_signal_extraction()
 
-        # Create regenerative snapshot after extraction
+        # 2️⃣ Run proposal generation (writes into state["proposals"])
+        run_proposal_generation(call_llm)
+
+        # 3️⃣ Load updated cognition state
+        state = load_state()
+
+        project_candidates = state["proposals"].get("project_candidates", [])
+        kb_candidates = state["proposals"].get("kb_candidates", [])
+
+        # 4️⃣ Promote proposals → state_mutations
+        state["state_mutations"]["projects"].extend(project_candidates)
+        state["state_mutations"]["kb"].extend(kb_candidates)
+
+        # 5️⃣ Clear proposals after promotion
+        state["proposals"]["project_candidates"] = []
+        state["proposals"]["kb_candidates"] = []
+
+        # 6️⃣ Append lifecycle action log entry
+        append_action({
+            "action_type": "signal_extraction_cycle",
+            "metadata": {
+                "signals_created": len(new_signals),
+                "projects_promoted": len(project_candidates),
+                "kb_promoted": len(kb_candidates),
+            }
+        })
+
+        # 7️⃣ Persist state
+        save_state(state)
+
+        # 8️⃣ Create regenerative snapshot
         snapshot = create_snapshot(
-            trigger="signal_extraction",
+            trigger="signal_extraction_cycle",
             extra={
-                "signals_created": len(new_signals)
+                "signals_created": len(new_signals),
+                "projects_promoted": len(project_candidates),
+                "kb_promoted": len(kb_candidates),
             }
         )
 
         return jsonify({
             "status": "ok",
             "signals_created": len(new_signals),
-            "signals": new_signals,
+            "projects_promoted": len(project_candidates),
+            "kb_promoted": len(kb_candidates),
             "snapshot": snapshot
         })
 

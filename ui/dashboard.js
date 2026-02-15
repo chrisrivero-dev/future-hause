@@ -1980,7 +1980,7 @@ When given draft text:
 
 Be brief. Be specific. Be useful.`;
 
-function wireCoachMode() {
+function wireRefineDraft() {
   const coachBtn = document.getElementById('coach-btn');
   const textarea = document.getElementById('notes-textarea');
   const responsePanel = document.getElementById('notes-response-panel');
@@ -1990,7 +1990,7 @@ function wireCoachMode() {
 
   coachBtn.addEventListener('click', async () => {
     coachBtn.disabled = true;
-    coachBtn.textContent = 'Coaching...';
+    coachBtn.textContent = 'Refining...';
 
     try {
       const response = await fetch('/api/send', {
@@ -2030,7 +2030,7 @@ function wireCoachMode() {
       });
     } finally {
       coachBtn.disabled = false;
-      coachBtn.textContent = 'Coach';
+      coachBtn.textContent = 'Refine Draft';
     }
   }); // closes addEventListener
 } // <-- THIS closes wireCoachMode
