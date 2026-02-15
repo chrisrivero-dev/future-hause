@@ -4,9 +4,20 @@ import uuid
 from flask import Flask, request, jsonify
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
-from engine.state_manager import load_state, save_state, get_intel_signals, append_action, get_action_log
+from engine.state_manager import (
+    load_state,
+    save_state,
+    get_intel_signals,
+    append_action,
+    get_action_log,
+    get_focus,
+    set_active_project,
+    get_advisories,
+    dismiss_advisory,
+)
 from engine.signal_extraction import run_signal_extraction
 from engine.proposal_generator import run_proposal_generation
+from engine.advisory_engine import run_advisory_engine
 
 app = Flask(__name__)
 
@@ -185,14 +196,17 @@ def run_signal_extraction_endpoint():
     # Step 3: Auto-promote project candidates (deterministic, pass/fail)
     promotion_result = auto_promote_projects()
 
-    # Step 4: Append action log entry
+    # Step 4: Run advisory engine (matches signals against active project)
+    advisory_result = run_advisory_engine()
+
+    # Step 5: Append action log entry
     now = datetime.now(timezone.utc).isoformat()
     action_entry = {
         "id": f"extraction-{now}",
         "action": "signal_extraction_cycle",
         "action_type": "signal_extraction_cycle",
         "timestamp": now,
-        "rationale": f"Extracted {signals_created} signals, generated {proposals_created} proposals, promoted {promotion_result['promoted']} projects",
+        "rationale": f"Extracted {signals_created} signals, generated {proposals_created} proposals, promoted {promotion_result['promoted']} projects, created {advisory_result.get('advisories_generated', 0)} advisories",
         "metadata": {
             "signals_created": signals_created,
             "proposals_created": proposals_created,
@@ -205,11 +219,15 @@ def run_signal_extraction_endpoint():
                 "projects_promoted": promotion_result["promoted"],
                 "skipped_duplicate": promotion_result["skipped_duplicate"],
             },
+            "advisory_details": {
+                "advisories_generated": advisory_result.get("advisories_generated", 0),
+                "total_advisories": advisory_result.get("total_advisories", 0),
+            },
         },
     }
     append_action(action_entry)
 
-    # Step 5: Create snapshot (state after full cycle)
+    # Step 6: Create snapshot (state after full cycle)
     final_state = load_state()
     snapshot = {
         "timestamp": now,
@@ -218,16 +236,146 @@ def run_signal_extraction_endpoint():
         "project_candidates_count": len(final_state["proposals"]["project_candidates"]),
         "projects_count": len(final_state["state_mutations"]["projects"]),
         "action_log_count": len(final_state["state_mutations"]["action_log"]),
+        "advisories_count": len(final_state.get("advisories", [])),
     }
 
-    # Step 6: Return updated authoritative state
+    # Step 7: Return updated authoritative state
     return jsonify({
         "status": "ok",
         "signals_created": signals_created,
         "proposals_created": proposals_created,
         "projects_promoted": promotion_result["promoted"],
+        "advisories_generated": advisory_result.get("advisories_generated", 0),
         "state": final_state,
         "snapshot": snapshot,
+    })
+
+
+# ─────────────────────────────────────────────
+# Focus API
+# ─────────────────────────────────────────────
+@app.route("/api/focus", methods=["GET"])
+def get_focus_endpoint():
+    """Get current project focus state."""
+    focus = get_focus()
+    return jsonify({
+        "schema_version": "1.0",
+        "focus": focus
+    })
+
+
+@app.route("/api/set-active-project", methods=["POST"])
+def set_active_project_endpoint():
+    """Set the active project for focus mode."""
+    data = request.get_json(force=True)
+    project_id = data.get("project_id")
+
+    # Validate project_id exists if provided
+    if project_id:
+        state = load_state()
+        projects = state.get("state_mutations", {}).get("projects", [])
+        project_exists = any(p.get("id") == project_id for p in projects)
+        if not project_exists:
+            return jsonify({
+                "status": "error",
+                "message": f"Project with id '{project_id}' not found"
+            }), 404
+
+    # Set active project
+    focus = set_active_project(project_id)
+
+    # Run advisory engine after setting active project
+    advisory_result = run_advisory_engine()
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    action_entry = {
+        "id": f"focus-{now}",
+        "action": "set_active_project",
+        "action_type": "focus_change",
+        "timestamp": now,
+        "rationale": f"Set active project to: {project_id or 'None'}",
+        "metadata": {
+            "project_id": project_id,
+            "advisories_generated": advisory_result.get("advisories_generated", 0),
+        },
+    }
+    append_action(action_entry)
+
+    return jsonify({
+        "status": "ok",
+        "focus": focus,
+        "advisory_result": advisory_result
+    })
+
+
+# ─────────────────────────────────────────────
+# Advisories API
+# ─────────────────────────────────────────────
+@app.route("/api/advisories", methods=["GET"])
+def get_advisories_endpoint():
+    """Get all advisory suggestions."""
+    advisories = get_advisories()
+    return jsonify({
+        "schema_version": "1.0",
+        "advisories": advisories
+    })
+
+
+@app.route("/api/advisories/dismiss", methods=["POST"])
+def dismiss_advisory_endpoint():
+    """Dismiss an advisory suggestion."""
+    data = request.get_json(force=True)
+    advisory_id = data.get("advisory_id")
+
+    if not advisory_id:
+        return jsonify({
+            "status": "error",
+            "message": "advisory_id is required"
+        }), 400
+
+    advisories = dismiss_advisory(advisory_id)
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    action_entry = {
+        "id": f"dismiss-{now}",
+        "action": "dismiss_advisory",
+        "action_type": "advisory_action",
+        "timestamp": now,
+        "rationale": f"Dismissed advisory: {advisory_id}",
+        "metadata": {
+            "advisory_id": advisory_id,
+        },
+    }
+    append_action(action_entry)
+
+    return jsonify({
+        "status": "ok",
+        "advisories": advisories
+    })
+
+
+@app.route("/api/run-advisory-engine", methods=["POST"])
+def run_advisory_engine_endpoint():
+    """Manually trigger advisory engine run."""
+    result = run_advisory_engine()
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    action_entry = {
+        "id": f"advisory-run-{now}",
+        "action": "run_advisory_engine",
+        "action_type": "advisory_generation",
+        "timestamp": now,
+        "rationale": f"Generated {result.get('advisories_generated', 0)} advisories",
+        "metadata": result,
+    }
+    append_action(action_entry)
+
+    return jsonify({
+        "status": "ok",
+        "result": result
     })
 
 

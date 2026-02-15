@@ -196,11 +196,15 @@ const state = {
   kbOpportunities: null,
   projects: null,
   actionLog: null,
+  focus: null,
+  advisories: null,
   loadStatus: {
     intelEvents: 'pending',
     kbOpportunities: 'pending',
     projects: 'pending',
     actionLog: 'pending',
+    focus: 'pending',
+    advisories: 'pending',
   },
   metadata: {
     schemaVersions: {},
@@ -334,6 +338,8 @@ async function loadAllData() {
     fetch("/api/kb").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.kbOpportunities)),
     fetch("/api/projects").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.projects)),
     fetch("/api/action-log").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.actionLog)),
+    fetch("/api/focus").then(res => res.ok ? res.json() : null).catch(() => null),
+    fetch("/api/advisories").then(res => res.ok ? res.json() : null).catch(() => null),
   ]);
 
   // Store results and update load status
@@ -364,10 +370,12 @@ async function loadAllData() {
   if (results[3]) {
     state.metadata.schemaVersions.actionLog = results[3].schema_version;
   }
-  /* ----------------------------------------------------------------------------
-   UI HELPERS — DOM Rendering & UI State
-   (No event listeners here)
----------------------------------------------------------------------------- */
+
+  state.focus = results[4];
+  state.loadStatus.focus = results[4] ? 'success' : 'error';
+
+  state.advisories = results[5];
+  state.loadStatus.advisories = results[5] ? 'success' : 'error';
 
   // Render all sections
   renderIntelEvents();
@@ -376,6 +384,8 @@ async function loadAllData() {
   renderRecentRecommendations();
   renderActionLogTable();
   renderSystemMetadata();
+  renderActiveProjectFocus();
+  renderAdvisories();
 }
 
 /* ----------------------------------------------------------------------------
@@ -473,6 +483,7 @@ function renderProjects() {
 
   const projects = getNestedValue(state.projects, 'projects', []);
   const displayProjects = projects.slice(0, CONFIG.maxItemsPerColumn);
+  const activeProjectId = state.focus?.focus?.active_project_id || null;
 
   countEl.textContent = `${projects.length} total`;
 
@@ -483,24 +494,308 @@ function renderProjects() {
 
   container.innerHTML = displayProjects
     .map((project, index) =>
-      renderCard({
+      renderProjectCard({
         columnId: 'projects',
         index,
-        title: project.name || project.title || 'Project',
-        meta: escapeHtml(project.status || ''),
-        urgency: project.priority || project.urgency || null,
-        detailsHtml: `
-      ${project.id ? renderDetailRow('ID', project.id) : ''}
-      ${project.status ? renderDetailRow('Status', project.status) : ''}
-      ${project.deliverables ? renderDetailRow('Deliverables', Array.isArray(project.deliverables) ? project.deliverables.join(', ') : project.deliverables) : ''}
-      ${project.created_at ? renderDetailRow('Created', formatTimestamp(project.created_at)) : ''}
-      ${project.updated_at ? renderDetailRow('Updated', formatTimestamp(project.updated_at)) : ''}
-    `,
+        project,
+        isActive: project.id === activeProjectId,
       })
     )
     .join('');
 
   attachExpandHandlers(container);
+  attachProjectFocusHandlers(container);
+}
+
+/**
+ * Render a project card with focus button
+ */
+function renderProjectCard({ columnId, index, project, isActive }) {
+  const { headerId, detailsId } = generateCardIds(columnId, index);
+  const title = project.name || project.title || 'Project';
+  const activeClass = isActive ? 'project-active' : '';
+  const activeBadge = isActive ? '<span class="active-badge">FOCUSED</span>' : '';
+  const focusButtonText = isActive ? 'Unfocus' : 'Set Focus';
+  const focusButtonClass = isActive ? 'unfocus-btn' : 'focus-btn';
+
+  return `
+    <div class="intel-card ${activeClass}" data-index="${index}" data-project-id="${escapeHtml(project.id || '')}">
+      <div
+        class="intel-card-header"
+        id="${headerId}"
+        tabindex="0"
+        role="button"
+        aria-expanded="false"
+        aria-controls="${detailsId}"
+      >
+        <div class="intel-card-summary">
+          <div class="intel-card-title">${escapeHtml(title)}${activeBadge}</div>
+          <div class="intel-card-meta">${escapeHtml(project.status || '')}</div>
+        </div>
+        <span class="intel-card-toggle" aria-hidden="true">▼</span>
+      </div>
+      <div
+        class="intel-card-details"
+        id="${detailsId}"
+        role="region"
+        aria-labelledby="${headerId}"
+      >
+        ${project.id ? renderDetailRow('ID', project.id) : ''}
+        ${project.status ? renderDetailRow('Status', project.status) : ''}
+        ${project.summary ? renderDetailRow('Summary', project.summary) : ''}
+        ${project.deliverables ? renderDetailRow('Deliverables', Array.isArray(project.deliverables) ? project.deliverables.join(', ') : project.deliverables) : ''}
+        ${project.created_at ? renderDetailRow('Created', formatTimestamp(project.created_at)) : ''}
+        ${project.updated_at ? renderDetailRow('Updated', formatTimestamp(project.updated_at)) : ''}
+        <div class="card-actions project-actions">
+          <button type="button" class="card-action-btn ${focusButtonClass}" data-project-id="${escapeHtml(project.id || '')}">${focusButtonText}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Attach click handlers for project focus buttons
+ */
+function attachProjectFocusHandlers(container) {
+  const focusButtons = container.querySelectorAll('.focus-btn, .unfocus-btn');
+
+  focusButtons.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const projectId = btn.getAttribute('data-project-id');
+      const isUnfocus = btn.classList.contains('unfocus-btn');
+
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      try {
+        const response = await fetch('/api/set-active-project', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: isUnfocus ? null : projectId }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to set focus: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Update local state
+        state.focus = { focus: result.focus };
+
+        // Reload advisories
+        const advisoriesRes = await fetch('/api/advisories');
+        if (advisoriesRes.ok) {
+          state.advisories = await advisoriesRes.json();
+        }
+
+        // Re-render affected sections
+        renderProjects();
+        renderActiveProjectFocus();
+        renderAdvisories();
+      } catch (err) {
+        console.error('[Focus]', err);
+        btn.disabled = false;
+        btn.textContent = isUnfocus ? 'Unfocus' : 'Set Focus';
+      }
+    });
+  });
+}
+
+/* ----------------------------------------------------------------------------
+   RENDERING — ACTIVE PROJECT FOCUS PANEL
+   ---------------------------------------------------------------------------- */
+
+function renderActiveProjectFocus() {
+  const panel = document.getElementById('active-project-panel');
+  if (!panel) return;
+
+  const activeProjectId = state.focus?.focus?.active_project_id || null;
+
+  if (!activeProjectId) {
+    panel.innerHTML = `
+      <div class="active-project-empty">
+        <div class="intel-empty-text">No project selected</div>
+        <div class="intel-empty-hint">Click "Set Focus" on a project to activate focus mode</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Find the active project
+  const projects = getNestedValue(state.projects, 'projects', []);
+  const activeProject = projects.find(p => p.id === activeProjectId);
+
+  if (!activeProject) {
+    panel.innerHTML = `
+      <div class="active-project-empty">
+        <div class="intel-empty-text">Project not found</div>
+        <div class="intel-empty-hint">The focused project may have been removed</div>
+      </div>
+    `;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div class="active-project-card focused">
+      <div class="active-project-field">
+        <span class="active-project-label">Project</span>
+        <span class="active-project-value project-name">${escapeHtml(activeProject.title || activeProject.name || 'Project')}</span>
+      </div>
+      <div class="active-project-field">
+        <span class="active-project-label">Status</span>
+        <span class="active-project-value project-status">
+          <span class="status-dot active"></span>
+          ${escapeHtml(activeProject.status || 'active')}
+        </span>
+      </div>
+      ${activeProject.summary ? `
+      <div class="active-project-field active-project-description">
+        <span class="active-project-label">Summary</span>
+        <span class="active-project-value">${escapeHtml(activeProject.summary)}</span>
+      </div>
+      ` : ''}
+      <div class="active-project-field">
+        <span class="active-project-label">Created</span>
+        <span class="active-project-value">${formatTimestamp(activeProject.created_at)}</span>
+      </div>
+    </div>
+  `;
+}
+
+/* ----------------------------------------------------------------------------
+   RENDERING — ADVISORIES PANEL
+   ---------------------------------------------------------------------------- */
+
+function renderAdvisories() {
+  const container = document.getElementById('advisories-content');
+  const countEl = document.getElementById('advisories-count');
+
+  if (!container) return;
+
+  const advisories = state.advisories?.advisories || [];
+  const pendingAdvisories = advisories.filter(a => a.status !== 'dismissed');
+
+  if (countEl) {
+    countEl.textContent = `${pendingAdvisories.length} pending`;
+  }
+
+  if (pendingAdvisories.length === 0) {
+    container.innerHTML = `
+      <div class="intel-empty">
+        <div class="intel-empty-icon">💡</div>
+        <div class="intel-empty-text">No advisories</div>
+        <div class="intel-empty-hint">Set focus on a project to generate relevant advisories</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = pendingAdvisories
+    .map((advisory, index) => renderAdvisoryCard(advisory, index))
+    .join('');
+
+  attachAdvisoryHandlers(container);
+}
+
+/**
+ * Render an advisory card with action buttons
+ */
+function renderAdvisoryCard(advisory, index) {
+  const typeLabel = advisory.type === 'signal_match' ? 'Signal Match' :
+                    advisory.type === 'kb_opportunity' ? 'KB Opportunity' :
+                    'Advisory';
+  const typeBadgeClass = advisory.type === 'signal_match' ? 'type-signal' : 'type-kb';
+
+  return `
+    <div class="advisory-card" data-advisory-id="${escapeHtml(advisory.id || '')}">
+      <div class="advisory-header">
+        <span class="advisory-type-badge ${typeBadgeClass}">${typeLabel}</span>
+        <span class="advisory-time">${formatTimestamp(advisory.created_at)}</span>
+      </div>
+      <div class="advisory-title">${escapeHtml(advisory.title || 'Advisory')}</div>
+      <div class="advisory-summary">${escapeHtml(advisory.summary || '')}</div>
+      ${advisory.suggested_action ? `
+      <div class="advisory-suggested">
+        <span class="advisory-suggested-label">Suggested:</span>
+        ${escapeHtml(advisory.suggested_action)}
+      </div>
+      ` : ''}
+      <div class="advisory-actions">
+        <button type="button" class="advisory-btn generate-draft-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Generate a draft based on this advisory">
+          Generate Draft
+        </button>
+        <button type="button" class="advisory-btn dismiss-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Dismiss this advisory">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Attach click handlers for advisory action buttons
+ */
+function attachAdvisoryHandlers(container) {
+  // Dismiss button handlers
+  const dismissButtons = container.querySelectorAll('.dismiss-btn');
+  dismissButtons.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const advisoryId = btn.getAttribute('data-advisory-id');
+
+      btn.disabled = true;
+      btn.textContent = 'Dismissing...';
+
+      try {
+        const response = await fetch('/api/advisories/dismiss', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ advisory_id: advisoryId }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to dismiss: ${response.status}`);
+        }
+
+        const result = await response.json();
+        state.advisories = { advisories: result.advisories };
+        renderAdvisories();
+      } catch (err) {
+        console.error('[Advisory Dismiss]', err);
+        btn.disabled = false;
+        btn.textContent = 'Dismiss';
+      }
+    });
+  });
+
+  // Generate Draft button handlers
+  const draftButtons = container.querySelectorAll('.generate-draft-btn');
+  draftButtons.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const advisoryId = btn.getAttribute('data-advisory-id');
+      const advisory = (state.advisories?.advisories || []).find(a => a.id === advisoryId);
+
+      if (!advisory) return;
+
+      // Populate the notes textarea with a draft request based on the advisory
+      const textarea = document.getElementById('notes-textarea');
+      if (textarea) {
+        const draftPrompt = `Draft a response for: ${advisory.title}\n\nContext: ${advisory.summary}\n\nSuggested action: ${advisory.suggested_action || 'Review and take appropriate action'}`;
+        textarea.value = draftPrompt;
+        textarea.focus();
+
+        // Scroll to the notes section
+        const notesSection = document.querySelector('.notes-section');
+        if (notesSection) {
+          notesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
 }
 
 /* ----------------------------------------------------------------------------
@@ -2286,11 +2581,13 @@ async function runExtraction() {
   const result = await res.json();
 
   // Step 2: Re-fetch all data from authoritative APIs
-  const [intelData, kbData, projectsData, actionLogData] = await Promise.all([
+  const [intelData, kbData, projectsData, actionLogData, focusData, advisoriesData] = await Promise.all([
     fetch('/api/intel').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/kb').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/projects').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/action-log').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/focus').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/advisories').then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
 
   // Step 3: Update state
@@ -2321,6 +2618,16 @@ async function runExtraction() {
     state.metadata.schemaVersions.actionLog = actionLogData.schema_version;
   }
 
+  if (focusData) {
+    state.focus = focusData;
+    state.loadStatus.focus = 'success';
+  }
+
+  if (advisoriesData) {
+    state.advisories = advisoriesData;
+    state.loadStatus.advisories = 'success';
+  }
+
   // Step 4: Re-render all panels
   renderIntelEvents();
   renderKbOpportunities();
@@ -2328,6 +2635,8 @@ async function runExtraction() {
   renderRecentRecommendations();
   renderActionLogTable();
   renderSystemMetadata();
+  renderActiveProjectFocus();
+  renderAdvisories();
 
   // Step 5: Update timestamp
   updateLastUpdatedTime();

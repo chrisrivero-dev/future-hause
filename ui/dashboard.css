@@ -2180,3 +2180,226 @@ body {
   border-radius: 3px;
   font-size: 0.7rem;
 }
+
+/* ----------------------------------------------------------------------------
+   PROJECT FOCUS — Active Project Highlighting
+   ---------------------------------------------------------------------------- */
+
+.intel-card.project-active {
+  border: 2px solid var(--accent-cyan);
+  background: rgba(0, 245, 255, 0.05);
+  box-shadow: 0 0 12px rgba(0, 245, 255, 0.15);
+}
+
+.intel-card.project-active .intel-card-header {
+  border-bottom-color: rgba(0, 245, 255, 0.2);
+}
+
+.active-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: var(--accent-cyan);
+  color: var(--bg-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+}
+
+.project-actions {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color-subtle);
+}
+
+.focus-btn,
+.unfocus-btn {
+  background: transparent;
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.focus-btn:hover {
+  background: rgba(0, 245, 255, 0.1);
+}
+
+.unfocus-btn {
+  border-color: var(--accent-warning);
+  color: var(--accent-warning);
+}
+
+.unfocus-btn:hover {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.focus-btn:disabled,
+.unfocus-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Active Project Panel — Focused State */
+.active-project-card.focused {
+  border: 2px solid var(--accent-cyan);
+  background: rgba(0, 245, 255, 0.05);
+  box-shadow: 0 0 12px rgba(0, 245, 255, 0.1);
+  padding: var(--spacing-md);
+  border-radius: 8px;
+}
+
+.active-project-card.focused .project-name {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------------------
+   ADVISORIES PANEL — Advisory Cards & Actions
+   ---------------------------------------------------------------------------- */
+
+.advisories-section {
+  margin-top: var(--spacing-md);
+}
+
+.advisories-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.advisory-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  transition: all 0.2s ease;
+}
+
+.advisory-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-purple);
+}
+
+.advisory-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.advisory-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+}
+
+.advisory-type-badge.type-signal {
+  background: rgba(0, 245, 255, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid var(--accent-cyan);
+}
+
+.advisory-type-badge.type-kb {
+  background: rgba(177, 156, 255, 0.15);
+  color: var(--accent-purple);
+  border: 1px solid var(--accent-purple);
+}
+
+.advisory-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.advisory-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.advisory-summary {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-sm);
+}
+
+.advisory-suggested {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.advisory-suggested-label {
+  font-weight: 600;
+  color: var(--accent-purple);
+  margin-right: 4px;
+}
+
+.advisory-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color-subtle);
+}
+
+.advisory-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.generate-draft-btn {
+  background: var(--accent-cyan);
+  border: none;
+  color: var(--bg-primary);
+}
+
+.generate-draft-btn:hover {
+  background: #00d8e8;
+  box-shadow: 0 2px 8px rgba(0, 245, 255, 0.3);
+}
+
+.dismiss-btn {
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+}
+
+.dismiss-btn:hover {
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+  background: rgba(255, 68, 68, 0.1);
+}
+
+.advisory-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Pending count badge */
+#advisories-count {
+  background: var(--accent-purple);
+  color: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

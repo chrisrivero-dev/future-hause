@@ -14,6 +14,8 @@ BASELINE_SCHEMA = {
     "state_mutations": {"projects": [], "kb": [], "action_log": []},
     "memory_links": {"related_sessions": [], "related_entities": [], "embedding_ids": []},
     "system_health": {"errors": [], "latency_ms": None, "model_used": None},
+    "focus": {"active_project_id": None},
+    "advisories": [],
 }
 
 
@@ -70,3 +72,52 @@ def replace_intel_signals(signals):
     state = load_state()
     state["perception"]["signals"] = signals
     save_state(state)
+
+
+# ─────────────────────────────────────────────
+# Focus Functions
+# ─────────────────────────────────────────────
+
+def get_focus():
+    """Get current focus state."""
+    state = load_state()
+    return state.get("focus", {"active_project_id": None})
+
+
+def set_active_project(project_id: str | None):
+    """Set the active project ID."""
+    state = load_state()
+    if "focus" not in state:
+        state["focus"] = {"active_project_id": None}
+    state["focus"]["active_project_id"] = project_id
+    save_state(state)
+    return state["focus"]
+
+
+# ─────────────────────────────────────────────
+# Advisory Functions
+# ─────────────────────────────────────────────
+
+def get_advisories():
+    """Get all advisories."""
+    state = load_state()
+    return state.get("advisories", [])
+
+
+def set_advisories(advisories: list):
+    """Replace all advisories."""
+    state = load_state()
+    state["advisories"] = advisories
+    save_state(state)
+
+
+def dismiss_advisory(advisory_id: str):
+    """Mark an advisory as dismissed."""
+    state = load_state()
+    advisories = state.get("advisories", [])
+    for advisory in advisories:
+        if advisory.get("id") == advisory_id:
+            advisory["status"] = "dismissed"
+    state["advisories"] = advisories
+    save_state(state)
+    return advisories

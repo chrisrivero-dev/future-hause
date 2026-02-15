@@ -446,12 +446,49 @@
             >
               <div class="secondary-section-header">
                 <h2 class="secondary-section-title">Active Project Focus</h2>
+                <span
+                  class="info-tooltip"
+                  data-tooltip="The currently focused project. Advisories are generated based on this project's context."
+                  >ⓘ</span
+                >
               </div>
               <div class="secondary-section-content active-project-content">
                 <div id="active-project-panel" class="active-project-panel">
                   <div class="active-project-empty">
                     <div class="intel-empty-text">No project selected</div>
+                    <div class="intel-empty-hint">Click "Set Focus" on a project to activate focus mode</div>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            <!--
+        Advisories Panel
+        PURPOSE:
+        - Display advisory suggestions based on active project
+        - Match signals against project metadata
+        - Provide action buttons (Generate Draft / Dismiss)
+        - No auto-execution, human-in-the-loop
+      -->
+            <section
+              class="secondary-section advisories-section"
+              aria-label="Advisories"
+              data-section="advisories"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Advisories</h2>
+                <span
+                  class="info-tooltip"
+                  data-tooltip="Suggestions based on signals matching your active project. No auto-execution."
+                  >ⓘ</span
+                >
+                <span id="advisories-count" class="intel-column-count">0 pending</span>
+              </div>
+              <div id="advisories-content" class="secondary-section-content advisories-content">
+                <div class="intel-empty">
+                  <div class="intel-empty-icon">💡</div>
+                  <div class="intel-empty-text">No advisories</div>
+                  <div class="intel-empty-hint">Set focus on a project to generate relevant advisories</div>
                 </div>
               </div>
             </section>
