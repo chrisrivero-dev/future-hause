@@ -1,13 +1,73 @@
 from datetime import datetime, timezone
+import uuid
 
 from flask import Flask, request, jsonify
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
-from engine.state_manager import load_state, get_intel_signals, append_action, get_action_log
+from engine.state_manager import load_state, save_state, get_intel_signals, append_action, get_action_log
 from engine.signal_extraction import run_signal_extraction
 from engine.proposal_generator import run_proposal_generation
 
 app = Flask(__name__)
+
+
+def auto_promote_projects() -> dict:
+    """
+    Automatically promote all project_candidates to state_mutations.projects.
+
+    Rules:
+    - Pass/fail promotion (no confidence thresholds)
+    - Duplicates prevented by source_signal_id
+    - Proposals cleared after promotion
+
+    Returns:
+        dict with promoted count and skipped_duplicate count.
+    """
+    state = load_state()
+
+    candidates = state.get("proposals", {}).get("project_candidates", [])
+    existing_projects = state.get("state_mutations", {}).get("projects", [])
+
+    # Build set of existing source_signal_ids to prevent duplicates
+    existing_source_ids = {
+        p.get("source_signal_id") for p in existing_projects if p.get("source_signal_id")
+    }
+
+    promoted = 0
+    skipped_duplicate = 0
+
+    for candidate in candidates:
+        source_signal_id = candidate.get("source_signal_id")
+
+        # Skip if already promoted (duplicate prevention)
+        if source_signal_id and source_signal_id in existing_source_ids:
+            skipped_duplicate += 1
+            continue
+
+        # Create promoted project from candidate
+        promoted_project = {
+            "id": str(uuid.uuid4()),
+            "source_signal_id": source_signal_id,
+            "title": candidate.get("title"),
+            "summary": candidate.get("summary"),
+            "status": "active",
+            "created_at": candidate.get("created_at"),
+            "promoted_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        state["state_mutations"]["projects"].append(promoted_project)
+        existing_source_ids.add(source_signal_id)
+        promoted += 1
+
+    # Clear proposals after promotion
+    state["proposals"]["project_candidates"] = []
+
+    save_state(state)
+
+    return {
+        "promoted": promoted,
+        "skipped_duplicate": skipped_duplicate,
+    }
 
 
 
@@ -97,13 +157,12 @@ def get_kb():
 # ─────────────────────────────────────────────
 @app.route("/api/projects", methods=["GET"])
 def get_projects():
+    """Return only promoted projects from state_mutations.projects."""
     state = load_state()
     projects = state.get("state_mutations", {}).get("projects", [])
-    # Also include project candidates from proposals
-    project_candidates = state.get("proposals", {}).get("project_candidates", [])
     return jsonify({
         "schema_version": "1.0",
-        "projects": projects + project_candidates
+        "projects": projects
     })
 
 
@@ -123,14 +182,17 @@ def run_signal_extraction_endpoint():
         + proposal_result["project_candidates_generated"]
     )
 
-    # Step 3: Append action log entry
+    # Step 3: Auto-promote project candidates (deterministic, pass/fail)
+    promotion_result = auto_promote_projects()
+
+    # Step 4: Append action log entry
     now = datetime.now(timezone.utc).isoformat()
     action_entry = {
         "id": f"extraction-{now}",
         "action": "signal_extraction_cycle",
         "action_type": "signal_extraction_cycle",
         "timestamp": now,
-        "rationale": f"Extracted {signals_created} signals, generated {proposals_created} proposals",
+        "rationale": f"Extracted {signals_created} signals, generated {proposals_created} proposals, promoted {promotion_result['promoted']} projects",
         "metadata": {
             "signals_created": signals_created,
             "proposals_created": proposals_created,
@@ -139,25 +201,31 @@ def run_signal_extraction_endpoint():
                 "project_candidates_generated": proposal_result["project_candidates_generated"],
                 "skipped_duplicate": proposal_result["skipped_duplicate"],
             },
+            "promotion_details": {
+                "projects_promoted": promotion_result["promoted"],
+                "skipped_duplicate": promotion_result["skipped_duplicate"],
+            },
         },
     }
     append_action(action_entry)
 
-    # Step 4: Create snapshot (state after full cycle)
+    # Step 5: Create snapshot (state after full cycle)
     final_state = load_state()
     snapshot = {
         "timestamp": now,
         "signals_count": len(final_state["perception"]["signals"]),
         "kb_candidates_count": len(final_state["proposals"]["kb_candidates"]),
         "project_candidates_count": len(final_state["proposals"]["project_candidates"]),
+        "projects_count": len(final_state["state_mutations"]["projects"]),
         "action_log_count": len(final_state["state_mutations"]["action_log"]),
     }
 
-    # Step 5: Return updated authoritative state
+    # Step 6: Return updated authoritative state
     return jsonify({
         "status": "ok",
         "signals_created": signals_created,
         "proposals_created": proposals_created,
+        "projects_promoted": promotion_result["promoted"],
         "state": final_state,
         "snapshot": snapshot,
     })

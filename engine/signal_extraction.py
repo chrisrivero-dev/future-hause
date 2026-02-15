@@ -38,7 +38,6 @@ def _post_to_signal(post: dict) -> dict:
         "category": post.get("category", "discussion"),
         "title": post.get("title", "Untitled"),
         "content": post.get("content", post.get("body", "")),
-        "confidence": post.get("confidence", 0.5),
         "detected_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -56,7 +55,6 @@ def _generate_stub_signals() -> list:
             "category": "discussion",
             "title": "Apollo BTC setup questions",
             "content": "Users asking about optimal PSU and cooling configuration for Apollo BTC miners.",
-            "confidence": 0.7,
             "detected_at": now,
         },
         {
@@ -65,7 +63,6 @@ def _generate_stub_signals() -> list:
             "category": "discussion",
             "title": "Firmware update issues reported",
             "content": "Multiple users reporting difficulty applying latest firmware update on Apollo II.",
-            "confidence": 0.8,
             "detected_at": now,
         },
         {
@@ -74,7 +71,6 @@ def _generate_stub_signals() -> list:
             "category": "announcement",
             "title": "FutureBit announces new mining pool partnership",
             "content": "Official announcement of partnership with mining pool for optimized hashrate distribution.",
-            "confidence": 0.9,
             "detected_at": now,
         },
     ]

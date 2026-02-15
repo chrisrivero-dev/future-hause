@@ -35,7 +35,6 @@ def _create_kb_candidate(signal: dict) -> dict:
         "source_signal_id": signal.get("id"),
         "title": signal.get("title", "Untitled Discussion"),
         "summary": signal.get("content", signal.get("summary", "")),
-        "confidence": signal.get("confidence", 0.5),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -47,7 +46,6 @@ def _create_project_candidate(signal: dict) -> dict:
         "source_signal_id": signal.get("id"),
         "title": signal.get("title", "Untitled Announcement"),
         "summary": signal.get("content", signal.get("summary", "")),
-        "confidence": signal.get("confidence", 0.5),
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
 
