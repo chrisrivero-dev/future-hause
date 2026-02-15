@@ -15,7 +15,7 @@ BASELINE_SCHEMA = {
     "memory_links": {"related_sessions": [], "related_entities": [], "embedding_ids": []},
     "system_health": {"errors": [], "latency_ms": None, "model_used": None},
     "focus": {"active_project_id": None},
-    "advisories": [],
+    "advisories": {"open": [], "resolved": [], "dismissed": []},
 }
 
 
@@ -99,25 +99,52 @@ def set_active_project(project_id: str | None):
 # ─────────────────────────────────────────────
 
 def get_advisories():
-    """Get all advisories."""
+    """Get all advisories in structured format."""
     state = load_state()
-    return state.get("advisories", [])
-
-
-def set_advisories(advisories: list):
-    """Replace all advisories."""
-    state = load_state()
-    state["advisories"] = advisories
-    save_state(state)
-
-
-def dismiss_advisory(advisory_id: str):
-    """Mark an advisory as dismissed."""
-    state = load_state()
-    advisories = state.get("advisories", [])
-    for advisory in advisories:
-        if advisory.get("id") == advisory_id:
-            advisory["status"] = "dismissed"
-    state["advisories"] = advisories
-    save_state(state)
+    advisories = state.get("advisories", {"open": [], "resolved": [], "dismissed": []})
+    if isinstance(advisories, list):
+        return {"open": advisories, "resolved": [], "dismissed": []}
     return advisories
+
+
+def append_open_advisories(new_advisories: list):
+    """Append new advisories to open list."""
+    state = load_state()
+    if "advisories" not in state:
+        state["advisories"] = {"open": [], "resolved": [], "dismissed": []}
+    if isinstance(state["advisories"], list):
+        state["advisories"] = {"open": state["advisories"], "resolved": [], "dismissed": []}
+    state["advisories"]["open"].extend(new_advisories)
+    save_state(state)
+    return state["advisories"]
+
+
+def update_advisory_status(advisory_id: str, new_status: str):
+    """Move advisory between open/resolved/dismissed."""
+    state = load_state()
+    advisories = state.get("advisories", {"open": [], "resolved": [], "dismissed": []})
+    if isinstance(advisories, list):
+        advisories = {"open": advisories, "resolved": [], "dismissed": []}
+
+    target_advisory = None
+    source_list = None
+
+    for list_name in ["open", "resolved", "dismissed"]:
+        for advisory in advisories.get(list_name, []):
+            if advisory.get("id") == advisory_id:
+                target_advisory = advisory
+                source_list = list_name
+                break
+        if target_advisory:
+            break
+
+    if not target_advisory:
+        return None
+
+    advisories[source_list].remove(target_advisory)
+    target_advisory["status"] = new_status
+    advisories[new_status].append(target_advisory)
+
+    state["advisories"] = advisories
+    save_state(state)
+    return target_advisory

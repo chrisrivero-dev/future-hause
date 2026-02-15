@@ -8,5 +8,5 @@
   "memory_links": { "related_sessions": [], "related_entities": [], "embedding_ids": [] },
   "system_health": { "errors": [], "latency_ms": null, "model_used": null },
   "focus": { "active_project_id": null },
-  "advisories": []
+  "advisories": { "open": [], "resolved": [], "dismissed": [] }
 }

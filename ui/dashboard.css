@@ -2394,7 +2394,7 @@ body {
   cursor: wait;
 }
 
-/* Pending count badge */
+/* Open count badge */
 #advisories-count {
   background: var(--accent-purple);
   color: var(--bg-primary);
@@ -2402,4 +2402,52 @@ body {
   border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+/* Advisory badge (notification bubble) */
+.advisory-badge {
+  display: none;
+  background: var(--accent-error);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.advisory-badge.visible {
+  display: inline-block;
+}
+
+/* Advisory type badge - Intel Alert */
+.advisory-type-badge.type-alert {
+  background: rgba(255, 68, 68, 0.15);
+  color: var(--accent-error);
+  border: 1px solid var(--accent-error);
+}
+
+/* Advisory recommendation text */
+.advisory-recommendation {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-purple);
+}
+
+/* Resolve button styling */
+.resolve-btn {
+  background: var(--accent-success);
+  border: none;
+  color: var(--bg-primary);
+}
+
+.resolve-btn:hover {
+  background: #3ad875;
+  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
 }

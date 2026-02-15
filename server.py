@@ -13,11 +13,12 @@ from engine.state_manager import (
     get_focus,
     set_active_project,
     get_advisories,
-    dismiss_advisory,
+    append_open_advisories,
+    update_advisory_status,
 )
 from engine.signal_extraction import run_signal_extraction
 from engine.proposal_generator import run_proposal_generation
-from engine.advisory_engine import run_advisory_engine
+from engine.advisory_generator import generate_advisories
 
 app = Flask(__name__)
 
@@ -196,17 +197,34 @@ def run_signal_extraction_endpoint():
     # Step 3: Auto-promote project candidates (deterministic, pass/fail)
     promotion_result = auto_promote_projects()
 
-    # Step 4: Run advisory engine (matches signals against active project)
-    advisory_result = run_advisory_engine()
+    # Step 4: Generate advisories from promoted projects
+    state = load_state()
+    new_advisories = generate_advisories(state)
+    if new_advisories:
+        append_open_advisories(new_advisories)
 
-    # Step 5: Append action log entry
+    # Step 5: Log advisory generation
     now = datetime.now(timezone.utc).isoformat()
+    if new_advisories:
+        advisory_action = {
+            "id": f"advisory-gen-{now}",
+            "action": "advisory_generated",
+            "action_type": "advisory_generated",
+            "timestamp": now,
+            "rationale": f"Generated {len(new_advisories)} advisories from promoted projects",
+            "metadata": {
+                "advisories_created": len(new_advisories),
+            },
+        }
+        append_action(advisory_action)
+
+    # Step 6: Append extraction cycle log entry
     action_entry = {
         "id": f"extraction-{now}",
         "action": "signal_extraction_cycle",
         "action_type": "signal_extraction_cycle",
         "timestamp": now,
-        "rationale": f"Extracted {signals_created} signals, generated {proposals_created} proposals, promoted {promotion_result['promoted']} projects, created {advisory_result.get('advisories_generated', 0)} advisories",
+        "rationale": f"Extracted {signals_created} signals, generated {proposals_created} proposals, promoted {promotion_result['promoted']} projects, created {len(new_advisories)} advisories",
         "metadata": {
             "signals_created": signals_created,
             "proposals_created": proposals_created,
@@ -220,15 +238,17 @@ def run_signal_extraction_endpoint():
                 "skipped_duplicate": promotion_result["skipped_duplicate"],
             },
             "advisory_details": {
-                "advisories_generated": advisory_result.get("advisories_generated", 0),
-                "total_advisories": advisory_result.get("total_advisories", 0),
+                "advisories_created": len(new_advisories),
             },
         },
     }
     append_action(action_entry)
 
-    # Step 6: Create snapshot (state after full cycle)
+    # Step 7: Create snapshot (state after full cycle)
     final_state = load_state()
+    advisories = final_state.get("advisories", {"open": [], "resolved": [], "dismissed": []})
+    if isinstance(advisories, list):
+        advisories = {"open": advisories, "resolved": [], "dismissed": []}
     snapshot = {
         "timestamp": now,
         "signals_count": len(final_state["perception"]["signals"]),
@@ -236,16 +256,16 @@ def run_signal_extraction_endpoint():
         "project_candidates_count": len(final_state["proposals"]["project_candidates"]),
         "projects_count": len(final_state["state_mutations"]["projects"]),
         "action_log_count": len(final_state["state_mutations"]["action_log"]),
-        "advisories_count": len(final_state.get("advisories", [])),
+        "advisories_open_count": len(advisories.get("open", [])),
     }
 
-    # Step 7: Return updated authoritative state
+    # Step 8: Return updated authoritative state
     return jsonify({
         "status": "ok",
         "signals_created": signals_created,
         "proposals_created": proposals_created,
         "projects_promoted": promotion_result["promoted"],
-        "advisories_generated": advisory_result.get("advisories_generated", 0),
+        "advisories_created": len(new_advisories),
         "state": final_state,
         "snapshot": snapshot,
     })
@@ -284,9 +304,6 @@ def set_active_project_endpoint():
     # Set active project
     focus = set_active_project(project_id)
 
-    # Run advisory engine after setting active project
-    advisory_result = run_advisory_engine()
-
     # Log the action
     now = datetime.now(timezone.utc).isoformat()
     action_entry = {
@@ -297,15 +314,13 @@ def set_active_project_endpoint():
         "rationale": f"Set active project to: {project_id or 'None'}",
         "metadata": {
             "project_id": project_id,
-            "advisories_generated": advisory_result.get("advisories_generated", 0),
         },
     }
     append_action(action_entry)
 
     return jsonify({
         "status": "ok",
-        "focus": focus,
-        "advisory_result": advisory_result
+        "focus": focus
     })
 
 
@@ -314,19 +329,21 @@ def set_active_project_endpoint():
 # ─────────────────────────────────────────────
 @app.route("/api/advisories", methods=["GET"])
 def get_advisories_endpoint():
-    """Get all advisory suggestions."""
+    """Get all advisory suggestions in structured format."""
     advisories = get_advisories()
     return jsonify({
-        "schema_version": "1.0",
-        "advisories": advisories
+        "open": advisories.get("open", []),
+        "resolved": advisories.get("resolved", []),
+        "dismissed": advisories.get("dismissed", [])
     })
 
 
-@app.route("/api/advisories/dismiss", methods=["POST"])
-def dismiss_advisory_endpoint():
-    """Dismiss an advisory suggestion."""
+@app.route("/api/advisory-update", methods=["POST"])
+def update_advisory_endpoint():
+    """Update advisory status (resolve or dismiss)."""
     data = request.get_json(force=True)
     advisory_id = data.get("advisory_id")
+    new_status = data.get("new_status")
 
     if not advisory_id:
         return jsonify({
@@ -334,48 +351,42 @@ def dismiss_advisory_endpoint():
             "message": "advisory_id is required"
         }), 400
 
-    advisories = dismiss_advisory(advisory_id)
+    if new_status not in ["resolved", "dismissed"]:
+        return jsonify({
+            "status": "error",
+            "message": "new_status must be 'resolved' or 'dismissed'"
+        }), 400
+
+    result = update_advisory_status(advisory_id, new_status)
+
+    if result is None:
+        return jsonify({
+            "status": "error",
+            "message": f"Advisory with id '{advisory_id}' not found"
+        }), 404
 
     # Log the action
     now = datetime.now(timezone.utc).isoformat()
     action_entry = {
-        "id": f"dismiss-{now}",
-        "action": "dismiss_advisory",
+        "id": f"advisory-{new_status}-{now}",
+        "action": f"advisory_{new_status}",
         "action_type": "advisory_action",
         "timestamp": now,
-        "rationale": f"Dismissed advisory: {advisory_id}",
+        "rationale": f"Advisory {advisory_id} marked as {new_status}",
         "metadata": {
             "advisory_id": advisory_id,
+            "new_status": new_status,
         },
     }
     append_action(action_entry)
 
+    # Return updated advisories
+    advisories = get_advisories()
     return jsonify({
         "status": "ok",
-        "advisories": advisories
-    })
-
-
-@app.route("/api/run-advisory-engine", methods=["POST"])
-def run_advisory_engine_endpoint():
-    """Manually trigger advisory engine run."""
-    result = run_advisory_engine()
-
-    # Log the action
-    now = datetime.now(timezone.utc).isoformat()
-    action_entry = {
-        "id": f"advisory-run-{now}",
-        "action": "run_advisory_engine",
-        "action_type": "advisory_generation",
-        "timestamp": now,
-        "rationale": f"Generated {result.get('advisories_generated', 0)} advisories",
-        "metadata": result,
-    }
-    append_action(action_entry)
-
-    return jsonify({
-        "status": "ok",
-        "result": result
+        "open": advisories.get("open", []),
+        "resolved": advisories.get("resolved", []),
+        "dismissed": advisories.get("dismissed", [])
     })
 
 

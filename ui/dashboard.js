@@ -669,31 +669,37 @@ function renderActiveProjectFocus() {
    RENDERING — ADVISORIES PANEL
    ---------------------------------------------------------------------------- */
 
+// Badge state (not persisted across reload yet)
+let advisoryBadgeCount = 0;
+
 function renderAdvisories() {
   const container = document.getElementById('advisories-content');
   const countEl = document.getElementById('advisories-count');
 
   if (!container) return;
 
-  const advisories = state.advisories?.advisories || [];
-  const pendingAdvisories = advisories.filter(a => a.status !== 'dismissed');
+  // New structure: { open: [], resolved: [], dismissed: [] }
+  const openAdvisories = state.advisories?.open || [];
 
   if (countEl) {
-    countEl.textContent = `${pendingAdvisories.length} pending`;
+    countEl.textContent = `${openAdvisories.length} open`;
   }
 
-  if (pendingAdvisories.length === 0) {
+  // Update badge
+  updateAdvisoryBadge(openAdvisories.length);
+
+  if (openAdvisories.length === 0) {
     container.innerHTML = `
       <div class="intel-empty">
         <div class="intel-empty-icon">💡</div>
         <div class="intel-empty-text">No advisories</div>
-        <div class="intel-empty-hint">Set focus on a project to generate relevant advisories</div>
+        <div class="intel-empty-hint">Run extraction to generate advisories from promoted projects</div>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = pendingAdvisories
+  container.innerHTML = openAdvisories
     .map((advisory, index) => renderAdvisoryCard(advisory, index))
     .join('');
 
@@ -701,13 +707,41 @@ function renderAdvisories() {
 }
 
 /**
+ * Update the advisory badge count
+ */
+function updateAdvisoryBadge(count) {
+  const badge = document.getElementById('advisories-badge');
+  if (badge) {
+    if (count > 0) {
+      badge.textContent = count;
+      badge.classList.add('visible');
+    } else {
+      badge.classList.remove('visible');
+    }
+  }
+  advisoryBadgeCount = count;
+}
+
+/**
+ * Clear advisory badge (called when user opens panel)
+ */
+function clearAdvisoryBadge() {
+  const badge = document.getElementById('advisories-badge');
+  if (badge) {
+    badge.classList.remove('visible');
+  }
+}
+
+/**
  * Render an advisory card with action buttons
  */
 function renderAdvisoryCard(advisory, index) {
-  const typeLabel = advisory.type === 'signal_match' ? 'Signal Match' :
+  const typeLabel = advisory.type === 'intel_alert' ? 'Intel Alert' :
+                    advisory.type === 'signal_match' ? 'Signal Match' :
                     advisory.type === 'kb_opportunity' ? 'KB Opportunity' :
                     'Advisory';
-  const typeBadgeClass = advisory.type === 'signal_match' ? 'type-signal' : 'type-kb';
+  const typeBadgeClass = advisory.type === 'intel_alert' ? 'type-alert' :
+                         advisory.type === 'signal_match' ? 'type-signal' : 'type-kb';
 
   return `
     <div class="advisory-card" data-advisory-id="${escapeHtml(advisory.id || '')}">
@@ -716,16 +750,14 @@ function renderAdvisoryCard(advisory, index) {
         <span class="advisory-time">${formatTimestamp(advisory.created_at)}</span>
       </div>
       <div class="advisory-title">${escapeHtml(advisory.title || 'Advisory')}</div>
-      <div class="advisory-summary">${escapeHtml(advisory.summary || '')}</div>
-      ${advisory.suggested_action ? `
-      <div class="advisory-suggested">
-        <span class="advisory-suggested-label">Suggested:</span>
-        ${escapeHtml(advisory.suggested_action)}
+      ${advisory.recommendation ? `
+      <div class="advisory-recommendation">
+        ${escapeHtml(advisory.recommendation)}
       </div>
       ` : ''}
       <div class="advisory-actions">
-        <button type="button" class="advisory-btn generate-draft-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Generate a draft based on this advisory">
-          Generate Draft
+        <button type="button" class="advisory-btn resolve-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Mark as resolved">
+          Resolve
         </button>
         <button type="button" class="advisory-btn dismiss-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Dismiss this advisory">
           Dismiss
@@ -739,63 +771,58 @@ function renderAdvisoryCard(advisory, index) {
  * Attach click handlers for advisory action buttons
  */
 function attachAdvisoryHandlers(container) {
+  // Resolve button handlers
+  const resolveButtons = container.querySelectorAll('.resolve-btn');
+  resolveButtons.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const advisoryId = btn.getAttribute('data-advisory-id');
+      await updateAdvisoryStatusUI(advisoryId, 'resolved', btn);
+    });
+  });
+
   // Dismiss button handlers
   const dismissButtons = container.querySelectorAll('.dismiss-btn');
   dismissButtons.forEach((btn) => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const advisoryId = btn.getAttribute('data-advisory-id');
-
-      btn.disabled = true;
-      btn.textContent = 'Dismissing...';
-
-      try {
-        const response = await fetch('/api/advisories/dismiss', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ advisory_id: advisoryId }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to dismiss: ${response.status}`);
-        }
-
-        const result = await response.json();
-        state.advisories = { advisories: result.advisories };
-        renderAdvisories();
-      } catch (err) {
-        console.error('[Advisory Dismiss]', err);
-        btn.disabled = false;
-        btn.textContent = 'Dismiss';
-      }
+      await updateAdvisoryStatusUI(advisoryId, 'dismissed', btn);
     });
   });
+}
 
-  // Generate Draft button handlers
-  const draftButtons = container.querySelectorAll('.generate-draft-btn');
-  draftButtons.forEach((btn) => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const advisoryId = btn.getAttribute('data-advisory-id');
-      const advisory = (state.advisories?.advisories || []).find(a => a.id === advisoryId);
+/**
+ * Update advisory status via API and re-render
+ */
+async function updateAdvisoryStatusUI(advisoryId, newStatus, btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = newStatus === 'resolved' ? 'Resolving...' : 'Dismissing...';
 
-      if (!advisory) return;
-
-      // Populate the notes textarea with a draft request based on the advisory
-      const textarea = document.getElementById('notes-textarea');
-      if (textarea) {
-        const draftPrompt = `Draft a response for: ${advisory.title}\n\nContext: ${advisory.summary}\n\nSuggested action: ${advisory.suggested_action || 'Review and take appropriate action'}`;
-        textarea.value = draftPrompt;
-        textarea.focus();
-
-        // Scroll to the notes section
-        const notesSection = document.querySelector('.notes-section');
-        if (notesSection) {
-          notesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
+  try {
+    const response = await fetch('/api/advisory-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ advisory_id: advisoryId, new_status: newStatus }),
     });
-  });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update: ${response.status}`);
+    }
+
+    const result = await response.json();
+    state.advisories = {
+      open: result.open || [],
+      resolved: result.resolved || [],
+      dismissed: result.dismissed || [],
+    };
+    renderAdvisories();
+  } catch (err) {
+    console.error('[Advisory Update]', err);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
 }
 
 /* ----------------------------------------------------------------------------
