@@ -331,9 +331,9 @@ async function fetchOutputFile(filename) {
 async function loadAllData() {
   const results = await Promise.all([
     fetch("/api/intel").then(res => res.json()).catch(() => null),
-    fetchOutputFile(CONFIG.files.kbOpportunities),
-    fetchOutputFile(CONFIG.files.projects),
-    fetchOutputFile(CONFIG.files.actionLog),
+    fetch("/api/kb").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.kbOpportunities)),
+    fetch("/api/projects").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.projects)),
+    fetch("/api/action-log").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.actionLog)),
   ]);
 
   // Store results and update load status
@@ -2269,6 +2269,97 @@ function wireIngestDryRun() {
 }
 
 /* ----------------------------------------------------------------------------
+   SIGNAL EXTRACTION LIFECYCLE — Wiring
+   ---------------------------------------------------------------------------- */
+
+async function runExtraction() {
+  // Step 1: Call /api/run-signal-extraction
+  const res = await fetch('/api/run-signal-extraction', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Signal extraction failed: ${res.status}`);
+  }
+
+  const result = await res.json();
+
+  // Step 2: Re-fetch all data from authoritative APIs
+  const [intelData, kbData, projectsData, actionLogData] = await Promise.all([
+    fetch('/api/intel').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/kb').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/projects').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/action-log').then(r => r.ok ? r.json() : null).catch(() => null),
+  ]);
+
+  // Step 3: Update state
+  if (intelData) {
+    state.intelEvents = intelData;
+    state.loadStatus.intelEvents = 'success';
+    state.metadata.schemaVersions.intelEvents = intelData.schema_version;
+    state.metadata.generatedTimestamps.intelEvents = intelData.generated_at;
+  }
+
+  if (kbData) {
+    state.kbOpportunities = kbData;
+    state.loadStatus.kbOpportunities = 'success';
+    state.metadata.schemaVersions.kbOpportunities = kbData.schema_version;
+    state.metadata.generatedTimestamps.kbOpportunities = kbData.generated_at;
+  }
+
+  if (projectsData) {
+    state.projects = projectsData;
+    state.loadStatus.projects = 'success';
+    state.metadata.schemaVersions.projects = projectsData.schema_version;
+    state.metadata.generatedTimestamps.projects = projectsData.generated_at;
+  }
+
+  if (actionLogData) {
+    state.actionLog = actionLogData;
+    state.loadStatus.actionLog = 'success';
+    state.metadata.schemaVersions.actionLog = actionLogData.schema_version;
+  }
+
+  // Step 4: Re-render all panels
+  renderIntelEvents();
+  renderKbOpportunities();
+  renderProjects();
+  renderRecentRecommendations();
+  renderActionLogTable();
+  renderSystemMetadata();
+
+  // Step 5: Update timestamp
+  updateLastUpdatedTime();
+
+  return result;
+}
+
+function wireExtraction() {
+  const btn = document.getElementById('run-extraction-btn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Extracting...';
+    setIconState('processing');
+
+    try {
+      const result = await runExtraction();
+      setIconState('success');
+      setTimeout(() => setIconState('idle'), 1500);
+    } catch (err) {
+      console.error('[Signal Extraction]', err);
+      setIconState('error');
+      setTimeout(() => setIconState('idle'), 3000);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Run Extraction<span class="ingest-btn-hint">Signals · Proposals · Action Log</span>';
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -2284,6 +2375,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireCoachMode?.();
   wireCommandChips?.();
   wireIngestDryRun?.();
+  wireExtraction?.();
 
   updateLastUpdatedTime?.();
 
