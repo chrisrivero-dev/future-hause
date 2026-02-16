@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Local Claude (LM Studio)</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="left">
+        <h2>Local Claude</h2>
+
+        <label>Prompt</label>
+        <textarea
+          id="prompt"
+          placeholder="Describe the change (strict + scoped)"
+        ></textarea>
+
+        <label>Files (comma-separated, repo-relative)</label>
+        <input
+          id="files"
+          placeholder="engine/proposal_generator.py, server.py"
+        />
+
+        <button id="run">Run (Agent loop)</button>
+
+        <h3>Jobs</h3>
+        <div id="jobs"></div>
+      </div>
+
+      <div class="right">
+        <h2>Diff Preview</h2>
+        <div class="meta" id="meta"></div>
+        <pre id="patch"></pre>
+
+        <div class="actions">
+          <button id="apply" disabled>Apply</button>
+          <button id="reject" disabled>Reject</button>
+        </div>
+
+        <div class="error" id="error"></div>
+      </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

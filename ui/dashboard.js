@@ -277,53 +277,28 @@ async function fetchOutputFile(filename) {
  * Load all output files
  */
 async function loadAllData() {
-  const results = await Promise.all([
+  const [intel, kb, projects, actionLog, kbDrafts] = await Promise.all([
     fetch('/api/intel').then((res) => res.json()),
     fetch('/api/kb').then((res) => res.json()),
     fetch('/api/projects').then((res) => res.json()),
     fetch('/api/action-log').then((res) => res.json()),
+    fetch('/api/kb-drafts').then((res) => res.json()),
   ]);
 
-  // Store results and update load status
-  state.intelEvents = results[0];
-  state.loadStatus.intelEvents = results[0] ? 'success' : 'error';
-  if (results[0]) {
-    state.metadata.schemaVersions.intelEvents = results[0].schema_version;
-    state.metadata.generatedTimestamps.intelEvents = results[0].generated_at;
-  }
+  // Existing render calls
+  state.intelEvents = intel;
+  state.kbOpportunities = kb;
+  state.projects = projects;
+  state.actionLog = actionLog;
 
-  state.kbOpportunities = results[1];
-  state.loadStatus.kbOpportunities = results[1] ? 'success' : 'error';
-  if (results[1]) {
-    state.metadata.schemaVersions.kbOpportunities = results[1].schema_version;
-    state.metadata.generatedTimestamps.kbOpportunities =
-      results[1].generated_at;
-  }
-
-  state.projects = results[2];
-  state.loadStatus.projects = results[2] ? 'success' : 'error';
-  if (results[2]) {
-    state.metadata.schemaVersions.projects = results[2].schema_version;
-    state.metadata.generatedTimestamps.projects = results[2].generated_at;
-  }
-
-  state.actionLog = results[3];
-  state.loadStatus.actionLog = results[3] ? 'success' : 'error';
-  if (results[3]) {
-    state.metadata.schemaVersions.actionLog = results[3].schema_version;
-  }
-  /* ----------------------------------------------------------------------------
-   UI HELPERS — DOM Rendering & UI State
-   (No event listeners here)
----------------------------------------------------------------------------- */
-
-  // Render all sections
   renderIntelEvents();
   renderKbOpportunities();
   renderProjects();
-  renderRecentRecommendations();
   renderActionLogTable();
   renderSystemMetadata();
+
+  // NEW
+  renderKBDrafts(kbDrafts.scaffolded || []);
 }
 
 /* ----------------------------------------------------------------------------
@@ -453,6 +428,24 @@ function renderProjects() {
     .join('');
 
   attachExpandHandlers(container);
+}
+function renderKBDrafts(drafts) {
+  const container = document.getElementById('kb-draft-panel');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  drafts.forEach((draft) => {
+    const div = document.createElement('div');
+    div.className = 'kb-draft-card';
+
+    div.innerHTML = `
+      <strong>${draft.title}</strong>
+      <div>Status: ${draft.status || 'scaffolded'}</div>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
 /* ----------------------------------------------------------------------------
@@ -2269,7 +2262,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireIconEvents?.();
   wireExplanationPanels?.();
   wireNotesSubmit?.();
-  wireCoachMode?.();
+  wireRefineDraft?.();
   wireCommandChips?.();
   wireIngestDryRun?.();
 

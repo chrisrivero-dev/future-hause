@@ -33,56 +33,80 @@ def run_extraction():
         from engine.proposal_generator import run_proposal_generation
         from engine.snapshot_manager import create_snapshot
         from engine.state_manager import load_state, save_state, append_action
+        from engine.advisory_generator import generate_advisories
         from engine.llm_adapter import call_llm
 
         # 1️⃣ Run signal extraction
         new_signals = run_signal_extraction()
 
-        # 2️⃣ Run proposal generation (writes into state["proposals"])
+        # 2️⃣ Run proposal generation
         run_proposal_generation(call_llm)
 
-        # 3️⃣ Load updated cognition state
+        # 3️⃣ Load updated state
         state = load_state()
 
-        project_candidates = state["proposals"].get("project_candidates", [])
-        kb_candidates = state["proposals"].get("kb_candidates", [])
+        project_candidates = state.get("proposals", {}).get("project_candidates", [])
+        kb_candidates = state.get("proposals", {}).get("kb_candidates", [])
 
-        # 4️⃣ Promote proposals → state_mutations
-        state["state_mutations"]["projects"].extend(project_candidates)
-        state["state_mutations"]["kb"].extend(kb_candidates)
+        state.setdefault("state_mutations", {}).setdefault("projects", [])
+        state.setdefault("state_mutations", {}).setdefault("kb", [])
 
-        # 5️⃣ Clear proposals after promotion
+        # Prevent duplicate promotions
+        existing_source_ids = {
+            p.get("source_signal_id")
+            for p in state["state_mutations"]["projects"]
+        }
+
+        promoted_projects = []
+        promoted_kb = []
+
+        for project in project_candidates:
+            if project.get("source_signal_id") not in existing_source_ids:
+                state["state_mutations"]["projects"].append(project)
+                promoted_projects.append(project)
+
+        for kb in kb_candidates:
+            state["state_mutations"]["kb"].append(kb)
+            promoted_kb.append(kb)
+
+        # Clear proposals
         state["proposals"]["project_candidates"] = []
         state["proposals"]["kb_candidates"] = []
 
-        # 6️⃣ Append lifecycle action log entry
+        # 4️⃣ Generate advisories
+        new_advisories = generate_advisories(state)
+
+        # 5️⃣ Append lifecycle log
         append_action({
             "action_type": "signal_extraction_cycle",
             "metadata": {
                 "signals_created": len(new_signals),
-                "projects_promoted": len(project_candidates),
-                "kb_promoted": len(kb_candidates),
+                "projects_promoted": len(promoted_projects),
+                "kb_promoted": len(promoted_kb),
+                "advisories_created": len(new_advisories)
             }
         })
 
-        # 7️⃣ Persist state
+        # 6️⃣ Save state
         save_state(state)
 
-        # 8️⃣ Create regenerative snapshot
+        # 7️⃣ Snapshot
         snapshot = create_snapshot(
             trigger="signal_extraction_cycle",
             extra={
                 "signals_created": len(new_signals),
-                "projects_promoted": len(project_candidates),
-                "kb_promoted": len(kb_candidates),
+                "projects_promoted": len(promoted_projects),
+                "kb_promoted": len(promoted_kb),
+                "advisories_created": len(new_advisories)
             }
         )
 
         return jsonify({
             "status": "ok",
             "signals_created": len(new_signals),
-            "projects_promoted": len(project_candidates),
-            "kb_promoted": len(kb_candidates),
+            "projects_promoted": len(promoted_projects),
+            "kb_promoted": len(promoted_kb),
+            "advisories_created": len(new_advisories),
             "snapshot": snapshot
         })
 
@@ -91,6 +115,11 @@ def run_extraction():
             "status": "error",
             "message": str(e)
         }), 500
+
+@app.route("/api/kb-drafts", methods=["GET"])
+def get_kb_drafts_api():
+    from engine.state_manager import get_kb_drafts
+    return jsonify(get_kb_drafts())
 
 
 @app.route("/api/state", methods=["GET"])
