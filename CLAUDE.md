@@ -1,334 +1,245 @@
-# CLAUDE.md — AI Assistant Guide for Future Hause
+# CLAUDE.md — AI Execution Contract for Future Hause
 
-This document provides essential context for AI assistants working with the Future Hause codebase.
+This document defines the execution constraints for AI assistants working on Future Hause.
 
----
-
-## Project Overview
-
-**Future Hause** is a local support intelligence and project analysis assistant.
-
-It observes public and internal signals related to a target company (currently: FutureBit), including:
-- Community discussions (e.g., Reddit)
-- Official websites and documentation
-- Release notes and announcements
-
-It synthesizes new or changed information and produces structured artifacts for human review, such as:
-- Knowledge base opportunities
-- Canned responses opportunities
-- Documentation gaps
-- Project status summaries
-- Action and insight logs
-
-Future Hause does not take autonomous action. It does not publish content, contact customers, modify production systems, or execute decisions.
-
-**Core principle:** Future Hause is an **analyst, not an actor**. A human is always the final decision-maker.
-
-**Current version:** v0.1 (in progress)
-## Scope Clarification
-
-v0.1 implements a limited subset of the long-term vision.
-
-Currently implemented:
-- Reddit signal collection
-- State logging and artifact generation
-
-Planned (not yet implemented):
-- Official website and documentation monitoring
-- Knowledge base gap detection
-- Project and deliverable tracking
-- Progress summaries and recommendations
-
-AI assistants must not assume planned features exist unless explicitly implemented.
-
+It is not marketing copy.  
+It is an architectural discipline contract.
 
 ---
 
-## Output Contract (v0.1 — Frozen)
+## System Identity
 
-Future Hause produces structured, read-only intelligence artifacts under the `/outputs/` directory.
-These artifacts are the sole source of truth for downstream analysis and UI rendering.
+Future Hause is a **bounded intelligence system**.
 
-The following output files are considered core for v0.1:
+It:
+- Collects signals
+- Classifies them
+- Generates proposals
+- Promotes structured artifacts
+- Generates advisories
+- Scaffolds drafts (conditionally)
 
-- `intel_events.json` — Observed external signals and detected changes
-- `kb_opportunities.json` — Suggested knowledge base gaps or updates
-- `projects.json` — System-derived project state and deliverables (fully automatic)
-- `action_log.json` — Traceable recommendations and rationale
+It does **not**:
+- Act autonomously
+- Publish content
+- Contact customers
+- Modify external systems
+- Make final decisions
 
-Design rules:
-- Outputs are append-only and human-reviewable
-- Field names are explicit by design
-- Confidence scoring is intentionally excluded
-- Outputs may expand beyond these four files in future versions without breaking compatibility
-
-AI assistants must not alter schemas or introduce new output structures without explicit human approval.
-
----
-
-## Philosophy (CRITICAL)
-
-These principles MUST be respected in all contributions:
-
-1. **Human-in-the-loop by design** — All autonomous behavior is forbidden
-2. **Transparency over autonomy** — Record everything, decide nothing
-3. **Evidence before conclusions** — Raw data first, analysis later
-4. **Boring, reliable automation** — No "AI magic," no customer-facing chat
-
-If a feature looks like a "bot employee," it is out of scope.
+**Core principle:**  
+Future Hause suggests. Humans decide.
 
 ---
 
-## Repository Structure
+## Architectural Model
+
+Future Hause operates as a deterministic lifecycle:
 
 ```
-future-hause/
-├── config/
-│   └── future_hause.yaml       # Main configuration (version, scope, safety)
-├── docs/
-│   ├── UI_LOCK.md              # UI finalization constraints
-│   ├── animation_states.yaml   # 6 defined animation states
-│   ├── dashboard_panels.yaml   # Panel-to-state mappings
-│   ├── ui_state_contract.md    # Engine ↔ UI contract
-│   └── ui_states.md            # UI state visual mappings
-├── engine/
-│   ├── run.py                  # Main execution script
-│   └── resolve_animation.py    # Animation state resolver
-├── ui/
-│   ├── index.html              # Main dashboard HTML
-│   ├── dashboard.js            # State toggle logic (demo)
-│   ├── status-renderer.js      # Engine → UI renderer
-│   ├── animations.css          # State-driven CSS animations
-│   ├── dashboard.css           # Layout and styling
-│   ├── styles.css              # Base styles
-│   └── assets/
-│       └── future-hause-icon.svg   # Dashboard icon (FROZEN)
-├── README.md                   # Project overview
-└── CLAUDE.md                   # This file
+Inputs
+  ↓
+Signal Extraction
+  ↓
+Proposal Generation
+  ↓
+Promotion (state_mutations)
+  ↓
+Advisory Generation
+  ↓
+(Optional) Draft Scaffolding
 ```
 
-**Runtime files (gitignored, created at runtime):**
-- `engine/state.json` — Current engine state
-- `engine/log.json` — Timestamped event log
-- `engine/status.json` — Status for UI consumption
-- `data/raw/` — Collected signal data
+Each layer is explicit.  
+No hidden background loops.  
+No silent mutations.
 
 ---
 
-## v0.1 Scope (LOCKED)
+## Autonomy Model (Bounded)
 
-v0.1 does **only** the following:
-- Collect Reddit posts (read-only)
-- Save raw data locally
-- Record job state: `idle → collecting → done`
-- Log what happened during a run
+Future Hause supports bounded autonomy with gates.
 
-**Explicitly excluded from v0.1:**
-- No analysis
-- No AI/LLM calls
-- No UI interactions (read-only dashboard only)
-- No network calls to external services
+### Allowed
+- Deterministic lifecycle execution
+- Automatic promotion (rule-based)
+- Advisory generation (detinistic)
+- Conditional draft scaffolding (focus-matched only)
 
----
+### Forbidden
+- Auto-publishing
+- Auto-execution of KB updates
+- Auto-contact with external systems
+- Background polling without explicit trigger
+- Hidden retries or silent failure recovery
 
-## State Machine
-
-The engine uses a simple state machine:
-
-| State | Meaning | Animation |
-|-------|---------|-----------|
-| `idle` | Engine is not running | `pulse-slow` |
-| `collecting` | Actively collecting signals | `spin` |
-| `done` | Completed successfully | `glow` |
-| `error` | Failed, attention needed | `shake` |
-
-The UI MUST react strictly to `engine/state.json`. The UI MUST NOT guess or infer state.
+All autonomy must be:
+- Traceable
+- Logged
+- Human-visible
+- Reversible
 
 ---
 
-## Running the Engine
+## State Is the Source of Truth
 
-```bash
-python engine/run.py
+All system behavior must read and write through:
+
+```
+state/cognition_state.json
 ```
 
-This will:
-1. Load `config/future_hause.yaml`
-2. Set state to `collecting`
-3. Run enabled collectors (currently Reddit stub)
-4. Write logs to `engine/log.json`
-5. Set state to `done`
+No in-memory shadow state.  
+No hidden global variables.  
+No UI-derived state mutations.
+
+Every mutation must:
+- Be written to state
+- Append an `action_log` entry
+- Be auditable
 
 ---
 
-## Code Conventions
+## Lifecycle Rules
 
-### Python (engine/)
+1. Extraction writes **signals only**.
+2. Proposal generation writes **proposals only**.
+3. Promotion writes to **state_mutations only**.
+4. Advisory generation writes to **state.advisories only**.
+5. Draft scaffolding writes to **state.kb_drafts only**.
+6. No layer skips another.
 
-- **Python 3.10+** required (uses `str | None` syntax)
-- Use `pathlib.Path` for all path operations
-- Use `yaml.safe_load()` for YAML parsing
-- Function names: `snake_case`
-- Explicit error messages in exceptions
-- No side effects in pure functions (e.g., `resolve_animation`)
-
-### JavaScript (ui/)
-
-- **Vanilla JavaScript only** — no frameworks
-- Use `querySelector` / `getElementById` with null checks
-- Variable names: `camelCase`
-- Clearly mark demo code with `// DEMO ONLY` comments
-- Public API via `window.renderStatus(payload)`
-
-### CSS (ui/)
-
-- CSS Variables for theming (defined in `:root`)
-- State classes: `state-{animation-name}` pattern
-- Support `prefers-reduced-motion` and `prefers-contrast`
-- Use `will-change` and `backface-visibility` for performance
-
-### HTML
-
-- Semantic markup: `<header>`, `<main>`, `<aside>`, `<section>`
-- ARIA labels for accessibility
-- External SVG via `<img>` for icons (no inline SVG)
+No cross-layer mutation shortcuts are allowed.
 
 ---
 
-## Configuration Files
+## Deterministic First
 
-### config/future_hause.yaml
+When implementing features:
 
-Main configuration with:
-- `version` — Current version
-- `mode` — `local_only` (no external connections)
-- `scope.collect` — Which collectors are enabled
-- `safety.human_in_loop_required` — Must be `true`
-- `safety.auto_actions` — Must be `false`
+- Prefer rule-based logic over LLM calls.
+- LLMs may classify or summarize.
+- LLMs must not control state transitions.
+- Confidence scores must not gate execution.
+- Pass/fail logic only.
 
-### docs/animation_states.yaml
+---
 
-Defines 6 animations with intent and intensity:
-- `pulse-slow` — Idle/waiting (low)
-- `spin` — Active processing (medium)
-- `glow` — Success/complete (medium)
-- `shake` — Error/attention (high)
-- `slide-in` — New information (medium)
-- `dim` — Inactivity (low)
+## File Modification Discipline
 
-### docs/dashboard_panels.yaml
+When modifying code:
 
-Maps panels to data sources and animations.
+- Do not refactor architecture unless instructed.
+- Do not rename files casually.
+- Do not create new modules unless necessary.
+- Prefer inline changes for small tasks (<5 edits).
+- Use `grep` before reading large files.
+- Never re-read the same file unnecessarily.
+
+Do not narrate tool calls.  
+Do not echo file contents back.
 
 ---
 
 ## UI Contract
 
-From `docs/ui_state_contract.md`:
+The UI is a reflection layer only.
 
-1. UI MUST read `engine/status.json`
-2. UI MUST NOT guess state
-3. UI MUST NOT trigger engine actions
-4. UI MUST be read-only in v0.x
-5. Animations are visual reflections of state only
+The UI:
+- Reads API endpoints.
+- Does not mutate state directly.
+- Does not infer state.
+- Does not implement business logic.
 
----
-
-## UI Lock Policy
-
-From `docs/UI_LOCK.md`:
-
-- UI is finalized
-- No new panels without justification
-- No charts until a metric proves its value
-- Icon states drive layout, not vice versa
+All business logic belongs in the `engine/` layer.
 
 ---
 
-## Dashboard Icon (FROZEN)
+## Logging Requirements
 
-**Single source of truth:** `ui/assets/future-hause-icon.svg`
+Every lifecycle cycle must append:
 
-Verification hash: `APPROVED_FH_ICON_v1_SHA: 7d3c9e1`
+- `signal_extraction_cycle`
+- `advisory_generated` (if applicable)
+- `focus_changed` (if applicable)
+- `draft_scaffolded` (if applicable)
+
+No silent state changes are allowed.
+
+---
+
+## Focus System
+
+Focus is a first-class concept.
+
+```
+state.focus.active_project_id
+```
 
 Rules:
-1. **No inline SVG** — The icon MUST be loaded via `<img src="./assets/future-hause-icon.svg">`
-2. **No redesign** — Do not regenerate, approximate, or substitute the SVG
-3. **Wrapper-only animations** — CSS animations target `.dashboard-icon-wrapper`, not SVG internals
-4. **Fail silently** — Animations must degrade gracefully when `prefers-reduced-motion` is set
-
-Animation states (applied to wrapper):
-| State | Animation | Effect |
-|-------|-----------|--------|
-| `idle` | `icon-idle-pulse` | Subtle opacity pulse |
-| `processing` | `icon-processing-spin` | Full rotation |
-| `success` | `icon-success-glow` | Green drop-shadow |
-| `error` | `icon-error-shake` | Horizontal shake + red glow |
-
-AI assistants must NOT modify the icon SVG without explicit human approval.
+- Only one active project at a time.
+- Advisory priority may depend on focus.
+- Draft scaffolding only occurs for focus-matched advisories.
+- Focus does not auto-create projects.
 
 ---
 
-## Development Guidelines
+## Draft Scaffolding Rules
 
-### DO
+Draft scaffolds:
+- Are structured.
+- Are not published.
+- Are marked as `scaffolded`.
+- Must be manually reviewed before promotion.
 
-- Add logging with `log_event()` for all significant actions
-- Write state changes to `engine/state.json`
-- Keep collectors read-only (no writes to external systems)
-- Follow the existing code patterns
-- Update documentation when adding features
-
-### DO NOT
-
-- Add auto-publishing or auto-actions
-- Make the engine "smart" or autonomous
-- Add customer-facing features
-- Skip human review steps
-- Add LLM/AI features in v0.1
+No auto-KB publication ever.
 
 ---
 
-## Testing
+## Safety Boundaries
 
-Currently uses demo controls in the UI for manual testing:
-- Demo buttons in `ui/index.html` trigger state changes
-- `window.renderStatus(payload)` can be called from console
+Never implement:
 
-No automated test framework yet.
+- Background daemons
+- Autonomous loops
+- Self-triggered re-execution
+- External API write calls
+- Credential storage
+- Customer communication logic
 
----
-
-## Planned Future Versions
-
-- **v0.2** — Batch builder, structured datasets
-- **v0.3** — Claude-assisted analysis, draft KB articles
-- **v0.4+** — Read-only dashboard, state visualization, review interface
-
-These are ideas, not commitments.
+If a feature makes Future Hause resemble an AI employee,  
+it violates the system identity.
 
 ---
 
-## Quick Reference
+## Error Handling
 
-| Task | Command/Location |
-|------|------------------|
-| Run engine | `python engine/run.py` |
-| Main config | `config/future_hause.yaml` |
-| Engine state | `engine/state.json` (runtime) |
-| Event log | `engine/log.json` (runtime) |
-| UI entry point | `ui/index.html` |
-| Dashboard icon | `ui/assets/future-hause-icon.svg` (FROZEN) |
-| Animation defs | `docs/animation_states.yaml` |
-| State contract | `docs/ui_state_contract.md` |
+On error:
+
+- Stop execution.
+- Log error.
+- Do not retry automatically.
+- Do not guess.
+- Do not fabricate fallback state.
+
+Graceful failure > clever recovery.
 
 ---
 
-## Common Pitfalls
+## Execution Summary
 
-1. **Don't add autonomy** — Every feature needs human approval
-2. **Don't skip state logging** — All transitions must be recorded
-3. **Don't modify the UI arbitrarily** — Check `UI_LOCK.md` first
-4. **Don't add external API calls in v0.1** — Local-only scope
-5. **Don't infer state in UI** — Always read from engine state files
-6. **Don't modify or inline the icon** — Use `ui/assets/future-hause-icon.svg` via `<img>` only
+Future Hause is:
+
+- Structured
+- Deterministic
+- Logged
+- Bounded
+- Human-governed
+
+It is not:
+
+- An agentic employee
+- A self-directing bot
+- A production automation engine
+
+If a change increases autonomy,  
+it must introduce an explicit gate.
