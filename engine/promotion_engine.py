@@ -16,7 +16,8 @@ Deterministic. No LLM calls. No external dependencies.
 import uuid
 from datetime import datetime, timezone
 from typing import Literal
-from engine.state_manager import load_state, save_state
+from engine.state_manager import load_state, save_state, save_state_validated
+from engine.lifecycle_guard import validate_after_promotion
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -269,8 +270,11 @@ def run_promotion(triggered_by: str) -> PromotionResult:
                 "error": str(e),
             })
 
-    # Persist all changes
-    save_state(state)
+    # Validate invariants before save, then persist
+    save_state_validated(state)
+
+    # Additional validation after promotion execution
+    validate_after_promotion(state)
 
     return {
         "status": "complete",
@@ -357,7 +361,11 @@ def promote_single(
     decision["promoted_at"] = datetime.now(timezone.utc).isoformat()
     decision["mutation_id"] = mutation_id
 
-    save_state(state)
+    # Validate invariants before save, then persist
+    save_state_validated(state)
+
+    # Additional validation after promotion execution
+    validate_after_promotion(state)
 
     return {
         "status": "promoted",

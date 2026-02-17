@@ -40,6 +40,20 @@ def save_state(state):
         json.dump(state, f, indent=2)
 
 
+def save_state_validated(state):
+    """
+    Save cognition state to disk after validating lifecycle invariants.
+
+    Use this for final state saves where invariants must hold.
+    Raises LifecycleViolation if validation fails.
+    """
+    # Import here to avoid circular dependency
+    from engine.lifecycle_guard import validate_before_save
+
+    validate_before_save(state)
+    save_state(state)
+
+
 # ─────────────────────────────────────────────
 # Action Log Functions
 # ─────────────────────────────────────────────
