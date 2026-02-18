@@ -1,9 +1,25 @@
-# ---- Runtime data (never commit) ----
-data/
+# =====================================================
+# Future Hause — Git Ignore
+# =====================================================
+
+# -----------------------------------------------------
+# Runtime Cognition State (NEVER COMMIT)
+# -----------------------------------------------------
+state/
 engine/state.json
 engine/log.json
+engine/status.json
+data/raw/
 
-# ---- Python ----
+# -----------------------------------------------------
+# Drafts / Local payload experimentation
+# -----------------------------------------------------
+drafts/
+payloads/
+
+# -----------------------------------------------------
+# Python
+# -----------------------------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
@@ -11,30 +27,28 @@ __pycache__/
 .venv/
 venv/
 
-# ---- Environment / secrets ----
+# -----------------------------------------------------
+# Environment / Secrets
+# -----------------------------------------------------
 .env
 .env.*
 
-# ---- OS / Editor ----
+# -----------------------------------------------------
+# OS / Editor
+# -----------------------------------------------------
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
 
-# ---- UI / Frontend (future) ----
+# -----------------------------------------------------
+# Frontend / Build Artifacts
+# -----------------------------------------------------
 node_modules/
 dist/
 build/
 
-# ---- Logs ----
+# -----------------------------------------------------
+# Logs
+# -----------------------------------------------------
 *.log
-# Runtime engine outputs
-engine/status.json
-engine/state.json
-engine/log.json
-data/raw/
-
-# local drafts
-/drafts/
-payloads/
-state/
