@@ -23,7 +23,7 @@ def load_state():
     """Load cognition state from disk."""
     if not STATE_PATH.exists():
         # Initialize with full baseline schema
-        save_state(BASELINE_SCHEMA)
+        _save_state_raw(BASELINE_SCHEMA)
         return BASELINE_SCHEMA.copy()
     with open(STATE_PATH, "r") as f:
         state = json.load(f)
@@ -33,8 +33,8 @@ def load_state():
     return state
 
 
-def save_state(state):
-    """Save cognition state to disk."""
+def _save_state_raw(state):
+    """Save cognition state to disk. Internal only — use save_state_validated() instead."""
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(STATE_PATH, "w") as f:
         json.dump(state, f, indent=2)
@@ -51,7 +51,7 @@ def save_state_validated(state):
     from engine.lifecycle_guard import validate_before_save
 
     validate_before_save(state)
-    save_state(state)
+    _save_state_raw(state)
 
 
 # ─────────────────────────────────────────────
@@ -62,7 +62,7 @@ def append_action(action_entry):
     """Append an action entry to state_mutations.action_log."""
     state = load_state()
     state["state_mutations"]["action_log"].append(action_entry)
-    save_state(state)
+    save_state_validated(state)
 
 
 def get_action_log():
@@ -85,7 +85,7 @@ def replace_intel_signals(signals):
     """Replace intel signals in perception.signals."""
     state = load_state()
     state["perception"]["signals"] = signals
-    save_state(state)
+    save_state_validated(state)
 
 
 # ─────────────────────────────────────────────
@@ -104,7 +104,7 @@ def set_active_project(project_id: str | None):
     if "focus" not in state:
         state["focus"] = {"active_project_id": None}
     state["focus"]["active_project_id"] = project_id
-    save_state(state)
+    save_state_validated(state)
     return state["focus"]
 
 
@@ -129,7 +129,7 @@ def append_open_advisories(new_advisories: list):
     if isinstance(state["advisories"], list):
         state["advisories"] = {"open": state["advisories"], "resolved": [], "dismissed": []}
     state["advisories"]["open"].extend(new_advisories)
-    save_state(state)
+    save_state_validated(state)
     return state["advisories"]
 
 
@@ -160,5 +160,5 @@ def update_advisory_status(advisory_id: str, new_status: str):
     advisories[new_status].append(target_advisory)
 
     state["advisories"] = advisories
-    save_state(state)
+    save_state_validated(state)
     return target_advisory

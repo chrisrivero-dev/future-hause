@@ -10,7 +10,7 @@ Deterministic. No LLM calls. Uses state_manager for persistence.
 
 import uuid
 from datetime import datetime, timezone
-from engine.state_manager import load_state, save_state
+from engine.state_manager import load_state, save_state_validated
 
 
 def _get_existing_proposal_source_ids(state: dict) -> set:
@@ -94,7 +94,7 @@ def run_proposal_generation() -> dict:
             skipped_unknown_category += 1
 
     # Persist updated state
-    save_state(state)
+    save_state_validated(state)
 
     return {
         "status": "complete",

@@ -6,7 +6,7 @@ from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
 from engine.state_manager import (
     load_state,
-    save_state,
+    save_state_validated,
     get_intel_signals,
     append_action,
     get_action_log,
@@ -74,7 +74,7 @@ def auto_promote_projects() -> dict:
     # Clear proposals after promotion
     state["proposals"]["project_candidates"] = []
 
-    save_state(state)
+    save_state_validated(state)
 
     return {
         "promoted": promoted,

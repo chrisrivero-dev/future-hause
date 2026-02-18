@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from engine.state_manager import load_state, save_state
+from engine.state_manager import load_state, save_state_validated
 
 
 RAW_REDDIT_PATH = Path("data/raw/reddit_stub.json")
@@ -111,7 +111,7 @@ def run_signal_extraction() -> dict:
     # Update meta timestamp
     state["meta"]["last_updated"] = datetime.now(timezone.utc).isoformat()
 
-    save_state(state)
+    save_state_validated(state)
 
     return {
         "signals_created": len(new_signals),

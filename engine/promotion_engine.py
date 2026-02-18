@@ -16,7 +16,7 @@ Deterministic. No LLM calls. No external dependencies.
 import uuid
 from datetime import datetime, timezone
 from typing import Literal
-from engine.state_manager import load_state, save_state, save_state_validated
+from engine.state_manager import load_state, save_state_validated
 from engine.lifecycle_guard import validate_after_promotion
 
 
@@ -88,7 +88,7 @@ def record_approval(
     }
 
     state["decisions"]["approved"].append(decision)
-    save_state(state)
+    save_state_validated(state)
 
     return {
         "status": "recorded",
@@ -152,7 +152,7 @@ def record_rejection(
     }
 
     state["decisions"]["rejected"].append(decision)
-    save_state(state)
+    save_state_validated(state)
 
     return {
         "status": "rejected",
