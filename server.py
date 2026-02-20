@@ -14,7 +14,8 @@ import uuid
 from engine.coach.run import run_coach_mode
 from engine.state_manager import get_intel_signals, append_action, get_action_log
 
-app = Flask(__name__, static_folder="ui", static_url_path="/ui")
+app = Flask(__name__, static_folder="ui", static_url_path="")
+
 @app.route("/")
 def root():
     return app.send_static_file("index.html")
@@ -29,7 +30,7 @@ def root():
 @app.route("/api/run-signal-extraction", methods=["POST"])
 def run_extraction():
     try:
-        from engine.signal_extraction import run_signal_extraction
+        from engine.signal_extractor import run_signal_extraction
         from engine.proposal_generator import run_proposal_generation
         from engine.snapshot_manager import create_snapshot
         from engine.state_manager import load_state, save_state, append_action
@@ -111,10 +112,13 @@ def run_extraction():
         })
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "status": "error",
             "message": str(e)
         }), 500
+
 
 @app.route("/api/kb-drafts", methods=["GET"])
 def get_kb_drafts_api():

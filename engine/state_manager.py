@@ -15,12 +15,40 @@ STATE_PATH = Path("state/cognition_state.json")
 
 def load_state():
     if not STATE_PATH.exists():
-        raise FileNotFoundError("Cognition state not initialized.")
+        initial_state = {
+            "focus": {"active_project_id": None},
+            "kb_drafts": {
+                "scaffolded": [],
+                "active": [],
+                "archived": []
+            },
+            "advisories": {
+                "open": [],
+                "resolved": [],
+                "dismissed": []
+            },
+            "perception": {
+                "inputs": [],
+                "signals": []
+            },
+            "proposals": {
+                "kb_candidates": [],
+                "project_candidates": []
+            },
+            "state_mutations": {
+                "projects": [],
+                "action_log": []
+            },
+            "meta": {}
+        }
+
+        save_state(initial_state)
+        return initial_state
 
     with open(STATE_PATH, "r") as f:
         state = json.load(f)
 
-    # Ensure required top-level keys exist
+    # Defensive guarantees
     state.setdefault("focus", {"active_project_id": None})
     state.setdefault("kb_drafts", {
         "scaffolded": [],
@@ -31,6 +59,18 @@ def load_state():
         "open": [],
         "resolved": [],
         "dismissed": []
+    })
+    state.setdefault("perception", {
+        "inputs": [],
+        "signals": []
+    })
+    state.setdefault("proposals", {})
+    state["proposals"].setdefault("kb_candidates", [])
+    state["proposals"].setdefault("project_candidates", [])
+
+    state.setdefault("state_mutations", {
+        "projects": [],
+        "action_log": []
     })
     state.setdefault("meta", {})
 
