@@ -35,11 +35,11 @@ Confidence: {confidence}
 
 Respond ONLY in valid JSON:
 
-{
+{{
   "title": "...",
   "summary": "...",
-  "impact_score": 0-100
-}
+  "impact_score": 0
+}}
 """
 
 
@@ -130,7 +130,7 @@ def run_proposal_generation(llm_callable) -> dict:
 
         category = signal.get("category", "").lower()
 
-        if category not in ["discussion", "announcement"]:
+        if category not in ["discussion", "announcement", "bug", "confusion"]:
             skipped_unknown_category += 1
             continue
 

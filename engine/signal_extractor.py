@@ -25,11 +25,11 @@ Allowed categories:
 
 Respond ONLY in valid JSON with this structure:
 
-{
+{{
   "category": "...",
   "summary": "...",
   "confidence": 0.0
-}
+}}
 
 Content:
 \"\"\"

@@ -9,16 +9,41 @@ from engine.state_manager import get_kb_candidates, get_projects
 
 
 import uuid
-
-
-from engine.coach.run import run_coach_mode
-from engine.state_manager import get_intel_signals, append_action, get_action_log
-
+from flask import request
 app = Flask(__name__, static_folder="ui", static_url_path="")
 
 @app.route("/")
 def root():
     return app.send_static_file("index.html")
+
+@app.route("/api/ingest-reddit", methods=["POST"])
+def ingest_reddit():
+    from engine.state_manager import load_state, save_state
+    import uuid
+    from datetime import datetime
+
+    data = request.json or {}
+
+    state = load_state()
+
+    state.setdefault("perception", {})
+    state["perception"].setdefault("inputs", [])
+
+    state["perception"]["inputs"].append({
+        "id": str(uuid.uuid4()),
+        "source": data.get("source", "reddit"),
+        "content": data.get("content", ""),
+        "created_at": datetime.utcnow().isoformat()
+    })
+
+    save_state(state)
+
+    return {"status": "ok"}
+
+from engine.coach.run import run_coach_mode
+from engine.state_manager import get_intel_signals, append_action, get_action_log
+
+
 
 
 
