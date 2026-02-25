@@ -112,6 +112,9 @@ def run_kb_draft_generation(call_llm: Callable[[str], str]) -> dict:
 
     candidates = state.get("proposals", {}).get("kb_candidates", [])
 
+    # Debug logging
+    print(f"[kb_draft_generator] kb_candidates found: {len(candidates)}")
+
     # Build set of already-drafted candidate IDs to prevent duplicates
     existing_draft_ids = set()
     for candidate in candidates:
@@ -144,6 +147,9 @@ def run_kb_draft_generation(call_llm: Callable[[str], str]) -> dict:
         candidate["draft_id"] = str(uuid.uuid4())
         candidate["drafted_at"] = datetime.now(timezone.utc).isoformat()
         generated += 1
+
+    # Debug logging
+    print(f"[kb_draft_generator] drafts generated: {generated}")
 
     # Persist updated state
     save_state_validated(state)

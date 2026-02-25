@@ -147,6 +147,37 @@ def get_kb():
     })
 
 
+@app.route("/api/kb-drafts", methods=["GET"])
+def get_kb_drafts():
+    """Return KB candidates that have drafts, organized by status."""
+    state = load_state()
+    candidates = state.get("proposals", {}).get("kb_candidates", [])
+
+    # Filter to only candidates with drafts, organize by status
+    active = []
+    archived = []
+    scaffolded = []
+
+    for candidate in candidates:
+        if not candidate.get("draft"):
+            continue
+
+        status = candidate.get("status", "active")
+        if status == "archived":
+            archived.append(candidate)
+        elif status == "scaffolded":
+            scaffolded.append(candidate)
+        else:
+            active.append(candidate)
+
+    return jsonify({
+        "schema_version": "1.0",
+        "active": active,
+        "archived": archived,
+        "scaffolded": scaffolded,
+    })
+
+
 # ─────────────────────────────────────────────
 # Projects API
 # ─────────────────────────────────────────────
