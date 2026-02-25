@@ -67,6 +67,9 @@ def run_extraction():
 
         # 2️⃣ Run proposal generation
         run_proposal_generation(call_llm)
+        
+        # 3️⃣ Automatically generate KB drafts after promotion
+        draft_result = run_kb_draft_generation(call_llm)
 
         # 3️⃣ Load updated state
         state = load_state()

@@ -140,9 +140,19 @@ def run_proposal_generation(llm_callable) -> dict:
         if category == "discussion":
             state["proposals"]["kb_candidates"].append(candidate)
             kb_generated += 1
+
+        elif category == "bug":
+            # Bug should create BOTH KB and Project
+            state["proposals"]["kb_candidates"].append(candidate)
+            kb_generated += 1
+            
+            state["proposals"]["project_candidates"].append(candidate)
+            project_generated += 1
+
         else:
             state["proposals"]["project_candidates"].append(candidate)
             project_generated += 1
+
 
     save_state(state)
 
