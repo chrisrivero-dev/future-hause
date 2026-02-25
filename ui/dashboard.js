@@ -415,10 +415,75 @@ function renderIntelEvents() {
     row.innerHTML = `
       <strong>${escapeHtml(evt.title || 'Event')}</strong>
       <div class="meta">${escapeHtml(evt.source || '')} • ${escapeHtml(evt.priority || '')}</div>
-      <div class="desc">${escapeHtml(evt.description || '')}</div>
+      <div class="desc">${escapeHtml(evt.description || evt.content || '')}</div>
+      <button type="button" class="generate-proposal-btn" data-signal-id="${escapeHtml(evt.id || '')}">
+        Generate Proposal
+      </button>
     `;
     container.appendChild(row);
   });
+
+  // Attach click handlers to Generate Proposal buttons
+  container.querySelectorAll('.generate-proposal-btn').forEach((btn) => {
+    btn.addEventListener('click', handleGenerateProposal);
+  });
+}
+
+async function handleGenerateProposal(event) {
+  const btn = event.target;
+  const signalId = btn.dataset.signalId;
+
+  if (!signalId) {
+    console.error('[handleGenerateProposal] No signal ID');
+    return;
+  }
+
+  // Find the signal in state
+  const signals = state.intelEvents?.intel_events || [];
+  const signal = signals.find((s) => s.id === signalId);
+
+  if (!signal) {
+    console.error('[handleGenerateProposal] Signal not found:', signalId);
+    return;
+  }
+
+  // Disable button while processing
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const response = await fetch('/api/kb-drafts/new', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(signal),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      btn.textContent = 'Created!';
+      btn.classList.add('success');
+      // Refresh KB opportunities to show new scaffolded proposal
+      await loadAllData();
+    } else {
+      btn.textContent = result.message || 'Error';
+      btn.classList.add('error');
+      setTimeout(() => {
+        btn.textContent = 'Generate Proposal';
+        btn.classList.remove('error');
+        btn.disabled = false;
+      }, 2000);
+    }
+  } catch (err) {
+    console.error('[handleGenerateProposal] Error:', err);
+    btn.textContent = 'Error';
+    btn.classList.add('error');
+    setTimeout(() => {
+      btn.textContent = 'Generate Proposal';
+      btn.classList.remove('error');
+      btn.disabled = false;
+    }, 2000);
+  }
 }
 
 /* ----------------------------------------------------------------------------

@@ -98,6 +98,39 @@ def _build_fallback(candidate: dict) -> dict:
     }
 
 
+def scaffold_from_signal(signal: dict) -> dict:
+    """
+    Create a scaffolded KB proposal from a signal.
+
+    Returns a kb_candidate with status='scaffolded' and empty section placeholders.
+    The proposal is ready for LLM-assisted content generation.
+
+    Args:
+        signal: A signal object from perception.signals
+
+    Returns:
+        A scaffolded kb_candidate proposal
+    """
+    signal_id = signal.get("id")
+
+    return {
+        "id": str(uuid.uuid4()),
+        "source_signal_id": signal_id,
+        "source": signal.get("source", "unknown"),
+        "title": signal.get("title", "Untitled"),
+        "summary": signal.get("content", signal.get("summary", "")),
+        "status": "scaffolded",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "sections": [
+            {"heading": "Summary", "content": signal.get("content", signal.get("summary", ""))},
+            {"heading": "Steps to Reproduce", "content": ""},
+            {"heading": "Root Cause", "content": ""},
+            {"heading": "Solution / Fix", "content": ""},
+            {"heading": "Related Docs", "content": ""},
+        ],
+    }
+
+
 def run_kb_draft_generation(call_llm: Callable[[str], str]) -> dict:
     """
     Generate structured KB drafts for all undrafted kb_candidates.

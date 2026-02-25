@@ -5,6 +5,7 @@ from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
 from engine.state_manager import (
     load_state,
+    save_state_validated,
     get_intel_signals,
     append_action,
     get_action_log,
@@ -18,6 +19,7 @@ from engine.signal_extraction import run_signal_extraction
 from engine.proposal_generator import run_proposal_generation
 from engine.promotion_engine import record_approval, run_promotion
 from engine.advisory_generator import generate_advisories
+from engine.kb_draft_generator import scaffold_from_signal
 
 app = Flask(__name__)
 
@@ -175,6 +177,44 @@ def get_kb_drafts():
         "active": active,
         "archived": archived,
         "scaffolded": scaffolded,
+    })
+
+
+@app.route("/api/kb-drafts/new", methods=["POST"])
+def create_kb_draft():
+    """Create a scaffolded KB proposal from a signal."""
+    data = request.get_json(force=True)
+
+    # Validate signal data
+    if not data:
+        return jsonify({"status": "error", "message": "Request body required"}), 400
+
+    signal_id = data.get("id")
+    if not signal_id:
+        return jsonify({"status": "error", "message": "Signal id required"}), 400
+
+    # Check for duplicate (signal already scaffolded)
+    state = load_state()
+    existing_ids = {
+        c.get("source_signal_id")
+        for c in state.get("proposals", {}).get("kb_candidates", [])
+    }
+    if signal_id in existing_ids:
+        return jsonify({
+            "status": "error",
+            "message": f"Signal {signal_id} already has a KB proposal"
+        }), 409
+
+    # Create scaffolded proposal
+    proposal = scaffold_from_signal(data)
+
+    # Append to kb_candidates
+    state["proposals"]["kb_candidates"].append(proposal)
+    save_state_validated(state)
+
+    return jsonify({
+        "status": "ok",
+        "proposal": proposal,
     })
 
 
