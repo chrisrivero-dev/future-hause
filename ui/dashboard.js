@@ -502,7 +502,7 @@ function renderKbOpportunities() {
 
   const opportunities = getNestedValue(
     state.kbOpportunities,
-    'opportunities',
+    'kb_opportunities',
     []
   );
   const displayOpportunities = opportunities.slice(0, CONFIG.maxItemsPerColumn);

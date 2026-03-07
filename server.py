@@ -145,7 +145,7 @@ def get_kb():
     candidates = state.get("proposals", {}).get("kb_candidates", [])
     return jsonify({
         "schema_version": "1.0",
-        "opportunities": candidates
+        "kb_opportunities": candidates
     })
 
 
