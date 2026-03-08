@@ -173,9 +173,11 @@ def action_log():
 
 @app.route("/api/kb", methods=["GET"])
 def get_kb():
+    state = load_state()
+    kb_items = state.get("state_mutations", {}).get("kb", [])
     return jsonify({
         "schema_version": "1.0",
-        "kb_opportunities": get_kb_candidates()
+        "kb_opportunities": kb_items
     })
 
 @app.route("/api/projects", methods=["GET"])
@@ -269,7 +271,15 @@ def get_draft(draft_id):
         "tags": draft.tags,
     })
 
-
+@app.route("/api/signals", methods=["GET"])
+def get_signals():
+    """Return all perception signals from state"""
+    state = load_state()
+    signals = state.get("perception", {}).get("signals", [])
+    return jsonify({
+        "schema_version": "1.0",
+        "signals": signals
+    })
 
 # ─────────────────────────────────────────────
 # Coach API
