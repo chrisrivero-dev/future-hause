@@ -86,12 +86,12 @@ const INTENT_CONTRACT = [
 async function buildStateContext() {
   try {
     const [intelRes, kbRes, projectsRes] = await Promise.all([
-      fetch('/api/intel').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/signals').then(r => r.ok ? r.json() : null).catch(() => null),
       fetch(`${CONFIG.outputsPath}/kb_opportunities.json`).then(r => r.ok ? r.json() : null).catch(() => null),
       fetch(`${CONFIG.outputsPath}/projects.json`).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
 
-    const signals = (intelRes?.intel_events || []).slice(0, 5);
+    const signals = (intelRes?.signals || []).slice(0, 5);
     const kbCandidates = (kbRes?.opportunities || []).slice(0, 5);
     const projects = (projectsRes?.projects || []).slice(0, 5);
 
@@ -334,7 +334,7 @@ async function fetchOutputFile(filename) {
  */
 async function loadAllData() {
   const results = await Promise.all([
-    fetch("/api/intel").then(res => res.json()).catch(() => null),
+    fetch("/api/signals").then(res => res.json()).catch(() => null),
     fetch("/api/kb").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.kbOpportunities)),
     fetch("/api/projects").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.projects)),
     fetch("/api/action-log").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.actionLog)),
@@ -400,7 +400,7 @@ function renderIntelEvents() {
 
   container.innerHTML = '';
 
-  const events = state.intelEvents?.intel_events || [];
+  const events = state.intelEvents?.signals || [];
   countEl.textContent = events.length;
 
   if (events.length === 0) {
@@ -439,7 +439,7 @@ async function handleGenerateProposal(event) {
   }
 
   // Find the signal in state
-  const signals = state.intelEvents?.intel_events || [];
+  const signals = state.intelEvents?.signals || [];
   const signal = signals.find((s) => s.id === signalId);
 
   if (!signal) {
@@ -2674,7 +2674,7 @@ async function runExtraction() {
 
   // Step 2: Re-fetch all data from authoritative APIs
   const [intelData, kbData, projectsData, actionLogData, focusData, advisoriesData] = await Promise.all([
-    fetch('/api/intel').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/signals').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/kb').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/projects').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/action-log').then(r => r.ok ? r.json() : null).catch(() => null),
