@@ -91,8 +91,8 @@ async function buildStateContext() {
       fetch(`${CONFIG.outputsPath}/projects.json`).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
 
-    const signals = (intelRes?.signals || []).slice(0, 5);
-    const kbCandidates = (kbRes?.opportunities || []).slice(0, 5);
+    const signals = (intelRes?.signals || intelRes?.intel_events || intelRes?.events || []).slice(0, 5);
+    const kbCandidates = (kbRes?.kb_opportunities || kbRes?.opportunities || []).slice(0, 5);
     const projects = (projectsRes?.projects || []).slice(0, 5);
 
     return (
@@ -400,7 +400,11 @@ function renderIntelEvents() {
 
   container.innerHTML = '';
 
-  const events = state.intelEvents?.signals || [];
+  // Handle multiple possible property names from different data sources
+  const events = state.intelEvents?.signals
+              || state.intelEvents?.intel_events
+              || state.intelEvents?.events
+              || [];
   countEl.textContent = events.length;
 
   if (events.length === 0) {
@@ -438,8 +442,11 @@ async function handleGenerateProposal(event) {
     return;
   }
 
-  // Find the signal in state
-  const signals = state.intelEvents?.signals || [];
+  // Find the signal in state (handle multiple possible property names)
+  const signals = state.intelEvents?.signals
+               || state.intelEvents?.intel_events
+               || state.intelEvents?.events
+               || [];
   const signal = signals.find((s) => s.id === signalId);
 
   if (!signal) {
@@ -500,11 +507,10 @@ function renderKbOpportunities() {
 
   if (!container) return;
 
-  const opportunities = getNestedValue(
-    state.kbOpportunities,
-    'kb_opportunities',
-    []
-  );
+  // Handle multiple possible property names from different data sources
+  const opportunities = getNestedValue(state.kbOpportunities, 'kb_opportunities', null)
+                     || getNestedValue(state.kbOpportunities, 'opportunities', null)
+                     || [];
   const displayOpportunities = opportunities.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${opportunities.length} total`;
