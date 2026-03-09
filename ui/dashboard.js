@@ -334,7 +334,7 @@ async function fetchOutputFile(filename) {
  */
 async function loadAllData() {
   const results = await Promise.all([
-    fetch("/api/signals").then(res => res.json()).catch(() => null),
+    fetch("/api/signals").then(res => res.ok ? res.json() : null).catch(() => null),
     fetch("/api/kb").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.kbOpportunities)),
     fetch("/api/projects").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.projects)),
     fetch("/api/action-log").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.actionLog)),
@@ -544,7 +544,7 @@ function renderProjects() {
 
   const projects = getNestedValue(state.projects, 'projects', []);
   const displayProjects = projects.slice(0, CONFIG.maxItemsPerColumn);
-  const activeProjectId = state.focus?.focus?.active_project_id || null;
+  const activeProjectId = state.focus?.active_project_id || null;
 
   countEl.textContent = `${projects.length} total`;
 
@@ -644,7 +644,7 @@ function attachProjectFocusHandlers(container) {
         const result = await response.json();
 
         // Update local state
-        state.focus = { focus: result.focus };
+        state.focus = result.focus;
 
         // Reload advisories
         const advisoriesRes = await fetch('/api/advisories');
@@ -673,7 +673,19 @@ function renderActiveProjectFocus() {
   const panel = document.getElementById('active-project-panel');
   if (!panel) return;
 
-  const activeProjectId = state.focus?.focus?.active_project_id || null;
+  // Get projects list
+  const projects = getNestedValue(state.projects, 'projects', []);
+
+  // Get active project ID, auto-select first project if none selected
+  let activeProjectId = state.focus?.active_project_id || null;
+  if (!activeProjectId && projects.length > 0) {
+    activeProjectId = projects[0].id;
+    // Update state to reflect auto-selection
+    if (!state.focus) {
+      state.focus = {};
+    }
+    state.focus.active_project_id = activeProjectId;
+  }
 
   if (!activeProjectId) {
     panel.innerHTML = `
@@ -686,7 +698,6 @@ function renderActiveProjectFocus() {
   }
 
   // Find the active project
-  const projects = getNestedValue(state.projects, 'projects', []);
   const activeProject = projects.find(p => p.id === activeProjectId);
 
   if (!activeProject) {
