@@ -1,12 +1,176 @@
 {
-  "meta": { "version": "1.0", "last_updated": null },
-  "perception": { "inputs": [], "signals": [], "sources": [] },
-  "interpretation": { "summaries": [], "classifications": [], "confidence_scores": [] },
-  "proposals": { "kb_candidates": [], "project_candidates": [], "action_candidates": [] },
-  "decisions": { "approved": [], "rejected": [], "modified": [] },
-  "state_mutations": { "projects": [], "kb": [], "action_log": [] },
-  "memory_links": { "related_sessions": [], "related_entities": [], "embedding_ids": [] },
-  "system_health": { "errors": [], "latency_ms": null, "model_used": null },
-  "focus": { "active_project_id": null },
-  "advisories": { "open": [], "resolved": [], "dismissed": [] }
+  "meta": {
+    "version": "1.0",
+    "last_updated": "2026-03-10T15:40:16.442059+00:00"
+  },
+  "perception": {
+    "inputs": [],
+    "signals": [
+      {
+        "id": "b25cf153-d7bb-4513-9011-bf0fc5b2bc45",
+        "source": "reddit",
+        "category": "discussion",
+        "title": "Apollo BTC setup questions",
+        "content": "Users asking about optimal PSU and cooling configuration for Apollo BTC miners.",
+        "detected_at": "2026-03-10T15:40:16.441965+00:00"
+      },
+      {
+        "id": "614ebc89-e847-4e7f-a6bf-6d2b60633c0e",
+        "source": "reddit",
+        "category": "discussion",
+        "title": "Firmware update issues reported",
+        "content": "Multiple users reporting difficulty applying latest firmware update on Apollo II.",
+        "detected_at": "2026-03-10T15:40:16.441965+00:00"
+      },
+      {
+        "id": "8449879b-c94f-40cb-b33c-ccca4199741e",
+        "source": "reddit",
+        "category": "announcement",
+        "title": "FutureBit announces new mining pool partnership",
+        "content": "Official announcement of partnership with mining pool for optimized hashrate distribution.",
+        "detected_at": "2026-03-10T15:40:16.441965+00:00"
+      }
+    ],
+    "sources": []
+  },
+  "interpretation": {
+    "summaries": [],
+    "classifications": [],
+    "confidence_scores": []
+  },
+  "proposals": {
+    "kb_candidates": [
+      {
+        "id": "7590e817-30a2-4427-981d-b2df2a45b23f",
+        "source_signal_id": "b25cf153-d7bb-4513-9011-bf0fc5b2bc45",
+        "title": "Apollo BTC setup questions",
+        "summary": "Users asking about optimal PSU and cooling configuration for Apollo BTC miners.",
+        "created_at": "2026-03-10T15:40:16.442911+00:00"
+      },
+      {
+        "id": "d5091f32-60b3-436b-a0e9-6df846929d72",
+        "source_signal_id": "614ebc89-e847-4e7f-a6bf-6d2b60633c0e",
+        "title": "Firmware update issues reported",
+        "summary": "Multiple users reporting difficulty applying latest firmware update on Apollo II.",
+        "created_at": "2026-03-10T15:40:16.442934+00:00"
+      }
+    ],
+    "project_candidates": [
+      {
+        "id": "e090ba68-9847-4365-88fa-4a767ce9f432",
+        "source_signal_id": "8449879b-c94f-40cb-b33c-ccca4199741e",
+        "title": "FutureBit announces new mining pool partnership",
+        "summary": "Official announcement of partnership with mining pool for optimized hashrate distribution.",
+        "created_at": "2026-03-10T15:40:16.442948+00:00"
+      }
+    ],
+    "action_candidates": []
+  },
+  "decisions": {
+    "approved": [
+      {
+        "id": "e549130b-40c6-4a25-88db-17f6b7f34761",
+        "proposal_id": "e090ba68-9847-4365-88fa-4a767ce9f432",
+        "proposal_type": "project_candidate",
+        "approved_by": "system:auto_promote",
+        "rationale": "Auto-promoted during extraction cycle",
+        "approved_at": "2026-03-10T15:40:16.444002+00:00",
+        "promoted": true,
+        "promoted_at": "2026-03-10T15:40:16.444740+00:00",
+        "mutation_id": "74578a99-d34a-4c4b-86d1-5d96541f6d57"
+      }
+    ],
+    "rejected": [],
+    "modified": []
+  },
+  "state_mutations": {
+    "projects": [
+      {
+        "id": "74578a99-d34a-4c4b-86d1-5d96541f6d57",
+        "proposal_id": "e090ba68-9847-4365-88fa-4a767ce9f432",
+        "decision_id": "e549130b-40c6-4a25-88db-17f6b7f34761",
+        "title": "FutureBit announces new mining pool partnership",
+        "summary": "Official announcement of partnership with mining pool for optimized hashrate distribution.",
+        "source_signal_id": "8449879b-c94f-40cb-b33c-ccca4199741e",
+        "approved_by": "system:auto_promote",
+        "approval_rationale": "Auto-promoted during extraction cycle",
+        "created_at": "2026-03-10T15:40:16.444717+00:00"
+      }
+    ],
+    "kb": [],
+    "action_log": [
+      {
+        "id": "73a68a8d-3b5b-4f5d-a980-164862d9a22a",
+        "action_type": "promotion",
+        "proposal_id": "e090ba68-9847-4365-88fa-4a767ce9f432",
+        "decision_id": "e549130b-40c6-4a25-88db-17f6b7f34761",
+        "mutation_id": "74578a99-d34a-4c4b-86d1-5d96541f6d57",
+        "target_type": "project",
+        "triggered_by": "system:auto_promote",
+        "timestamp": "2026-03-10T15:40:16.444735+00:00"
+      },
+      {
+        "id": "advisory-gen-2026-03-10T15:40:16.446360+00:00",
+        "action": "advisory_generated",
+        "action_type": "advisory_generated",
+        "timestamp": "2026-03-10T15:40:16.446360+00:00",
+        "rationale": "Generated 1 advisories from promoted projects",
+        "metadata": {
+          "advisories_created": 1
+        }
+      },
+      {
+        "id": "extraction-2026-03-10T15:40:16.446360+00:00",
+        "action": "signal_extraction_cycle",
+        "action_type": "signal_extraction_cycle",
+        "timestamp": "2026-03-10T15:40:16.446360+00:00",
+        "rationale": "Extracted 3 signals, generated 3 proposals, promoted 1 projects, created 1 advisories",
+        "metadata": {
+          "signals_created": 3,
+          "proposals_created": 3,
+          "proposal_details": {
+            "kb_candidates_generated": 2,
+            "project_candidates_generated": 1,
+            "skipped_duplicate": 0
+          },
+          "promotion_details": {
+            "projects_promoted": 1,
+            "skipped_duplicate": 0
+          },
+          "advisory_details": {
+            "advisories_created": 1
+          }
+        }
+      }
+    ]
+  },
+  "memory_links": {
+    "related_sessions": [],
+    "related_entities": [],
+    "embedding_ids": []
+  },
+  "system_health": {
+    "errors": [],
+    "latency_ms": null,
+    "model_used": null
+  },
+  "focus": {
+    "active_project_id": null
+  },
+  "advisories": {
+    "open": [
+      {
+        "id": "3106bfcc-3f99-4bfc-93f0-48568faed810",
+        "project_id": "74578a99-d34a-4c4b-86d1-5d96541f6d57",
+        "source_signal_id": "8449879b-c94f-40cb-b33c-ccca4199741e",
+        "type": "intel_alert",
+        "title": "Official announcement of partnership with mining pool for optimized hashrate distribution.",
+        "recommendation": "Review and determine if KB update is required.",
+        "status": "open",
+        "created_at": "2026-03-10T15:40:16.445561+00:00"
+      }
+    ],
+    "resolved": [],
+    "dismissed": []
+  }
 }
