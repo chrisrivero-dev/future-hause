@@ -248,9 +248,9 @@
          ========================= -->
           <div class="secondary-sections">
             <!-- =========================
-           NOTES + ACTION LOG ROW — Side by Side
+           MESSAGE + ACTIVE PROJECT ROW — Side by Side
            ========================= -->
-            <div class="notes-log-row">
+            <div class="message-focus-row">
               <!--
           Notes to Future Hause
           PURPOSE:
@@ -366,99 +366,100 @@
                   </div>
                 </div>
               </section>
-              <!-- ===============================
-          Action Log
-          NAVIGATION CONTRACT:
-          - Click Target: Expand row to show full rationale (in-place)
-          - Route: None (read-only audit trail, no navigation)
-          - Data Passed: { id, timestamp, action_type, rationale, actor }
-          - Purpose: Immutable record, no actions allowed
-        -->
-              <section
-                class="secondary-section action-log-section"
-                aria-label="Action Log"
-                data-section="action-log"
-              >
-                <div class="secondary-section-header">
-                  <h2 class="secondary-section-title">Action Log</h2>
-                  <span
-                    class="info-tooltip"
-                    data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
-                    >ⓘ</span
-                  >
-                </div>
-                <div class="secondary-section-content">
-                  <table class="action-log-table">
-                    <thead>
-                      <tr>
-                        <th class="col-time">
-                          Timestamp
-                          <span
-                            class="filter-icon"
-                            data-filter="time"
-                            title="Filter by time"
-                            >⏱</span
-                          >
-                        </th>
-                        <th class="col-id">ID</th>
-                        <th class="col-action">
-                          Action
-                          <span
-                            class="filter-icon"
-                            data-filter="action"
-                            title="Filter by type"
-                            >🔽</span
-                          >
-                        </th>
-                        <th class="col-rationale">Rationale</th>
-                      </tr>
-                    </thead>
-                    <tbody id="action-log-table-body">
-                      <tr>
-                        <td colspan="4" class="intel-empty">
-                          <div class="intel-empty-icon">📝</div>
-                          <div class="intel-empty-text">
-                            No actions logged yet
-                          </div>
-                          <div class="intel-empty-hint">
-                            Decisions will appear here with timestamps and
-                            rationale
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-            </div>
 
-            <!--
+              <!--
         Active Project Focus
         PURPOSE:
         - Display currently selected project context
         - Show project metadata and status
         - Read-only, no mutations
       -->
+              <section
+                class="secondary-section active-project-section"
+                aria-label="Active Project Focus"
+                data-section="active-project"
+              >
+                <div class="secondary-section-header">
+                  <h2 class="secondary-section-title">Active Project Focus</h2>
+                  <span
+                    class="info-tooltip"
+                    data-tooltip="The currently focused project. Advisories are generated based on this project's context."
+                    >ⓘ</span
+                  >
+                </div>
+                <div class="secondary-section-content active-project-content">
+                  <div id="active-project-panel" class="active-project-panel">
+                    <div class="active-project-empty">
+                      <div class="intel-empty-text">No project selected</div>
+                      <div class="intel-empty-hint">Click "Set Focus" on a project to activate focus mode</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <!-- ===============================
+          Action Log — Full Width Bottom Row
+          NAVIGATION CONTRACT:
+          - Click Target: Expand row to show full rationale (in-place)
+          - Route: None (read-only audit trail, no navigation)
+          - Data Passed: { id, timestamp, action_type, rationale, actor }
+          - Purpose: Immutable record, no actions allowed
+        -->
             <section
-              class="secondary-section active-project-section"
-              aria-label="Active Project Focus"
-              data-section="active-project"
+              class="secondary-section action-log-section action-log-fullwidth"
+              aria-label="Action Log"
+              data-section="action-log"
             >
               <div class="secondary-section-header">
-                <h2 class="secondary-section-title">Active Project Focus</h2>
+                <h2 class="secondary-section-title">Action Log</h2>
                 <span
                   class="info-tooltip"
-                  data-tooltip="The currently focused project. Advisories are generated based on this project's context."
+                  data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
                   >ⓘ</span
                 >
               </div>
-              <div class="secondary-section-content active-project-content">
-                <div id="active-project-panel" class="active-project-panel">
-                  <div class="active-project-empty">
-                    <div class="intel-empty-text">No project selected</div>
-                    <div class="intel-empty-hint">Click "Set Focus" on a project to activate focus mode</div>
-                  </div>
-                </div>
+              <div class="secondary-section-content">
+                <table class="action-log-table">
+                  <thead>
+                    <tr>
+                      <th class="col-time">
+                        Timestamp
+                        <span
+                          class="filter-icon"
+                          data-filter="time"
+                          title="Filter by time"
+                          >⏱</span
+                        >
+                      </th>
+                      <th class="col-id">ID</th>
+                      <th class="col-action">
+                        Action
+                        <span
+                          class="filter-icon"
+                          data-filter="action"
+                          title="Filter by type"
+                          >🔽</span
+                        >
+                      </th>
+                      <th class="col-rationale">Rationale</th>
+                    </tr>
+                  </thead>
+                  <tbody id="action-log-table-body">
+                    <tr>
+                      <td colspan="4" class="intel-empty">
+                        <div class="intel-empty-icon">📝</div>
+                        <div class="intel-empty-text">
+                          No actions logged yet
+                        </div>
+                        <div class="intel-empty-hint">
+                          Decisions will appear here with timestamps and
+                          rationale
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </section>
 

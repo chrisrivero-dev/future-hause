@@ -1118,16 +1118,26 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
-   NOTES + ACTION LOG ROW — Side by Side Layout
-   - Notes on left: passive input for human observations
-   - Action Log on right: read-only audit trail
-   - Separates intent (notes) from outcomes (log)
+   MESSAGE + ACTIVE PROJECT FOCUS ROW — Side by Side Layout
+   - Message on left: passive input for human observations
+   - Active Project Focus on right: current project context
    ---------------------------------------------------------------------------- */
 
-.notes-log-row {
+.message-focus-row {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-lg);
+}
+
+/* ----------------------------------------------------------------------------
+   ACTION LOG — Full Width Bottom Row
+   - Spans entire width of dashboard
+   - Chronological history panel at the bottom
+   ---------------------------------------------------------------------------- */
+
+.action-log-fullwidth {
+  width: 100%;
+  grid-column: 1 / -1;
 }
 
 /* Notes Section — Message to FutureHause (primary interaction surface)
@@ -1997,8 +2007,8 @@ body {
     height: 48px;
   }
 
-  /* Stack Notes + Action Log vertically on tablet */
-  .notes-log-row {
+  /* Stack Message + Active Project Focus vertically on tablet */
+  .message-focus-row {
     grid-template-columns: 1fr;
   }
 }
