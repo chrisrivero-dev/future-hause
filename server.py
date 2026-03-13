@@ -94,19 +94,15 @@ def auto_promote_projects() -> dict:
 @app.route("/api/review", methods=["POST"])
 def review():
     data = request.get_json(force=True)
-
-    engine = ReviewEngineAdapter(
+    engine = ReviewEngineAdapter()
+    result = engine.run(
+        draft_id=data.get("draft_id"),
+        draft_text=data.get("draft_text", ""),
+        human_triggered=data.get("human_triggered", False),
         provider_name=data.get("provider", "ollama"),
         persist=data.get("persist", True),
         allow_claude=data.get("allow_claude", False),
     )
-
-    result = engine.run(
-        draft_id=data["draft_id"],
-        draft_text=data["draft_text"],
-        human_triggered=data.get("human_triggered", False),
-    )
-
     return jsonify(result)
 
 

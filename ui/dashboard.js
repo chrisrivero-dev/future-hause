@@ -2106,7 +2106,7 @@ async function fetchDraftById(draftId) {
  * @returns {Promise<Object>} Response with { draft_id, response }
  */
 async function sendToApi(text) {
-  const res = await fetch('/api/send', {
+  const res = await fetch('/api/review', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: text }),
