@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0",
-    "last_updated": "2026-03-10T15:40:16.442059+00:00"
+    "last_updated": "2026-03-13T04:17:30.793693+00:00"
   },
   "perception": {
     "inputs": [],
@@ -31,7 +31,9 @@
         "detected_at": "2026-03-10T15:40:16.441965+00:00"
       }
     ],
-    "sources": []
+    "sources": [
+      "reddit_rss"
+    ]
   },
   "interpretation": {
     "summaries": [],
