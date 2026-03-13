@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
+from pathlib import Path
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from engine.review.ReviewEngineAdapter import ReviewEngineAdapter
 from engine.coach.run import run_coach_mode
 from engine.state_manager import (
@@ -22,6 +23,24 @@ from engine.advisory_generator import generate_advisories
 from engine.kb_draft_generator import scaffold_from_signal
 
 app = Flask(__name__)
+
+# UI directory path
+UI_DIR = Path(__file__).parent / "ui"
+
+
+# ─────────────────────────────────────────────
+# UI Static File Serving
+# ─────────────────────────────────────────────
+@app.route("/")
+def serve_index():
+    """Serve the main dashboard page."""
+    return send_file(UI_DIR / "index.html")
+
+
+@app.route("/<path:filename>")
+def serve_static(filename):
+    """Serve static files from ui/ directory."""
+    return send_from_directory(UI_DIR, filename)
 
 
 def auto_promote_projects() -> dict:
@@ -115,6 +134,15 @@ def get_intel():
     return jsonify({
         "schema_version": "1.0",
         "intel_events": get_intel_signals()
+    })
+
+
+@app.route("/api/signals", methods=["GET"])
+def get_signals():
+    """Return signals in format expected by dashboard."""
+    return jsonify({
+        "schema_version": "1.0",
+        "signals": get_intel_signals()
     })
 
 

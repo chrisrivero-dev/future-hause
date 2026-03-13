@@ -78,6 +78,18 @@ const INTENT_CONTRACT = [
   '- Never fabricate external facts.',
 ].join('\n');
 
+// Configuration (must be defined before functions that reference it)
+const CONFIG = {
+  outputsPath: '/outputs',
+  maxItemsPerColumn: 5,
+  files: {
+    intelEvents: 'intel_events.json',
+    kbOpportunities: 'kb_opportunities.json',
+    projects: 'projects.json',
+    actionLog: 'action_log.json',
+  },
+};
+
 // ──────────────────────────────────────────────
 // State Context Pack
 // Fetches current state from APIs and returns a summary for LLM injection.
@@ -87,8 +99,8 @@ async function buildStateContext() {
   try {
     const [intelRes, kbRes, projectsRes] = await Promise.all([
       fetch('/api/signals').then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch(`${CONFIG.outputsPath}/kb_opportunities.json`).then(r => r.ok ? r.json() : null).catch(() => null),
-      fetch(`${CONFIG.outputsPath}/projects.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/kb').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/projects').then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
 
     const signals = (intelRes?.signals || []).slice(0, 5);
@@ -105,19 +117,6 @@ async function buildStateContext() {
     return '';
   }
 }
-
-// Configuration
-const CONFIG = {
-  outputsPath: '/outputs',
-  maxItemsPerColumn: 5,
-  files: {
-    intelEvents: 'intel_events.json',
-    kbOpportunities: 'kb_opportunities.json',
-    projects: 'projects.json',
-    actionLog: 'action_log.json',
-  },
-};
-/* ... existing header ... */
 
 // LLM routing rules are defined in docs/llm-routing.md
 // Code must conform to that contract. No implicit actions.
@@ -1580,8 +1579,6 @@ const PRESENCE_STATES = {
   OBSERVED: 'observed',
 };
 
-// Detect file:// protocol (local demo mode)
-const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
 
 // Presence state copy (exact strings, verbatim)
 const PRESENCE_COPY = {
@@ -2651,13 +2648,20 @@ function wireIngestDryRun() {
 
   btn.addEventListener('click', async () => {
     btn.disabled = true;
-    btn.textContent = 'Running...';
+    btn.textContent = 'Running ingest...';
+    setIconState('processing');
 
     try {
-      await runIngestDryRun();
+      await runExtraction();
+      setIconState('success');
+      setTimeout(() => setIconState('idle'), 1500);
+    } catch (err) {
+      console.error('[Ingest]', err);
+      setIconState('error');
+      setTimeout(() => setIconState('idle'), 3000);
     } finally {
       btn.disabled = false;
-      btn.innerHTML = `Run ingest (dry-run)<span class="ingest-btn-hint">Manual · Non-persistent · Safe</span>`;
+      btn.innerHTML = `Run ingest<span class="ingest-btn-hint">Signals · Proposals · Action Log</span>`;
     }
   });
 }
@@ -2786,14 +2790,6 @@ document.addEventListener('DOMContentLoaded', () => {
   wireExtraction?.();
 
   updateLastUpdatedTime?.();
-
-  if (IS_FILE_PROTOCOL) {
-    console.warn(
-      '[Future Hause] file:// detected — auto-load disabled; running ingest demo'
-    );
-    runIngestDryRun?.();
-    return;
-  }
 
   loadAllData?.().then(() => {
     const hasErrors = Object.values(state?.loadStatus || {}).some(
