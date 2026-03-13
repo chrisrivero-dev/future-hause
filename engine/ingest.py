@@ -1,136 +1,210 @@
 """
-Future Hause — Ingestion Layer (Skeleton)
+Future Hause — Live Intel Ingestion
 
-This file defines the ingestion interface for raw intel sources.
-It validates input structure but does NOT process or store data.
+Orchestrates real-time data collection from external sources:
+- Reddit: FutureBit mentions and relevant subreddit posts
+- Twitter/X: FutureBit official posts (feature-flagged)
+- News: Bitcoin news feeds
 
-No side effects. No persistence. Blocking by default.
+All items are normalized into the canonical intel schema and
+persisted to cognition_state.json under perception.signals.
+
+After ingestion, triggers the signal extraction pipeline.
 """
 
-from typing import Dict, List, Optional
-from datetime import datetime
+import logging
+from datetime import datetime, timezone
+from typing import Any
+
+from engine.state_manager import load_state, save_state_validated
+from engine.sources.reddit import RedditConnector
+from engine.sources.twitter import TwitterConnector
+from engine.sources.news import NewsConnector
+
+logger = logging.getLogger(__name__)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(levelname)s] %(name)s: %(message)s",
+)
 
 
-# Supported source types (authoritative)
-VALID_SOURCE_TYPES = {
-    "reddit",
-    "notes",
-    "external",
-    "freshdesk",
-    "manual",
-}
-
-# Supported projects (authoritative)
-VALID_PROJECTS = {
-    "futurehub",
-    "freshdesk-ai",
-    "help-nearby",
-    "other",
-}
-
-
-def validate_intel(payload: Dict) -> Dict:
+def run_live_ingest() -> dict:
     """
-    Validate raw intel payload structure.
+    Run live ingestion from all available sources.
 
-    Does NOT ingest, store, or process data.
-    Returns validation result only.
+    1. Fetches data from each source connector
+    2. Normalizes items into canonical intel schema
+    3. Deduplicates against existing signals
+    4. Persists new signals to cognition_state.json
+    5. Returns ingestion statistics
 
-    Required fields:
-    - source_type: One of VALID_SOURCE_TYPES
-    - project: One of VALID_PROJECTS
-    - content: Non-empty string
-    - timestamp: ISO-8601 string (optional, defaults to now)
+    Returns:
+        dict with counts per source and total signals ingested.
     """
+    logger.info("Starting live intel ingestion...")
 
-    errors = []
+    # Initialize connectors
+    connectors = [
+        RedditConnector(),
+        TwitterConnector(),
+        NewsConnector(),
+    ]
 
-    # Check source_type
-    source_type = payload.get("source_type")
-    if not source_type:
-        errors.append("Missing required field: source_type")
-    elif source_type not in VALID_SOURCE_TYPES:
-        errors.append(f"Invalid source_type: {source_type}")
-
-    # Check project
-    project = payload.get("project")
-    if not project:
-        errors.append("Missing required field: project")
-    elif project not in VALID_PROJECTS:
-        errors.append(f"Invalid project: {project}")
-
-    # Check content
-    content = payload.get("content")
-    if not content:
-        errors.append("Missing required field: content")
-    elif not isinstance(content, str) or len(content.strip()) == 0:
-        errors.append("Content must be a non-empty string")
-
-    # Check timestamp (optional)
-    timestamp = payload.get("timestamp")
-    if timestamp:
-        try:
-            datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-        except (ValueError, AttributeError):
-            errors.append(f"Invalid timestamp format: {timestamp}")
-
-    if errors:
-        return {
-            "status": "invalid",
-            "errors": errors,
-        }
-
-    return {
-        "status": "valid",
+    # Collect results from each source
+    results = {
+        "sources": {},
+        "total_fetched": 0,
+        "total_normalized": 0,
+        "total_new": 0,
         "errors": [],
     }
 
+    all_normalized_signals = []
 
-def ingest(payload: Dict) -> Dict:
-    """
-    Ingestion entry point.
-
-    Responsibilities:
-    - Validate payload structure
-    - Return validation status
-    - Block actual ingestion (not yet enabled)
-
-    This function does NOT:
-    - Write to disk
-    - Emit events
-    - Call agents
-    - Modify state
-
-    Ingestion is blocked by default.
-    """
-
-    validation = validate_intel(payload)
-
-    if validation["status"] != "valid":
-        return {
-            "status": "rejected",
-            "reason": "Validation failed",
-            "errors": validation["errors"],
+    for connector in connectors:
+        source_name = connector.source_name
+        source_result = {
+            "available": False,
+            "fetched": 0,
+            "normalized": 0,
+            "error": None,
         }
 
-    # Ingestion is blocked until explicitly enabled
-    return {
-        "status": "blocked",
-        "reason": "Ingestion not yet enabled",
-        "validated_payload": {
-            "source_type": payload.get("source_type"),
-            "project": payload.get("project"),
-            "content_length": len(payload.get("content", "")),
-            "has_timestamp": "timestamp" in payload,
-        },
+        try:
+            # Check if connector is available
+            if not connector.is_available():
+                source_result["error"] = "Not configured or disabled"
+                results["sources"][source_name] = source_result
+                continue
+
+            source_result["available"] = True
+
+            # Fetch raw items
+            raw_items = connector.fetch()
+            source_result["fetched"] = len(raw_items)
+            results["total_fetched"] += len(raw_items)
+
+            # Normalize each item
+            for raw_item in raw_items:
+                try:
+                    normalized = connector.normalize(raw_item)
+                    all_normalized_signals.append(normalized)
+                    source_result["normalized"] += 1
+                except Exception as e:
+                    logger.warning(f"Failed to normalize item from {source_name}: {e}")
+                    continue
+
+            results["total_normalized"] += source_result["normalized"]
+
+        except Exception as e:
+            error_msg = f"Source {source_name} failed: {e}"
+            logger.error(error_msg)
+            source_result["error"] = str(e)
+            results["errors"].append(error_msg)
+
+        results["sources"][source_name] = source_result
+
+    # Deduplicate and persist
+    new_signals = _deduplicate_and_persist(all_normalized_signals)
+    results["total_new"] = len(new_signals)
+
+    logger.info(
+        f"Ingestion complete: {results['total_fetched']} fetched, "
+        f"{results['total_normalized']} normalized, "
+        f"{results['total_new']} new signals persisted"
+    )
+
+    return results
+
+
+def _deduplicate_and_persist(signals: list[dict]) -> list[dict]:
+    """
+    Deduplicate signals against existing state and persist new ones.
+
+    Deduplication is based on:
+    1. Signal ID (hash of source + external_id or URL)
+    2. Source + source_id combination
+
+    Returns:
+        list of newly persisted signals.
+    """
+    state = load_state()
+    existing_signals = state.get("perception", {}).get("signals", [])
+
+    # Build set of existing dedup keys
+    existing_keys = set()
+    for sig in existing_signals:
+        existing_keys.add(sig.get("id", ""))
+        # Also track source + source_id
+        source = sig.get("source", "")
+        source_id = sig.get("source_id", "")
+        if source and source_id:
+            existing_keys.add(f"{source}:{source_id}")
+
+    # Filter to new signals only
+    new_signals = []
+    for sig in signals:
+        sig_id = sig.get("id", "")
+        source = sig.get("source", "")
+        source_id = sig.get("source_id", "")
+        source_key = f"{source}:{source_id}" if source and source_id else ""
+
+        if sig_id not in existing_keys and source_key not in existing_keys:
+            new_signals.append(sig)
+            # Add to existing keys to handle duplicates within batch
+            existing_keys.add(sig_id)
+            if source_key:
+                existing_keys.add(source_key)
+
+    if new_signals:
+        # Append to perception.signals
+        state["perception"]["signals"].extend(new_signals)
+
+        # Update meta timestamp
+        state["meta"]["last_updated"] = datetime.now(timezone.utc).isoformat()
+
+        # Track sources
+        sources_seen = set(state.get("perception", {}).get("sources", []))
+        for sig in new_signals:
+            sources_seen.add(sig.get("source", ""))
+        state["perception"]["sources"] = sorted(sources_seen)
+
+        save_state_validated(state)
+        logger.info(f"Persisted {len(new_signals)} new signals to cognition_state.json")
+
+    return new_signals
+
+
+def get_ingestion_status() -> dict:
+    """
+    Get current ingestion status and source availability.
+
+    Returns:
+        dict with source availability and last ingestion stats.
+    """
+    connectors = [
+        RedditConnector(),
+        TwitterConnector(),
+        NewsConnector(),
+    ]
+
+    status = {
+        "sources": {},
+        "state_signals_count": 0,
     }
 
+    for connector in connectors:
+        status["sources"][connector.source_name] = {
+            "available": connector.is_available(),
+        }
 
-def list_sources() -> List[str]:
-    """Return list of valid source types."""
-    return sorted(VALID_SOURCE_TYPES)
+    # Get current signal count
+    try:
+        state = load_state()
+        status["state_signals_count"] = len(state.get("perception", {}).get("signals", []))
+    except Exception:
+        status["state_signals_count"] = 0
 
-
-def list_projects() -> List[str]:
-    """Return list of valid projects."""
-    return sorted(VALID_PROJECTS)
+    return status

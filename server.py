@@ -17,6 +17,7 @@ from engine.state_manager import (
     update_advisory_status,
 )
 from engine.signal_extraction import run_signal_extraction
+from engine.ingest import run_live_ingest, get_ingestion_status
 from engine.proposal_generator import run_proposal_generation
 from engine.promotion_engine import record_approval, run_promotion
 from engine.advisory_generator import generate_advisories
@@ -144,6 +145,37 @@ def get_signals():
         "schema_version": "1.0",
         "signals": get_intel_signals()
     })
+
+
+# ─────────────────────────────────────────────
+# Ingestion API
+# ─────────────────────────────────────────────
+@app.route("/api/ingest/status", methods=["GET"])
+def ingest_status():
+    """Get ingestion status and source availability."""
+    status = get_ingestion_status()
+    return jsonify(status)
+
+
+@app.route("/api/ingest", methods=["POST"])
+def run_ingest():
+    """
+    Run live ingestion from all available sources.
+
+    This endpoint fetches data from Reddit, Twitter, and News feeds,
+    normalizes it into the intel schema, and persists to state.
+    """
+    try:
+        result = run_live_ingest()
+        return jsonify({
+            "status": "ok",
+            "result": result,
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+        }), 500
 
 
 # ─────────────────────────────────────────────
