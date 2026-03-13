@@ -2,7 +2,8 @@
 Future Hause — Live Intel Ingestion
 
 Orchestrates real-time data collection from external sources:
-- Reddit: FutureBit mentions and relevant subreddit posts
+- Reddit RSS: FutureBit subreddit posts via public RSS feeds (no API required)
+- Reddit API: FutureBit mentions via PRAW (requires credentials)
 - Twitter/X: FutureBit official posts (feature-flagged)
 - News: Bitcoin news feeds
 
@@ -18,6 +19,7 @@ from typing import Any
 
 from engine.state_manager import load_state, save_state_validated
 from engine.sources.reddit import RedditConnector
+from engine.sources.reddit_rss import RedditRSSConnector
 from engine.sources.twitter import TwitterConnector
 from engine.sources.news import NewsConnector
 
@@ -46,7 +48,9 @@ def run_live_ingest() -> dict:
     logger.info("Starting live intel ingestion...")
 
     # Initialize connectors
+    # RedditRSSConnector is preferred as it requires no API credentials
     connectors = [
+        RedditRSSConnector(),
         RedditConnector(),
         TwitterConnector(),
         NewsConnector(),
@@ -185,6 +189,7 @@ def get_ingestion_status() -> dict:
         dict with source availability and last ingestion stats.
     """
     connectors = [
+        RedditRSSConnector(),
         RedditConnector(),
         TwitterConnector(),
         NewsConnector(),
