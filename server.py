@@ -87,20 +87,14 @@ def auto_promote_projects() -> dict:
     }
 
 
+
 # ─────────────────────────────────────────────
 # Review API
 # ─────────────────────────────────────────────
 @app.route("/api/review", methods=["POST"])
 def review():
-<<<<<<< Updated upstream
     data = request.get_json(force=True)
     engine = ReviewEngineAdapter()
-=======
-    data = request.get_json(force=True) or {}
-
-    engine = ReviewEngineAdapter()
-
->>>>>>> Stashed changes
     result = engine.run(
         draft_id=data.get("draft_id"),
         draft_text=data.get("draft_text", ""),
@@ -109,26 +103,25 @@ def review():
         persist=data.get("persist", True),
         allow_claude=data.get("allow_claude", False),
     )
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
     return jsonify(result)
+
 
 
 # ─────────────────────────────────────────────
 # Coach API
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────http://localhost:8080/ui/index.html
+
 @app.route("/api/coach", methods=["POST"])
 def coach():
-    data = request.get_json(force=True) or {}
+    data = request.get_json(force=True)
 
     result = run_coach_mode(
-        draft_id=data.get("draft_id"),
-        draft_text=data.get("draft_text", ""),
+        draft_id=data["draft_id"],
+        draft_text=data["draft_text"],
     )
 
     return jsonify(result)
+
 
 # ─────────────────────────────────────────────
 # Intel API
