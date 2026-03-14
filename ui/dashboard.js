@@ -411,9 +411,15 @@ function renderIntelEvents() {
   events.forEach((evt) => {
     const row = document.createElement('div');
     row.className = 'intel-row';
+    // Generate priority badge (LOW/MED/HIGH)
+    const priority = (evt.priority || '').toLowerCase();
+    const priorityLabel = priority === 'medium' ? 'MED' : priority.toUpperCase();
+    const priorityBadge = priority
+      ? `<span class="priority-badge ${priority}">${priorityLabel}</span>`
+      : '';
     row.innerHTML = `
-      <strong>${escapeHtml(evt.title || 'Event')}</strong>
-      <div class="meta">${escapeHtml(evt.source || '')} • ${escapeHtml(evt.priority || '')}</div>
+      <strong>${escapeHtml(evt.title || 'Event')}${priorityBadge}</strong>
+      <div class="meta">${escapeHtml(evt.source || '')}</div>
       <div class="desc">${escapeHtml(evt.description || evt.content || '')}</div>
       <button type="button" class="generate-proposal-btn" data-signal-id="${escapeHtml(evt.id || '')}">
         Generate Proposal
@@ -2673,6 +2679,34 @@ function wireExtraction() {
 }
 
 /* ----------------------------------------------------------------------------
+   COLLAPSIBLE SECTIONS — Draft Work Log
+   ---------------------------------------------------------------------------- */
+
+function wireCollapsibleSections() {
+  const draftWorklogHeader = document.getElementById('draft-worklog-header');
+  if (!draftWorklogHeader) return;
+
+  const section = draftWorklogHeader.closest('.secondary-section');
+  const toggle = draftWorklogHeader.querySelector('.section-toggle');
+
+  function toggleSection() {
+    const isCollapsed = section.classList.toggle('collapsed');
+    draftWorklogHeader.setAttribute('aria-expanded', !isCollapsed);
+    if (toggle) {
+      toggle.textContent = isCollapsed ? '▶' : '▼';
+    }
+  }
+
+  draftWorklogHeader.addEventListener('click', toggleSection);
+  draftWorklogHeader.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      toggleSection();
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -2689,6 +2723,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireCommandChips?.();
   wireIngestDryRun?.();
   wireExtraction?.();
+  wireCollapsibleSections?.();
 
   updateLastUpdatedTime?.();
 

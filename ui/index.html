@@ -398,71 +398,6 @@
               </section>
             </div>
 
-            <!-- ===============================
-          Action Log — Full Width Bottom Row
-          NAVIGATION CONTRACT:
-          - Click Target: Expand row to show full rationale (in-place)
-          - Route: None (read-only audit trail, no navigation)
-          - Data Passed: { id, timestamp, action_type, rationale, actor }
-          - Purpose: Immutable record, no actions allowed
-        -->
-            <section
-              class="secondary-section action-log-section action-log-fullwidth"
-              aria-label="Action Log"
-              data-section="action-log"
-            >
-              <div class="secondary-section-header">
-                <h2 class="secondary-section-title">Action Log</h2>
-                <span
-                  class="info-tooltip"
-                  data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
-                  >ⓘ</span
-                >
-              </div>
-              <div class="secondary-section-content">
-                <table class="action-log-table">
-                  <thead>
-                    <tr>
-                      <th class="col-time">
-                        Timestamp
-                        <span
-                          class="filter-icon"
-                          data-filter="time"
-                          title="Filter by time"
-                          >⏱</span
-                        >
-                      </th>
-                      <th class="col-id">ID</th>
-                      <th class="col-action">
-                        Action
-                        <span
-                          class="filter-icon"
-                          data-filter="action"
-                          title="Filter by type"
-                          >🔽</span
-                        >
-                      </th>
-                      <th class="col-rationale">Rationale</th>
-                    </tr>
-                  </thead>
-                  <tbody id="action-log-table-body">
-                    <tr>
-                      <td colspan="4" class="intel-empty">
-                        <div class="intel-empty-icon">📝</div>
-                        <div class="intel-empty-text">
-                          No actions logged yet
-                        </div>
-                        <div class="intel-empty-hint">
-                          Decisions will appear here with timestamps and
-                          rationale
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
             <!--
         Advisories Panel
         PURPOSE:
@@ -498,7 +433,7 @@
             </section>
 
             <!--
-        Draft Work Log (Assistant-Generated)
+        Draft Work Log (Assistant-Generated, Collapsed by Default)
         PURPOSE:
         - Help draft daily work entries for FutureBit timesheet
         - Structured, human-readable, clearly labeled as DRAFT
@@ -512,11 +447,18 @@
         - This is memory-assist and drafting, not execution
       -->
             <section
-              class="secondary-section draft-worklog-section"
+              class="secondary-section draft-worklog-section collapsed"
               aria-label="Draft Work Log"
               data-section="draft-worklog"
             >
-              <div class="secondary-section-header">
+              <div
+                class="secondary-section-header collapsible-header"
+                id="draft-worklog-header"
+                role="button"
+                tabindex="0"
+                aria-expanded="false"
+                aria-controls="draft-worklog-body"
+              >
                 <h2 class="secondary-section-title">Draft Work Log</h2>
                 <span class="draft-badge">DRAFT</span>
                 <span
@@ -524,8 +466,9 @@
                   data-tooltip="Guardrails: No Excel writes. No Freshdesk writes. No API calls. No persistence. No assumptions about hours."
                   >ⓘ Learn more</span
                 >
+                <span class="section-toggle" aria-hidden="true">▶</span>
               </div>
-              <div class="secondary-section-content draft-worklog-content">
+              <div id="draft-worklog-body" class="secondary-section-content draft-worklog-content">
                 <div id="draft-worklog-entries" class="draft-worklog-entries">
                   <div class="draft-worklog-empty">
                     <div class="intel-empty-icon">✏️</div>
@@ -612,6 +555,71 @@
                   <div class="intel-empty-icon">⚙️</div>
                   <div class="intel-empty-text">Loading metadata...</div>
                 </div>
+              </div>
+            </section>
+
+            <!-- ===============================
+          Action Log — Full Width Bottom Row
+          NAVIGATION CONTRACT:
+          - Click Target: Expand row to show full rationale (in-place)
+          - Route: None (read-only audit trail, no navigation)
+          - Data Passed: { id, timestamp, action_type, rationale, actor }
+          - Purpose: Immutable record, no actions allowed
+        -->
+            <section
+              class="secondary-section action-log-section action-log-fullwidth"
+              aria-label="Action Log"
+              data-section="action-log"
+            >
+              <div class="secondary-section-header">
+                <h2 class="secondary-section-title">Action Log</h2>
+                <span
+                  class="info-tooltip"
+                  data-tooltip="Immutable audit trail of decisions and actions. Every promote, dismiss, or accept action is recorded."
+                  >ⓘ</span
+                >
+              </div>
+              <div class="secondary-section-content">
+                <table class="action-log-table">
+                  <thead>
+                    <tr>
+                      <th class="col-time">
+                        Timestamp
+                        <span
+                          class="filter-icon"
+                          data-filter="time"
+                          title="Filter by time"
+                          >⏱</span
+                        >
+                      </th>
+                      <th class="col-id">ID</th>
+                      <th class="col-action">
+                        Action
+                        <span
+                          class="filter-icon"
+                          data-filter="action"
+                          title="Filter by type"
+                          >🔽</span
+                        >
+                      </th>
+                      <th class="col-rationale">Rationale</th>
+                    </tr>
+                  </thead>
+                  <tbody id="action-log-table-body">
+                    <tr>
+                      <td colspan="4" class="intel-empty">
+                        <div class="intel-empty-icon">📝</div>
+                        <div class="intel-empty-text">
+                          No actions logged yet
+                        </div>
+                        <div class="intel-empty-hint">
+                          Decisions will appear here with timestamps and
+                          rationale
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </section>
           </div>
