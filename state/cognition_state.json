@@ -143,6 +143,17 @@
             "advisories_created": 1
           }
         }
+      },
+      {
+        "id": "advisory-resolved-2026-03-13T04:58:42.552250+00:00",
+        "action": "advisory_resolved",
+        "action_type": "advisory_action",
+        "timestamp": "2026-03-13T04:58:42.552250+00:00",
+        "rationale": "Advisory 3106bfcc-3f99-4bfc-93f0-48568faed810 marked as resolved",
+        "metadata": {
+          "advisory_id": "3106bfcc-3f99-4bfc-93f0-48568faed810",
+          "new_status": "resolved"
+        }
       }
     ]
   },
@@ -160,7 +171,8 @@
     "active_project_id": null
   },
   "advisories": {
-    "open": [
+    "open": [],
+    "resolved": [
       {
         "id": "3106bfcc-3f99-4bfc-93f0-48568faed810",
         "project_id": "74578a99-d34a-4c4b-86d1-5d96541f6d57",
@@ -168,11 +180,10 @@
         "type": "intel_alert",
         "title": "Official announcement of partnership with mining pool for optimized hashrate distribution.",
         "recommendation": "Review and determine if KB update is required.",
-        "status": "open",
+        "status": "resolved",
         "created_at": "2026-03-10T15:40:16.445561+00:00"
       }
     ],
-    "resolved": [],
     "dismissed": []
   }
 }
