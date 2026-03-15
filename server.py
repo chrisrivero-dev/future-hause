@@ -22,6 +22,7 @@ from engine.proposal_generator import run_proposal_generation
 from engine.promotion_engine import record_approval, run_promotion
 from engine.advisory_generator import generate_advisories
 from engine.kb_draft_generator import scaffold_from_signal
+from engine.signal_analyzer import analyze_signals
 
 app = Flask(__name__)
 
@@ -141,6 +142,34 @@ def get_signals():
         "schema_version": "1.0",
         "signals": get_intel_signals()
     })
+
+
+# ─────────────────────────────────────────────
+# Signal Analysis API
+# ─────────────────────────────────────────────
+@app.route("/api/analyze-signals", methods=["POST"])
+def analyze_signals_endpoint():
+    """
+    Analyze current signals using local LLM (Ollama) and generate
+    structured intelligence outputs.
+
+    Returns:
+        JSON with kb_opportunities, projects, and recommendations.
+    """
+    try:
+        result = analyze_signals()
+        return jsonify({
+            "status": "ok",
+            **result,
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e),
+            "kb_opportunities": [],
+            "projects": [],
+            "recommendations": [],
+        }), 500
 
 
 # ─────────────────────────────────────────────

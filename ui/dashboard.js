@@ -197,6 +197,7 @@ const state = {
   actionLog: null,
   focus: null,
   advisories: null,
+  analysis: null, // LLM-generated analysis from signals
   loadStatus: {
     intelEvents: 'pending',
     kbOpportunities: 'pending',
@@ -204,6 +205,7 @@ const state = {
     actionLog: 'pending',
     focus: 'pending',
     advisories: 'pending',
+    analysis: 'pending',
   },
   metadata: {
     schemaVersions: {},
@@ -376,15 +378,44 @@ async function loadAllData() {
   state.advisories = results[5];
   state.loadStatus.advisories = results[5] ? 'success' : 'error';
 
-  // Render all sections
+  // Render initial sections
   renderIntelEvents();
-  renderKbOpportunities();
-  renderProjects();
-  renderRecentRecommendations();
   renderActionLogTable();
   renderSystemMetadata();
   renderActiveProjectFocus();
   renderAdvisories();
+
+  // Analyze signals to populate intelligence panels
+  const signals = state.intelEvents?.signals || [];
+  if (signals.length > 0) {
+    // Set analysis to loading state
+    state.loadStatus.analysis = 'loading';
+    renderKbOpportunities();
+    renderProjects();
+    renderRecentRecommendations();
+
+    // Call analyze-signals endpoint
+    try {
+      const analysisRes = await fetch('/api/analyze-signals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (analysisRes.ok) {
+        state.analysis = await analysisRes.json();
+        state.loadStatus.analysis = 'success';
+      } else {
+        state.loadStatus.analysis = 'error';
+      }
+    } catch (err) {
+      console.warn('[loadAllData] Analysis failed:', err);
+      state.loadStatus.analysis = 'error';
+    }
+  }
+
+  // Re-render intelligence panels with analysis data
+  renderKbOpportunities();
+  renderProjects();
+  renderRecentRecommendations();
 }
 
 /* ----------------------------------------------------------------------------
@@ -505,7 +536,23 @@ function renderKbOpportunities() {
 
   if (!container) return;
 
-  const opportunities = state.kbOpportunities?.kb_opportunities || [];
+  // Show loading state while analysis is in progress
+  if (state.loadStatus.analysis === 'loading') {
+    container.innerHTML = '<div class="intel-empty"><div class="intel-empty-text">Analyzing signals...</div></div>';
+    countEl.textContent = '...';
+    return;
+  }
+
+  // Combine existing KB opportunities with analysis-generated ones
+  const existingOpps = state.kbOpportunities?.kb_opportunities || [];
+  const analysisOpps = (state.analysis?.kb_opportunities || []).map((opp, idx) => ({
+    ...opp,
+    id: `analysis-kb-${idx}`,
+    source: 'analysis',
+    status: 'suggested',
+  }));
+
+  const opportunities = [...analysisOpps, ...existingOpps];
   const displayOpportunities = opportunities.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${opportunities.length} total`;
@@ -525,9 +572,11 @@ function renderKbOpportunities() {
         urgency: opp.priority || opp.urgency || null,
         detailsHtml: `
       ${opp.id ? renderDetailRow('ID', opp.id) : ''}
+      ${opp.reason ? renderDetailRow('Reason', opp.reason) : ''}
       ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
       ${opp.suggested_action ? renderDetailRow('Suggested', opp.suggested_action) : ''}
       ${opp.source_signals ? renderDetailRow('Signals', opp.source_signals) : ''}
+      ${opp.source === 'analysis' ? renderDetailRow('Source', 'LLM Analysis') : ''}
       ${opp.created_at ? renderDetailRow('Created', formatTimestamp(opp.created_at)) : ''}
     `,
       })
@@ -547,7 +596,26 @@ function renderProjects() {
 
   if (!container) return;
 
-  const projects = getNestedValue(state.projects, 'projects', []);
+  // Show loading state while analysis is in progress
+  if (state.loadStatus.analysis === 'loading') {
+    container.innerHTML = '<div class="intel-empty"><div class="intel-empty-text">Analyzing signals...</div></div>';
+    countEl.textContent = '...';
+    return;
+  }
+
+  // Combine existing projects with analysis-generated ones
+  const existingProjects = getNestedValue(state.projects, 'projects', []);
+  const analysisProjects = (state.analysis?.projects || []).map((proj, idx) => ({
+    id: `analysis-proj-${idx}`,
+    name: proj.title,
+    title: proj.title,
+    goal: proj.goal,
+    summary: proj.goal,
+    status: 'suggested',
+    source: 'analysis',
+  }));
+
+  const projects = [...analysisProjects, ...existingProjects];
   const displayProjects = projects.slice(0, CONFIG.maxItemsPerColumn);
   const activeProjectId = state.focus?.active_project_id || null;
 
@@ -916,30 +984,49 @@ function renderRecentRecommendations() {
 
   if (!container) return;
 
-  const actions = getNestedValue(state.actionLog, 'actions', []);
-  const displayActions = actions.slice(0, CONFIG.maxItemsPerColumn);
+  // Show loading state while analysis is in progress
+  if (state.loadStatus.analysis === 'loading') {
+    container.innerHTML = '<div class="intel-empty"><div class="intel-empty-text">Analyzing signals...</div></div>';
+    countEl.textContent = '...';
+    return;
+  }
 
-  countEl.textContent = `${actions.length} total`;
+  // Use analysis recommendations as primary source
+  const analysisRecs = (state.analysis?.recommendations || []).map((rec, idx) => ({
+    id: `analysis-rec-${idx}`,
+    title: rec.title,
+    recommendation: rec.title,
+    summary: rec.summary,
+    rationale: rec.summary,
+    source: 'analysis',
+    status: 'suggested',
+  }));
 
-  if (displayActions.length === 0) {
+  const recommendations = analysisRecs;
+  const displayRecs = recommendations.slice(0, CONFIG.maxItemsPerColumn);
+
+  countEl.textContent = `${recommendations.length} total`;
+
+  if (displayRecs.length === 0) {
     container.innerHTML = renderEmptyState('No recommendations yet');
     return;
   }
 
-  container.innerHTML = displayActions
-    .map((action, index) =>
+  container.innerHTML = displayRecs
+    .map((rec, index) =>
       renderCard({
         columnId: 'recommendations',
         index,
-        title: action.action || action.recommendation || 'Action',
-        meta: formatTimestamp(action.timestamp || action.created_at),
-        urgency: action.priority || action.urgency || null,
+        title: rec.title || rec.recommendation || 'Recommendation',
+        meta: rec.source === 'analysis' ? 'From signal analysis' : formatTimestamp(rec.timestamp || rec.created_at),
+        urgency: rec.priority || rec.urgency || null,
         showActions: true,
         detailsHtml: `
-      ${action.id ? renderDetailRow('ID', action.id) : ''}
-      ${action.rationale ? renderDetailRow('Rationale', action.rationale) : ''}
-      ${action.status ? renderDetailRow('Status', action.status) : ''}
-      ${action.source ? renderDetailRow('Source', action.source) : ''}
+      ${rec.id ? renderDetailRow('ID', rec.id) : ''}
+      ${rec.summary ? renderDetailRow('Summary', rec.summary) : ''}
+      ${rec.rationale ? renderDetailRow('Rationale', rec.rationale) : ''}
+      ${rec.status ? renderDetailRow('Status', rec.status) : ''}
+      ${rec.source === 'analysis' ? renderDetailRow('Source', 'LLM Analysis') : ''}
     `,
       })
     )
@@ -2618,17 +2705,44 @@ async function runExtraction() {
     state.loadStatus.advisories = 'success';
   }
 
-  // Step 4: Re-render all panels
+  // Step 4: Re-render initial panels
   renderIntelEvents();
-  renderKbOpportunities();
-  renderProjects();
-  renderRecentRecommendations();
   renderActionLogTable();
   renderSystemMetadata();
   renderActiveProjectFocus();
   renderAdvisories();
 
-  // Step 5: Update timestamp
+  // Step 5: Analyze signals for intelligence panels
+  const signals = state.intelEvents?.signals || [];
+  if (signals.length > 0) {
+    state.loadStatus.analysis = 'loading';
+    renderKbOpportunities();
+    renderProjects();
+    renderRecentRecommendations();
+
+    try {
+      const analysisRes = await fetch('/api/analyze-signals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (analysisRes.ok) {
+        state.analysis = await analysisRes.json();
+        state.loadStatus.analysis = 'success';
+      } else {
+        state.loadStatus.analysis = 'error';
+      }
+    } catch (err) {
+      console.warn('[runExtraction] Analysis failed:', err);
+      state.loadStatus.analysis = 'error';
+    }
+  }
+
+  // Step 6: Re-render intelligence panels with analysis data
+  renderKbOpportunities();
+  renderProjects();
+  renderRecentRecommendations();
+
+  // Step 7: Update timestamp
   updateLastUpdatedTime();
 
   return result;
