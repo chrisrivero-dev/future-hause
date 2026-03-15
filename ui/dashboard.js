@@ -2687,6 +2687,109 @@ function wireCollapsibleSections() {
 }
 
 /* ----------------------------------------------------------------------------
+   NEWS TICKER — Scrolling Headlines
+   Fetches from /api/signals and refreshes every 60 seconds
+   ---------------------------------------------------------------------------- */
+
+const TICKER_CONFIG = {
+  apiEndpoint: '/api/signals',
+  refreshInterval: 60000, // 60 seconds
+  separator: ' • ',
+  fallbackHeadlines: [
+    'Bitcoin ETF inflows hit record high',
+    'Mining difficulty increases 3%',
+    'Lightning adoption growing',
+    'Hash rate reaches new ATH',
+    'Institutional interest continues',
+  ],
+};
+
+let tickerIntervalId = null;
+
+/**
+ * Formats signal data into ticker headline text
+ * @param {Array} signals - Array of signal objects from API
+ * @returns {string} Formatted headline string
+ */
+function formatTickerHeadlines(signals) {
+  if (!Array.isArray(signals) || signals.length === 0) {
+    return TICKER_CONFIG.fallbackHeadlines.join(TICKER_CONFIG.separator);
+  }
+
+  // Filter for Bitcoin/crypto related signals and extract headlines
+  const headlines = signals
+    .filter((signal) => {
+      const text = (signal.title || signal.headline || signal.content || '').toLowerCase();
+      return (
+        text.includes('bitcoin') ||
+        text.includes('btc') ||
+        text.includes('crypto') ||
+        text.includes('mining') ||
+        text.includes('lightning') ||
+        text.includes('hash') ||
+        text.includes('etf') ||
+        text.includes('satoshi')
+      );
+    })
+    .map((signal) => signal.title || signal.headline || signal.content)
+    .filter(Boolean)
+    .slice(0, 10); // Limit to 10 headlines
+
+  if (headlines.length === 0) {
+    return TICKER_CONFIG.fallbackHeadlines.join(TICKER_CONFIG.separator);
+  }
+
+  return headlines.join(TICKER_CONFIG.separator);
+}
+
+/**
+ * Updates the ticker content element with new headlines
+ * @param {string} headlines - Formatted headline string
+ */
+function updateTickerContent(headlines) {
+  const tickerContent = document.getElementById('ticker-content');
+  if (!tickerContent) return;
+
+  // Duplicate content for seamless infinite scroll
+  tickerContent.innerHTML = headlines + TICKER_CONFIG.separator + headlines;
+}
+
+/**
+ * Fetches signals from API and updates ticker
+ * Falls back to default headlines on error
+ */
+async function fetchAndUpdateTicker() {
+  try {
+    const response = await fetch(TICKER_CONFIG.apiEndpoint);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    const signals = Array.isArray(data) ? data : data.signals || data.items || [];
+    const headlines = formatTickerHeadlines(signals);
+    updateTickerContent(headlines);
+  } catch (error) {
+    // Silently fall back to default headlines
+    console.debug('[Ticker] Using fallback headlines:', error.message);
+    updateTickerContent(TICKER_CONFIG.fallbackHeadlines.join(TICKER_CONFIG.separator));
+  }
+}
+
+/**
+ * Initializes the news ticker and sets up auto-refresh
+ */
+function initNewsTicker() {
+  // Initial fetch
+  fetchAndUpdateTicker();
+
+  // Set up refresh interval
+  if (tickerIntervalId) {
+    clearInterval(tickerIntervalId);
+  }
+  tickerIntervalId = setInterval(fetchAndUpdateTicker, TICKER_CONFIG.refreshInterval);
+}
+
+/* ----------------------------------------------------------------------------
    INITIALIZATION
    ---------------------------------------------------------------------------- */
 
@@ -2704,6 +2807,7 @@ document.addEventListener('DOMContentLoaded', () => {
   wireIngestDryRun?.();
   wireExtraction?.();
   wireCollapsibleSections?.();
+  initNewsTicker?.();
 
   updateLastUpdatedTime?.();
 
