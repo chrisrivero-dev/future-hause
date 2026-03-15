@@ -2094,20 +2094,7 @@ function renderDraftWork(draft) {
 }
 
 /**
- * Fetch draft by ID from authoritative store
- * @param {string} draftId - Draft ID to fetch
- * @returns {Promise<Object>} Draft object with { draft_id, body, status, tags }
- */
-async function fetchDraftById(draftId) {
-  const res = await fetch(`/api/draft/${draftId}`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch draft: ${res.status}`);
-  }
-  return res.json();
-}
-
-/**
- * Send message to /api/send and return draft_id
+ * Send message to /api/review and return response
  * @param {string} text - User message
  * @returns {Promise<Object>} Response with { draft_id, response }
  */
@@ -2284,18 +2271,17 @@ async function handleUserSubmission(text) {
   setPresenceState?.(PRESENCE_STATES?.THINKING || 'thinking');
 
   try {
-    // 2) Send to /api/send
+    // 2) Send to /api/review and get response directly
     const sendResult = await sendToApi(text);
 
-    // 3) Fetch authoritative draft state and render to Draft Work
-    if (sendResult.draft_id) {
-      const draft = await fetchDraftById(sendResult.draft_id);
-      renderDraftWork(draft);
-    }
+    // 3) Render the review response directly (no separate draft fetch)
+    const reviewText = sendResult.review || sendResult.response || 'No review returned.';
+    renderFutureHauseResponse(reviewText);
 
-    // 4) Render non-draft response to Future Hause Response if present
-    if (sendResult.response) {
-      renderFutureHauseResponse(sendResult.response);
+    // 4) Also render to draft output box if present
+    const outputBox = document.querySelector('#draft-output');
+    if (outputBox) {
+      outputBox.innerText = reviewText;
     }
   } catch (err) {
     console.error('[Future Hause] handleUserSubmission failed:', err);
@@ -2406,19 +2392,13 @@ function wireCoachMode() {
 
       const data = await response.json();
       const reviewResponse =
-        data.response || data.content || 'No response received.';
+        data.review || data.response || data.content || 'No response received.';
 
       // Render review response in Future Hause Response panel
       renderFutureHauseResponse({
         mode: 'coach',
         content: reviewResponse,
       });
-
-      // Re-fetch authoritative draft state and re-render Draft Work
-      if (draftId) {
-        const updatedDraft = await fetchDraftById(draftId);
-        renderDraftWork(updatedDraft);
-      }
 
       // Show panel if hidden
       if (responsePanel) {

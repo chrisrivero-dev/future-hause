@@ -2255,6 +2255,27 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   DRAFT OUTPUT BOX — LLM Review Response Display
+   ---------------------------------------------------------------------------- */
+
+.draft-output-box {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  min-height: 60px;
+}
+
+.draft-output-box:empty {
+  display: none;
+}
+
+/* ----------------------------------------------------------------------------
    DRAFT STATUS BADGES — Review Status Indicators
    ---------------------------------------------------------------------------- */
 
