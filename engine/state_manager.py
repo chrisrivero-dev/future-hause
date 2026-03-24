@@ -289,20 +289,35 @@ def get_work_log() -> list:
     """
     Get work log entries filtered by actionable work types.
     Auto-populated from: KB drafts, recommendations, advisories.
+    Returns normalized entries: {type, timestamp, reference_id, details}
     """
     state = load_state()
     action_log = state.get("state_mutations", {}).get("action_log", [])
 
-    work_types = {
-        "kb_draft_created",
-        "kb_draft_saved",
-        "recommendation_applied",
-        "advisory_resolved",
-        "advisory_dismissed",
-        "advisory_investigating",
+    work_type_map = {
+        "kb_draft_created": "kb_created",
+        "kb_draft_saved": "kb_created",
+        "recommendation_applied": "recommendation_applied",
+        "advisory_resolved": "advisory_resolved",
+        "advisory_dismissed": "advisory_resolved",
+        "advisory_investigating": "advisory_resolved",
     }
 
-    return [
-        entry for entry in action_log
-        if entry.get("action_type") in work_types
-    ]
+    entries = []
+    for entry in action_log:
+        action_type = entry.get("action_type")
+        if action_type not in work_type_map:
+            continue
+        metadata = entry.get("metadata", {})
+        reference_id = (
+            metadata.get("candidate_id")
+            or metadata.get("advisory_id")
+            or entry.get("id", "unknown")
+        )
+        entries.append({
+            "type": work_type_map[action_type],
+            "timestamp": entry.get("timestamp", "unknown"),
+            "reference_id": reference_id,
+            "details": entry.get("rationale", ""),
+        })
+    return entries

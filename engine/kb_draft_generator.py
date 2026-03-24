@@ -113,14 +113,18 @@ def scaffold_from_signal(signal: dict) -> dict:
     """
     signal_id = signal.get("id")
 
+    now = datetime.now(timezone.utc).isoformat()
     return {
         "id": str(uuid.uuid4()),
         "source_signal_id": signal_id,
         "source": signal.get("source", "unknown"),
+        "timestamp": signal.get("timestamp", now),
+        "freshness": "unknown",
+        "confidence": "unknown",
         "title": signal.get("title", "Untitled"),
         "summary": signal.get("content", signal.get("summary", "")),
         "status": "scaffolded",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now,
         "sections": [
             {"heading": "Summary", "content": signal.get("content", signal.get("summary", ""))},
             {"heading": "Steps to Reproduce", "content": ""},

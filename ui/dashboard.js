@@ -82,6 +82,7 @@ const INTENT_CONTRACT = [
 const CONFIG = {
   outputsPath: '/outputs',
   maxItemsPerColumn: 5,
+  demoMode: false,
   files: {
     intelEvents: 'intel_events.json',
     kbOpportunities: 'kb_opportunities.json',
@@ -197,6 +198,7 @@ const state = {
   actionLog: null,
   focus: null,
   advisories: null,
+  workLog: null,
   analysis: null, // LLM-generated analysis from signals
   loadStatus: {
     intelEvents: 'pending',
@@ -205,6 +207,7 @@ const state = {
     actionLog: 'pending',
     focus: 'pending',
     advisories: 'pending',
+    workLog: 'pending',
     analysis: 'pending',
   },
   metadata: {
@@ -394,6 +397,7 @@ async function loadAllData() {
     fetch("/api/action-log").then(res => res.ok ? res.json() : null).catch(() => fetchOutputFile(CONFIG.files.actionLog)),
     fetch("/api/focus").then(res => res.ok ? res.json() : null).catch(() => null),
     fetch("/api/advisories").then(res => res.ok ? res.json() : null).catch(() => null),
+    fetch("/api/work-log").then(res => res.ok ? res.json() : null).catch(() => null),
   ]);
 
   // Store results and update load status
@@ -431,12 +435,16 @@ async function loadAllData() {
   state.advisories = results[5];
   state.loadStatus.advisories = results[5] ? 'success' : 'error';
 
+  state.workLog = results[6];
+  state.loadStatus.workLog = results[6] ? 'success' : 'error';
+
   // Render initial sections
   renderIntelEvents();
   renderActionLogTable();
   renderSystemMetadata();
   renderActiveProjectFocus();
   renderAdvisories();
+  renderWorkLog();
 
   // Analyze signals to populate intelligence panels
   const signals = state.intelEvents?.signals || [];
@@ -510,8 +518,8 @@ function renderIntelEvents() {
     // Trust layer fields
     const source = evt.source || 'unknown';
     const timestamp = formatTimestamp(evt.detected_at || evt.timestamp);
-    const freshness = evt.freshness || 'current';
-    const confidence = evt.confidence ? Math.round(evt.confidence * 100) + '%' : '—';
+    const freshness = evt.freshness || 'unknown';
+    const confidence = evt.confidence != null ? Math.round(evt.confidence * 100) + '%' : '—';
 
     row.innerHTML = `
       <strong>${escapeHtml(evt.title || 'Event')}${priorityBadge}</strong>
@@ -612,16 +620,20 @@ function renderKbOpportunities() {
     return;
   }
 
-  // Combine existing KB opportunities with analysis-generated ones
+  // Real KB candidates only; analysis data gated behind demoMode
   const existingOpps = state.kbOpportunities?.kb_opportunities || [];
-  const analysisOpps = (state.analysis?.kb_opportunities || []).map((opp, idx) => ({
-    ...opp,
-    id: `analysis-kb-${idx}`,
-    source: 'analysis',
-    status: 'suggested',
-  }));
+  const analysisOpps = CONFIG.demoMode
+    ? (state.analysis?.kb_opportunities || []).map((opp, idx) => ({
+        ...opp,
+        id: `analysis-kb-${idx}`,
+        source: 'analysis',
+        status: 'suggested',
+        freshness: 'unknown',
+        confidence: null,
+      }))
+    : [];
 
-  const allOpportunities = [...analysisOpps, ...existingOpps];
+  const allOpportunities = [...existingOpps, ...analysisOpps];
 
   // Apply focus filter
   const activeProjectId = getActiveProjectId();
@@ -698,12 +710,14 @@ function renderKbOpportunityCard({ columnId, index, opportunity }) {
           <button type="button" class="card-action-btn create-draft-btn" data-kb-id="${escapeHtml(opportunity.id || '')}" data-kb-data='${escapeHtml(JSON.stringify(opportunity))}'>
             Create KB Draft
           </button>
+          ${!String(opportunity.id || '').startsWith('analysis-') ? `
           <button type="button" class="card-action-btn queue-btn" data-kb-id="${escapeHtml(opportunity.id || '')}">
             Save to Queue
           </button>
           <button type="button" class="card-action-btn dismiss-kb-btn" data-kb-id="${escapeHtml(opportunity.id || '')}">
             Dismiss
           </button>
+          ` : ''}
         </div>
       </div>
     </div>
@@ -804,6 +818,8 @@ async function handleSaveToQueue(kbId, btn) {
 
     btn.textContent = 'Queued!';
     btn.classList.add('success');
+    const wlRes = await fetch('/api/work-log').then(r => r.ok ? r.json() : null).catch(() => null);
+    if (wlRes) { state.workLog = wlRes; renderWorkLog(); }
     await loadAllData();
   } catch (err) {
     console.error('[SaveToQueue]', err);
@@ -866,19 +882,21 @@ function renderProjects() {
     return;
   }
 
-  // Combine existing projects with analysis-generated ones
+  // Real projects only; analysis data gated behind demoMode
   const existingProjects = getNestedValue(state.projects, 'projects', []);
-  const analysisProjects = (state.analysis?.projects || []).map((proj, idx) => ({
-    id: `analysis-proj-${idx}`,
-    name: proj.title,
-    title: proj.title,
-    goal: proj.goal,
-    summary: proj.goal,
-    status: 'suggested',
-    source: 'analysis',
-  }));
+  const analysisProjects = CONFIG.demoMode
+    ? (state.analysis?.projects || []).map((proj, idx) => ({
+        id: `analysis-proj-${idx}`,
+        name: proj.title,
+        title: proj.title,
+        goal: proj.goal,
+        summary: proj.goal,
+        status: 'suggested',
+        source: 'analysis',
+      }))
+    : [];
 
-  const projects = [...analysisProjects, ...existingProjects];
+  const projects = [...existingProjects, ...analysisProjects];
   const displayProjects = projects.slice(0, CONFIG.maxItemsPerColumn);
   const activeProjectId = state.focus?.active_project_id || null;
 
@@ -1012,16 +1030,10 @@ function renderActiveProjectFocus() {
   // Get projects list
   const projects = getNestedValue(state.projects, 'projects', []);
 
-  // Get active project ID, auto-select first project if none selected
-  let activeProjectId = state.focus?.active_project_id || null;
-  if (!activeProjectId && projects.length > 0) {
-    activeProjectId = projects[0].id;
-    // Update state to reflect auto-selection
-    if (!state.focus) {
-      state.focus = {};
-    }
-    state.focus.active_project_id = activeProjectId;
-  }
+  // Read active project from persisted focus state only — never auto-select
+  const activeProjectId = state.focus?.focus?.active_project_id
+    || state.focus?.active_project_id
+    || null;
 
   if (!activeProjectId) {
     panel.innerHTML = `
@@ -1262,6 +1274,9 @@ async function handleInvestigateAdvisory(advisoryId, btn) {
       dismissed: result.dismissed || [],
     };
     renderAdvisories();
+    // Refresh work log to reflect advisory_investigating entry
+    const wlRes = await fetch('/api/work-log').then(r => r.ok ? r.json() : null).catch(() => null);
+    if (wlRes) { state.workLog = wlRes; renderWorkLog(); }
   } catch (err) {
     console.error('[InvestigateAdvisory]', err);
     btn.textContent = 'Error';
@@ -1298,11 +1313,52 @@ async function updateAdvisoryStatusUI(advisoryId, newStatus, btn) {
       dismissed: result.dismissed || [],
     };
     renderAdvisories();
+    // Refresh work log to reflect advisory resolution
+    const wlRes = await fetch('/api/work-log').then(r => r.ok ? r.json() : null).catch(() => null);
+    if (wlRes) { state.workLog = wlRes; renderWorkLog(); }
   } catch (err) {
     console.error('[Advisory Update]', err);
     btn.disabled = false;
     btn.textContent = originalText;
   }
+}
+
+/* ----------------------------------------------------------------------------
+   RENDERING — DRAFT WORK LOG (from /api/work-log)
+   ---------------------------------------------------------------------------- */
+
+function renderWorkLog() {
+  const container = document.getElementById('draft-worklog-entries');
+  if (!container) return;
+
+  const entries = state.workLog?.entries || [];
+
+  if (entries.length === 0) {
+    container.innerHTML = `
+      <div class="draft-worklog-empty">
+        <div class="intel-empty-text">No work log entries yet</div>
+        <div class="intel-empty-hint">KB drafts, advisory actions, and recommendations will appear here</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = entries.map((entry) => {
+    const typeLabel = entry.type === 'kb_created' ? 'KB Created'
+      : entry.type === 'advisory_resolved' ? 'Advisory Resolved'
+      : entry.type === 'recommendation_applied' ? 'Recommendation Applied'
+      : entry.type;
+    return `
+      <div class="draft-worklog-entry">
+        <div class="draft-entry-header">
+          <span class="draft-entry-time">${formatTimestamp(entry.timestamp)}</span>
+          <span class="draft-status-badge">${escapeHtml(typeLabel)}</span>
+        </div>
+        <div class="draft-entry-meta">Ref: ${escapeHtml(entry.reference_id || '—')}</div>
+        <div class="draft-entry-content">${escapeHtml(entry.details || '')}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 /* ----------------------------------------------------------------------------
@@ -1326,20 +1382,21 @@ function renderRecentRecommendations() {
     return;
   }
 
-  // Use analysis recommendations as primary source
-  const analysisRecs = (state.analysis?.recommendations || []).map((rec, idx) => ({
-    id: `analysis-rec-${idx}`,
-    title: rec.title,
-    recommendation: rec.title,
-    summary: rec.summary,
-    rationale: rec.summary,
-    source: 'analysis',
-    status: 'suggested',
-    // Include trust layer fields
-    timestamp: rec.timestamp,
-    freshness: rec.freshness || 'current',
-    confidence: rec.confidence || 0.75,
-  }));
+  // Analysis recommendations gated behind demoMode; production shows only real data
+  const analysisRecs = CONFIG.demoMode
+    ? (state.analysis?.recommendations || []).map((rec, idx) => ({
+        id: `analysis-rec-${idx}`,
+        title: rec.title,
+        recommendation: rec.title,
+        summary: rec.summary,
+        rationale: rec.summary,
+        source: 'analysis',
+        status: 'suggested',
+        timestamp: rec.timestamp || 'unknown',
+        freshness: rec.freshness || 'unknown',
+        confidence: rec.confidence != null ? rec.confidence : null,
+      }))
+    : [];
 
   // Apply focus filter
   const activeProjectId = getActiveProjectId();
@@ -1367,8 +1424,8 @@ function renderRecentRecommendations() {
       ${rec.id ? renderDetailRow('ID', rec.id) : ''}
       ${renderDetailRow('Source', rec.source || 'unknown')}
       ${renderDetailRow('Timestamp', formatTimestamp(rec.timestamp || rec.created_at))}
-      ${renderDetailRow('Freshness', rec.freshness || 'current')}
-      ${renderDetailRow('Confidence', rec.confidence ? Math.round(rec.confidence * 100) + '%' : '—')}
+      ${renderDetailRow('Freshness', rec.freshness || 'unknown')}
+      ${renderDetailRow('Confidence', rec.confidence != null ? Math.round(rec.confidence * 100) + '%' : '—')}
       ${rec.summary ? renderDetailRow('Summary', rec.summary) : ''}
       ${rec.rationale ? renderDetailRow('Rationale', rec.rationale) : ''}
       ${rec.status ? renderDetailRow('Status', rec.status) : ''}
@@ -3003,13 +3060,14 @@ async function runExtraction() {
   const result = await res.json();
 
   // Step 2: Re-fetch all data from authoritative APIs
-  const [intelData, kbData, projectsData, actionLogData, focusData, advisoriesData] = await Promise.all([
+  const [intelData, kbData, projectsData, actionLogData, focusData, advisoriesData, workLogData] = await Promise.all([
     fetch('/api/signals').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/kb').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/projects').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/action-log').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/focus').then(r => r.ok ? r.json() : null).catch(() => null),
     fetch('/api/advisories').then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch('/api/work-log').then(r => r.ok ? r.json() : null).catch(() => null),
   ]);
 
   // Step 3: Update state
@@ -3050,12 +3108,18 @@ async function runExtraction() {
     state.loadStatus.advisories = 'success';
   }
 
+  if (workLogData) {
+    state.workLog = workLogData;
+    state.loadStatus.workLog = 'success';
+  }
+
   // Step 4: Re-render initial panels
   renderIntelEvents();
   renderActionLogTable();
   renderSystemMetadata();
   renderActiveProjectFocus();
   renderAdvisories();
+  renderWorkLog();
 
   // Step 5: Analyze signals for intelligence panels
   const signals = state.intelEvents?.signals || [];
