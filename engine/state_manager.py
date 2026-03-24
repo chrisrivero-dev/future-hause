@@ -1,8 +1,12 @@
 """State manager for cognition_state.json"""
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 STATE_PATH = Path("state/cognition_state.json")
+
+# Freshness threshold in hours (configurable)
+FRESHNESS_THRESHOLD_HOURS = 24
 
 # Full baseline schema for initialization
 BASELINE_SCHEMA = {
@@ -321,3 +325,69 @@ def get_work_log() -> list:
             "details": entry.get("rationale", ""),
         })
     return entries
+
+
+# ─────────────────────────────────────────────
+# Freshness Validation
+# ─────────────────────────────────────────────
+
+def compute_freshness(timestamp: str | None) -> str:
+    """
+    Compute freshness status based on timestamp and threshold.
+    Returns: 'current', 'stale', or 'unknown'
+    """
+    if not timestamp:
+        return "unknown"
+
+    try:
+        ts = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        age_hours = (now - ts).total_seconds() / 3600
+
+        if age_hours > FRESHNESS_THRESHOLD_HOURS:
+            return "stale"
+        return "current"
+    except (ValueError, TypeError):
+        return "unknown"
+
+
+def validate_freshness(items: list, timestamp_field: str = "timestamp") -> list:
+    """
+    Validate and update freshness for a list of items.
+    Mutates items in place, setting freshness='stale' if over threshold.
+    """
+    for item in items:
+        ts = item.get(timestamp_field) or item.get("created_at")
+        item["freshness"] = compute_freshness(ts)
+    return items
+
+
+# ─────────────────────────────────────────────
+# Project Cleanup (User-Only Projects)
+# ─────────────────────────────────────────────
+
+def get_user_projects_only() -> list:
+    """
+    Get only user-created projects. Filters out any analysis/legacy projects.
+    Single source of truth: user_defined=True projects only.
+    """
+    state = load_state()
+    projects = state.get("state_mutations", {}).get("projects", [])
+    return [p for p in projects if p.get("user_defined") is True]
+
+
+def cleanup_legacy_projects() -> int:
+    """
+    Remove all non-user-defined projects from state.
+    Returns count of removed projects.
+    """
+    state = load_state()
+    projects = state.get("state_mutations", {}).get("projects", [])
+    user_projects = [p for p in projects if p.get("user_defined") is True]
+    removed = len(projects) - len(user_projects)
+
+    if removed > 0:
+        state["state_mutations"]["projects"] = user_projects
+        save_state_validated(state)
+
+    return removed

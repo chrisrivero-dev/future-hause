@@ -28,3 +28,7 @@ future_hause:
     human_in_loop_required: true
     auto_actions: false
     store_raw_data: true
+
+  freshness:
+    threshold_hours: 24
+    stale_warning: true

@@ -102,8 +102,8 @@ def scaffold_from_signal(signal: dict) -> dict:
     """
     Create a scaffolded KB proposal from a signal.
 
-    Returns a kb_candidate with status='scaffolded' and empty section placeholders.
-    The proposal is ready for LLM-assisted content generation.
+    Returns a kb_candidate with status='scaffolded' and section placeholders.
+    Includes required fields: title, summary, steps, source_reference.
 
     Args:
         signal: A signal object from perception.signals
@@ -117,12 +117,14 @@ def scaffold_from_signal(signal: dict) -> dict:
     return {
         "id": str(uuid.uuid4()),
         "source_signal_id": signal_id,
+        "source_reference": signal_id,
         "source": signal.get("source", "unknown"),
         "timestamp": signal.get("timestamp", now),
         "freshness": "unknown",
         "confidence": "unknown",
         "title": signal.get("title", "Untitled"),
         "summary": signal.get("content", signal.get("summary", "")),
+        "steps": [],
         "status": "scaffolded",
         "created_at": now,
         "sections": [

@@ -82,7 +82,7 @@ const INTENT_CONTRACT = [
 const CONFIG = {
   outputsPath: '/outputs',
   maxItemsPerColumn: 5,
-  demoMode: false,
+  freshnessThresholdHours: 24,
   files: {
     intelEvents: 'intel_events.json',
     kbOpportunities: 'kb_opportunities.json',
@@ -620,20 +620,8 @@ function renderKbOpportunities() {
     return;
   }
 
-  // Real KB candidates only; analysis data gated behind demoMode
-  const existingOpps = state.kbOpportunities?.kb_opportunities || [];
-  const analysisOpps = CONFIG.demoMode
-    ? (state.analysis?.kb_opportunities || []).map((opp, idx) => ({
-        ...opp,
-        id: `analysis-kb-${idx}`,
-        source: 'analysis',
-        status: 'suggested',
-        freshness: 'unknown',
-        confidence: null,
-      }))
-    : [];
-
-  const allOpportunities = [...existingOpps, ...analysisOpps];
+  // Real KB candidates only — no fake/analysis data
+  const allOpportunities = state.kbOpportunities?.kb_opportunities || [];
 
   // Apply focus filter
   const activeProjectId = getActiveProjectId();
@@ -882,21 +870,9 @@ function renderProjects() {
     return;
   }
 
-  // Real projects only; analysis data gated behind demoMode
-  const existingProjects = getNestedValue(state.projects, 'projects', []);
-  const analysisProjects = CONFIG.demoMode
-    ? (state.analysis?.projects || []).map((proj, idx) => ({
-        id: `analysis-proj-${idx}`,
-        name: proj.title,
-        title: proj.title,
-        goal: proj.goal,
-        summary: proj.goal,
-        status: 'suggested',
-        source: 'analysis',
-      }))
-    : [];
-
-  const projects = [...existingProjects, ...analysisProjects];
+  // User-created projects only — no analysis/legacy data
+  const allProjects = getNestedValue(state.projects, 'projects', []);
+  const projects = allProjects.filter(p => p.user_defined === true);
   const displayProjects = projects.slice(0, CONFIG.maxItemsPerColumn);
   const activeProjectId = state.focus?.active_project_id || null;
 
@@ -1198,6 +1174,17 @@ function renderAdvisoryCard(advisory, index) {
         ${escapeHtml(advisory.recommendation)}
       </div>
       ` : ''}
+      ${advisory.investigating && advisory.related_signals && advisory.related_signals.length > 0 ? `
+      <div class="advisory-related-signals">
+        <div class="related-signals-header">Related Signals (${advisory.related_signals.length})</div>
+        ${advisory.related_signals.map(sig => `
+          <div class="related-signal-item">
+            <span class="signal-title">${escapeHtml(sig.title || sig.id)}</span>
+            <span class="signal-source">${escapeHtml(sig.source || 'unknown')}</span>
+          </div>
+        `).join('')}
+      </div>
+      ` : ''}
       <div class="advisory-actions">
         <button type="button" class="advisory-btn investigate-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Start investigation" ${advisory.investigating ? 'disabled' : ''}>
           ${advisory.investigating ? 'Investigating...' : 'Investigate'}
@@ -1273,6 +1260,16 @@ async function handleInvestigateAdvisory(advisoryId, btn) {
       resolved: result.resolved || [],
       dismissed: result.dismissed || [],
     };
+
+    // Store investigation details for UI display
+    if (result.related_signals && result.related_signals.length > 0) {
+      const advisory = result.advisory;
+      if (advisory) {
+        advisory.related_signals = result.related_signals;
+        advisory.investigation_details = result.investigation_details;
+      }
+    }
+
     renderAdvisories();
     // Refresh work log to reflect advisory_investigating entry
     const wlRes = await fetch('/api/work-log').then(r => r.ok ? r.json() : null).catch(() => null);
@@ -1382,21 +1379,8 @@ function renderRecentRecommendations() {
     return;
   }
 
-  // Analysis recommendations gated behind demoMode; production shows only real data
-  const analysisRecs = CONFIG.demoMode
-    ? (state.analysis?.recommendations || []).map((rec, idx) => ({
-        id: `analysis-rec-${idx}`,
-        title: rec.title,
-        recommendation: rec.title,
-        summary: rec.summary,
-        rationale: rec.summary,
-        source: 'analysis',
-        status: 'suggested',
-        timestamp: rec.timestamp || 'unknown',
-        freshness: rec.freshness || 'unknown',
-        confidence: rec.confidence != null ? rec.confidence : null,
-      }))
-    : [];
+  // Production shows only real data — no analysis/fake recommendations
+  const analysisRecs = [];
 
   // Apply focus filter
   const activeProjectId = getActiveProjectId();

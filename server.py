@@ -304,9 +304,14 @@ def create_kb_draft():
     state["proposals"]["kb_candidates"].append(proposal)
     save_state_validated(state)
 
+    # Return enforced KB draft structure
     return jsonify({
         "status": "ok",
         "proposal": proposal,
+        "title": proposal.get("title", ""),
+        "summary": proposal.get("summary", ""),
+        "steps": [s.get("content", "") for s in proposal.get("sections", []) if s.get("heading") == "Solution / Fix"] or [""],
+        "source_reference": proposal.get("source_signal_id", ""),
     })
 
 
@@ -463,6 +468,41 @@ def set_active_project_endpoint():
         },
     }
     append_action(action_entry)
+
+    return jsonify({
+        "status": "ok",
+        "focus": focus
+    })
+
+
+@app.route("/api/set-focus", methods=["POST"])
+def set_focus_endpoint():
+    """Set focus state (alias for set-active-project)."""
+    data = request.get_json(force=True)
+    project_id = data.get("project_id")
+
+    # Validate project_id exists if provided
+    if project_id:
+        state = load_state()
+        projects = state.get("state_mutations", {}).get("projects", [])
+        project_exists = any(p.get("id") == project_id for p in projects)
+        if not project_exists:
+            return jsonify({
+                "status": "error",
+                "message": f"Project with id '{project_id}' not found"
+            }), 404
+
+    focus = set_active_project(project_id)
+
+    now = datetime.now(timezone.utc).isoformat()
+    append_action({
+        "id": f"focus-{now}",
+        "action": "set_focus",
+        "action_type": "focus_change",
+        "timestamp": now,
+        "rationale": f"Focus set to: {project_id or 'None'}",
+        "metadata": {"project_id": project_id},
+    })
 
     return jsonify({
         "status": "ok",
@@ -668,7 +708,7 @@ def delete_project():
 # ─────────────────────────────────────────────
 @app.route("/api/advisory-investigate", methods=["POST"])
 def investigate_advisory():
-    """Mark an advisory as being investigated."""
+    """Mark an advisory as being investigated and attach related signals."""
     data = request.get_json(force=True)
     advisory_id = data.get("advisory_id")
 
@@ -679,7 +719,20 @@ def investigate_advisory():
     if not result:
         return jsonify({"status": "error", "message": "Advisory not found"}), 404
 
-    # Log the action
+    # Attach related signals based on project_id or source_signal_id
+    state = load_state()
+    signals = state.get("perception", {}).get("signals", [])
+    related_signals = []
+    project_id = result.get("project_id")
+    source_signal_id = result.get("source_signal_id")
+
+    for sig in signals:
+        if project_id and sig.get("project_id") == project_id:
+            related_signals.append(sig)
+        elif source_signal_id and sig.get("id") == source_signal_id:
+            related_signals.append(sig)
+
+    # Log the action with related signals
     now = datetime.now(timezone.utc).isoformat()
     append_action({
         "id": f"advisory-investigate-{now}",
@@ -690,14 +743,21 @@ def investigate_advisory():
         "metadata": {
             "advisory_id": advisory_id,
             "advisory_title": result.get("title", "Unknown"),
+            "related_signal_ids": [s.get("id") for s in related_signals],
+            "related_signal_count": len(related_signals),
         },
     })
 
-    # Return updated advisories
+    # Return updated advisories with investigation details
     advisories = get_advisories()
     return jsonify({
         "status": "ok",
         "advisory": result,
+        "related_signals": related_signals,
+        "investigation_details": {
+            "started_at": result.get("investigation_started_at"),
+            "related_signal_count": len(related_signals),
+        },
         "open": advisories.get("open", []),
         "resolved": advisories.get("resolved", []),
         "dismissed": advisories.get("dismissed", []),
