@@ -215,6 +215,59 @@ const state = {
 };
 
 /* ----------------------------------------------------------------------------
+   FOCUS FILTER SYSTEM
+   Filters all panels by active project focus
+   ---------------------------------------------------------------------------- */
+
+/**
+ * Get the active project ID from focus state
+ * @returns {string|null} Active project ID or null
+ */
+function getActiveProjectId() {
+  return state.focus?.focus?.active_project_id || state.focus?.active_project_id || null;
+}
+
+/**
+ * Get the active project object
+ * @returns {object|null} Active project or null
+ */
+function getActiveProject() {
+  const activeProjectId = getActiveProjectId();
+  if (!activeProjectId) return null;
+
+  const projects = getNestedValue(state.projects, 'projects', []);
+  return projects.find(p => p.id === activeProjectId) || null;
+}
+
+/**
+ * Filter items by project focus
+ * Items are included if they match the active project's source_signal_id or project_id
+ * @param {array} items - Array of items to filter
+ * @param {string|null} activeProjectId - Active project ID
+ * @param {object|null} activeProject - Active project object
+ * @returns {array} Filtered items
+ */
+function filterByFocus(items, activeProjectId = null, activeProject = null) {
+  if (!activeProjectId) return items;
+
+  return items.filter(item => {
+    // Match by project_id
+    if (item.project_id === activeProjectId) return true;
+
+    // Match by source_signal_id if project has one
+    if (activeProject?.source_signal_id) {
+      if (item.source_signal_id === activeProject.source_signal_id) return true;
+      if (item.id === activeProject.source_signal_id) return true;
+    }
+
+    // For analysis items, include all (they're generated from all signals)
+    if (item.source === 'analysis' || item.source === 'llm_analysis') return true;
+
+    return false;
+  });
+}
+
+/* ----------------------------------------------------------------------------
    UTILITY FUNCTIONS
    ---------------------------------------------------------------------------- */
 
@@ -430,8 +483,14 @@ function renderIntelEvents() {
 
   container.innerHTML = '';
 
-  const events = state.intelEvents?.signals || [];
-  countEl.textContent = events.length;
+  const allEvents = state.intelEvents?.signals || [];
+  const activeProjectId = getActiveProjectId();
+  const activeProject = getActiveProject();
+
+  // Apply focus filter
+  const events = filterByFocus(allEvents, activeProjectId, activeProject);
+  const focusIndicator = activeProjectId ? ` (filtered)` : '';
+  countEl.textContent = `${events.length}${focusIndicator}`;
 
   if (events.length === 0) {
     container.innerHTML =
@@ -448,9 +507,19 @@ function renderIntelEvents() {
     const priorityBadge = priority
       ? `<span class="priority-badge ${priority}">${priorityLabel}</span>`
       : '';
+    // Trust layer fields
+    const source = evt.source || 'unknown';
+    const timestamp = formatTimestamp(evt.detected_at || evt.timestamp);
+    const freshness = evt.freshness || 'current';
+    const confidence = evt.confidence ? Math.round(evt.confidence * 100) + '%' : '—';
+
     row.innerHTML = `
       <strong>${escapeHtml(evt.title || 'Event')}${priorityBadge}</strong>
-      <div class="meta">${escapeHtml(evt.source || '')}</div>
+      <div class="meta">${escapeHtml(source)} · ${timestamp}</div>
+      <div class="trust-info">
+        <span class="trust-field">Freshness: ${escapeHtml(freshness)}</span>
+        <span class="trust-field">Confidence: ${confidence}</span>
+      </div>
       <div class="desc">${escapeHtml(evt.description || evt.content || '')}</div>
       <button type="button" class="generate-proposal-btn" data-signal-id="${escapeHtml(evt.id || '')}">
         Generate Proposal
@@ -552,7 +621,12 @@ function renderKbOpportunities() {
     status: 'suggested',
   }));
 
-  const opportunities = [...analysisOpps, ...existingOpps];
+  const allOpportunities = [...analysisOpps, ...existingOpps];
+
+  // Apply focus filter
+  const activeProjectId = getActiveProjectId();
+  const activeProject = getActiveProject();
+  const opportunities = filterByFocus(allOpportunities, activeProjectId, activeProject);
   const displayOpportunities = opportunities.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${opportunities.length} total`;
@@ -564,26 +638,215 @@ function renderKbOpportunities() {
 
   container.innerHTML = displayOpportunities
     .map((opp, index) =>
-      renderCard({
+      renderKbOpportunityCard({
         columnId: 'kb',
         index,
-        title: opp.title || opp.topic || 'Opportunity',
-        meta: escapeHtml(opp.status || ''),
-        urgency: opp.priority || opp.urgency || null,
-        detailsHtml: `
-      ${opp.id ? renderDetailRow('ID', opp.id) : ''}
-      ${opp.reason ? renderDetailRow('Reason', opp.reason) : ''}
-      ${opp.gap_type ? renderDetailRow('Gap Type', opp.gap_type) : ''}
-      ${opp.suggested_action ? renderDetailRow('Suggested', opp.suggested_action) : ''}
-      ${opp.source_signals ? renderDetailRow('Signals', opp.source_signals) : ''}
-      ${opp.source === 'analysis' ? renderDetailRow('Source', 'LLM Analysis') : ''}
-      ${opp.created_at ? renderDetailRow('Created', formatTimestamp(opp.created_at)) : ''}
-    `,
+        opportunity: opp,
       })
     )
     .join('');
 
   attachExpandHandlers(container);
+  attachKbActionHandlers(container);
+}
+
+/**
+ * Render a KB opportunity card with trust fields and action buttons
+ */
+function renderKbOpportunityCard({ columnId, index, opportunity }) {
+  const { headerId, detailsId } = generateCardIds(columnId, index);
+  const title = opportunity.title || opportunity.topic || 'Opportunity';
+  const status = opportunity.status || 'pending';
+  const statusClass = status === 'queued' ? 'queued' : status === 'dismissed' ? 'dismissed' : '';
+
+  // Trust layer display
+  const freshnessLabel = opportunity.freshness || 'unknown';
+  const confidencePercent = opportunity.confidence ? Math.round(opportunity.confidence * 100) : '—';
+
+  return `
+    <div class="intel-card ${statusClass}" data-index="${index}" data-kb-id="${escapeHtml(opportunity.id || '')}">
+      <div
+        class="intel-card-header"
+        id="${headerId}"
+        tabindex="0"
+        role="button"
+        aria-expanded="false"
+        aria-controls="${detailsId}"
+      >
+        <div class="intel-card-summary">
+          <div class="intel-card-title">${escapeHtml(title)}</div>
+          <div class="intel-card-meta">${escapeHtml(status)}</div>
+        </div>
+        <span class="intel-card-toggle" aria-hidden="true">▼</span>
+      </div>
+      <div
+        class="intel-card-details"
+        id="${detailsId}"
+        role="region"
+        aria-labelledby="${headerId}"
+      >
+        ${opportunity.id ? renderDetailRow('ID', opportunity.id) : ''}
+        ${renderDetailRow('Source', opportunity.source || 'unknown')}
+        ${renderDetailRow('Timestamp', formatTimestamp(opportunity.timestamp || opportunity.created_at))}
+        ${renderDetailRow('Freshness', freshnessLabel)}
+        ${renderDetailRow('Confidence', confidencePercent + '%')}
+        ${opportunity.reason ? renderDetailRow('Reason', opportunity.reason) : ''}
+        ${opportunity.gap_type ? renderDetailRow('Gap Type', opportunity.gap_type) : ''}
+        ${opportunity.suggested_action ? renderDetailRow('Suggested', opportunity.suggested_action) : ''}
+        ${opportunity.source_signals ? renderDetailRow('Signals', opportunity.source_signals) : ''}
+        <div class="card-actions kb-actions">
+          <button type="button" class="card-action-btn create-draft-btn" data-kb-id="${escapeHtml(opportunity.id || '')}" data-kb-data='${escapeHtml(JSON.stringify(opportunity))}'>
+            Create KB Draft
+          </button>
+          <button type="button" class="card-action-btn queue-btn" data-kb-id="${escapeHtml(opportunity.id || '')}">
+            Save to Queue
+          </button>
+          <button type="button" class="card-action-btn dismiss-kb-btn" data-kb-id="${escapeHtml(opportunity.id || '')}">
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Attach click handlers for KB action buttons
+ */
+function attachKbActionHandlers(container) {
+  // Create KB Draft button handlers
+  container.querySelectorAll('.create-draft-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const kbId = btn.getAttribute('data-kb-id');
+      const kbData = JSON.parse(btn.getAttribute('data-kb-data') || '{}');
+      await handleCreateKbDraft(kbId, kbData, btn);
+    });
+  });
+
+  // Save to Queue button handlers
+  container.querySelectorAll('.queue-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const kbId = btn.getAttribute('data-kb-id');
+      await handleSaveToQueue(kbId, btn);
+    });
+  });
+
+  // Dismiss button handlers
+  container.querySelectorAll('.dismiss-kb-btn').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const kbId = btn.getAttribute('data-kb-id');
+      await handleDismissKb(kbId, btn);
+    });
+  });
+}
+
+/**
+ * Handle Create KB Draft action
+ */
+async function handleCreateKbDraft(kbId, kbData, btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Creating...';
+
+  try {
+    const response = await fetch('/api/kb-drafts/new', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: kbId,
+        title: kbData.title,
+        content: kbData.summary || kbData.reason,
+        source: kbData.source,
+      }),
+    });
+
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.message || 'Failed to create draft');
+    }
+
+    btn.textContent = 'Created!';
+    btn.classList.add('success');
+    await loadAllData();
+  } catch (err) {
+    console.error('[CreateKbDraft]', err);
+    btn.textContent = 'Error';
+    btn.classList.add('error');
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.classList.remove('error');
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+/**
+ * Handle Save to Queue action
+ */
+async function handleSaveToQueue(kbId, btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const response = await fetch('/api/kb/queue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidate_id: kbId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save to queue');
+    }
+
+    btn.textContent = 'Queued!';
+    btn.classList.add('success');
+    await loadAllData();
+  } catch (err) {
+    console.error('[SaveToQueue]', err);
+    btn.textContent = 'Error';
+    btn.classList.add('error');
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.classList.remove('error');
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+/**
+ * Handle Dismiss KB action
+ */
+async function handleDismissKb(kbId, btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Dismissing...';
+
+  try {
+    const response = await fetch('/api/kb/dismiss', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidate_id: kbId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to dismiss');
+    }
+
+    await loadAllData();
+  } catch (err) {
+    console.error('[DismissKb]', err);
+    btn.textContent = 'Error';
+    btn.classList.add('error');
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.classList.remove('error');
+      btn.disabled = false;
+    }, 2000);
+  }
 }
 
 /* ----------------------------------------------------------------------------
@@ -824,10 +1087,16 @@ function renderAdvisories() {
   if (!container) return;
 
   // New structure: { open: [], resolved: [], dismissed: [] }
-  const openAdvisories = state.advisories?.open || [];
+  const allOpenAdvisories = state.advisories?.open || [];
 
+  // Apply focus filter
+  const activeProjectId = getActiveProjectId();
+  const activeProject = getActiveProject();
+  const openAdvisories = filterByFocus(allOpenAdvisories, activeProjectId, activeProject);
+
+  const focusIndicator = activeProjectId ? ' (filtered)' : '';
   if (countEl) {
-    countEl.textContent = `${openAdvisories.length} open`;
+    countEl.textContent = `${openAdvisories.length} open${focusIndicator}`;
   }
 
   // Update badge
@@ -878,7 +1147,7 @@ function clearAdvisoryBadge() {
 }
 
 /**
- * Render an advisory card with action buttons
+ * Render an advisory card with action buttons and trust fields
  */
 function renderAdvisoryCard(advisory, index) {
   const typeLabel = advisory.type === 'intel_alert' ? 'Intel Alert' :
@@ -888,19 +1157,39 @@ function renderAdvisoryCard(advisory, index) {
   const typeBadgeClass = advisory.type === 'intel_alert' ? 'type-alert' :
                          advisory.type === 'signal_match' ? 'type-signal' : 'type-kb';
 
+  // Trust layer fields
+  const source = advisory.source || 'system';
+  const confidencePercent = advisory.confidence ? Math.round(advisory.confidence * 100) : '—';
+  const freshnessLabel = advisory.freshness || 'current';
+  const investigatingClass = advisory.investigating ? 'investigating' : '';
+
   return `
-    <div class="advisory-card" data-advisory-id="${escapeHtml(advisory.id || '')}">
+    <div class="advisory-card ${investigatingClass}" data-advisory-id="${escapeHtml(advisory.id || '')}">
       <div class="advisory-header">
         <span class="advisory-type-badge ${typeBadgeClass}">${typeLabel}</span>
         <span class="advisory-time">${formatTimestamp(advisory.created_at)}</span>
+        ${advisory.investigating ? '<span class="investigating-badge">INVESTIGATING</span>' : ''}
       </div>
       <div class="advisory-title">${escapeHtml(advisory.title || 'Advisory')}</div>
+      ${advisory.trigger_explanation ? `
+      <div class="advisory-trigger">
+        <span class="trigger-label">Trigger:</span> ${escapeHtml(advisory.trigger_explanation)}
+      </div>
+      ` : ''}
+      <div class="advisory-trust-info">
+        <span class="trust-field"><strong>Source:</strong> ${escapeHtml(source)}</span>
+        <span class="trust-field"><strong>Confidence:</strong> ${confidencePercent}%</span>
+        <span class="trust-field"><strong>Freshness:</strong> ${escapeHtml(freshnessLabel)}</span>
+      </div>
       ${advisory.recommendation ? `
       <div class="advisory-recommendation">
         ${escapeHtml(advisory.recommendation)}
       </div>
       ` : ''}
       <div class="advisory-actions">
+        <button type="button" class="advisory-btn investigate-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Start investigation" ${advisory.investigating ? 'disabled' : ''}>
+          ${advisory.investigating ? 'Investigating...' : 'Investigate'}
+        </button>
         <button type="button" class="advisory-btn resolve-btn" data-advisory-id="${escapeHtml(advisory.id || '')}" title="Mark as resolved">
           Resolve
         </button>
@@ -916,6 +1205,16 @@ function renderAdvisoryCard(advisory, index) {
  * Attach click handlers for advisory action buttons
  */
 function attachAdvisoryHandlers(container) {
+  // Investigate button handlers
+  const investigateButtons = container.querySelectorAll('.investigate-btn');
+  investigateButtons.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const advisoryId = btn.getAttribute('data-advisory-id');
+      await handleInvestigateAdvisory(advisoryId, btn);
+    });
+  });
+
   // Resolve button handlers
   const resolveButtons = container.querySelectorAll('.resolve-btn');
   resolveButtons.forEach((btn) => {
@@ -935,6 +1234,42 @@ function attachAdvisoryHandlers(container) {
       await updateAdvisoryStatusUI(advisoryId, 'dismissed', btn);
     });
   });
+}
+
+/**
+ * Handle Investigate advisory action
+ */
+async function handleInvestigateAdvisory(advisoryId, btn) {
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+
+  try {
+    const response = await fetch('/api/advisory-investigate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ advisory_id: advisoryId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to start investigation');
+    }
+
+    const result = await response.json();
+    state.advisories = {
+      open: result.open || [],
+      resolved: result.resolved || [],
+      dismissed: result.dismissed || [],
+    };
+    renderAdvisories();
+  } catch (err) {
+    console.error('[InvestigateAdvisory]', err);
+    btn.textContent = 'Error';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+  }
 }
 
 /**
@@ -1000,9 +1335,16 @@ function renderRecentRecommendations() {
     rationale: rec.summary,
     source: 'analysis',
     status: 'suggested',
+    // Include trust layer fields
+    timestamp: rec.timestamp,
+    freshness: rec.freshness || 'current',
+    confidence: rec.confidence || 0.75,
   }));
 
-  const recommendations = analysisRecs;
+  // Apply focus filter
+  const activeProjectId = getActiveProjectId();
+  const activeProject = getActiveProject();
+  const recommendations = filterByFocus(analysisRecs, activeProjectId, activeProject);
   const displayRecs = recommendations.slice(0, CONFIG.maxItemsPerColumn);
 
   countEl.textContent = `${recommendations.length} total`;
@@ -1023,10 +1365,13 @@ function renderRecentRecommendations() {
         showActions: true,
         detailsHtml: `
       ${rec.id ? renderDetailRow('ID', rec.id) : ''}
+      ${renderDetailRow('Source', rec.source || 'unknown')}
+      ${renderDetailRow('Timestamp', formatTimestamp(rec.timestamp || rec.created_at))}
+      ${renderDetailRow('Freshness', rec.freshness || 'current')}
+      ${renderDetailRow('Confidence', rec.confidence ? Math.round(rec.confidence * 100) + '%' : '—')}
       ${rec.summary ? renderDetailRow('Summary', rec.summary) : ''}
       ${rec.rationale ? renderDetailRow('Rationale', rec.rationale) : ''}
       ${rec.status ? renderDetailRow('Status', rec.status) : ''}
-      ${rec.source === 'analysis' ? renderDetailRow('Source', 'LLM Analysis') : ''}
     `,
       })
     )

@@ -2643,3 +2643,161 @@ body {
   background: #3ad875;
   box-shadow: 0 2px 8px rgba(74, 222, 128, 0.3);
 }
+
+/* ============================================================================
+   TRUST LAYER STYLES
+   Data provenance fields: source, timestamp, freshness, confidence
+   ============================================================================ */
+
+.trust-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-xs) 0;
+  font-size: 0.75rem;
+}
+
+.trust-field {
+  color: var(--text-muted);
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.trust-field strong {
+  color: var(--text-secondary);
+}
+
+.advisory-trust-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-xs) 0 var(--spacing-sm) 0;
+  font-size: 0.75rem;
+}
+
+.advisory-trust-info .trust-field {
+  color: var(--text-muted);
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+.advisory-trigger {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: var(--spacing-xs) 0;
+  padding: var(--spacing-xs);
+  background: rgba(177, 156, 255, 0.1);
+  border-radius: 4px;
+  border-left: 2px solid var(--accent-purple);
+}
+
+.trigger-label {
+  color: var(--accent-purple);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   INVESTIGATING STATE
+   ============================================================================ */
+
+.investigating-badge {
+  display: inline-block;
+  background: var(--accent-warning);
+  color: var(--bg-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.advisory-card.investigating {
+  border-left: 3px solid var(--accent-warning);
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.investigate-btn {
+  background: var(--accent-cyan);
+  border: none;
+  color: var(--bg-primary);
+}
+
+.investigate-btn:hover:not(:disabled) {
+  background: #00d4e6;
+  box-shadow: 0 2px 8px rgba(0, 245, 255, 0.3);
+}
+
+/* ============================================================================
+   KB ACTION BUTTONS
+   ============================================================================ */
+
+.kb-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+  margin-top: var(--spacing-sm);
+}
+
+.create-draft-btn {
+  background: var(--accent-purple);
+  border: none;
+  color: white;
+}
+
+.create-draft-btn:hover:not(:disabled) {
+  background: #a089ff;
+  box-shadow: 0 2px 8px rgba(177, 156, 255, 0.3);
+}
+
+.queue-btn {
+  background: var(--accent-cyan);
+  border: none;
+  color: var(--bg-primary);
+}
+
+.queue-btn:hover:not(:disabled) {
+  background: #00d4e6;
+}
+
+.dismiss-kb-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.dismiss-kb-btn:hover:not(:disabled) {
+  background: rgba(255, 68, 68, 0.15);
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+}
+
+/* Card status indicators */
+.intel-card.queued {
+  border-left: 3px solid var(--accent-cyan);
+  opacity: 0.8;
+}
+
+.intel-card.dismissed {
+  border-left: 3px solid var(--text-muted);
+  opacity: 0.5;
+}
+
+/* Success/Error states for action buttons */
+.card-action-btn.success {
+  background: var(--accent-success) !important;
+  color: var(--bg-primary) !important;
+}
+
+.card-action-btn.error {
+  background: var(--accent-error) !important;
+  color: white !important;
+}

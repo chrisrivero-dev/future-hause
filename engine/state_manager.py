@@ -162,3 +162,147 @@ def update_advisory_status(advisory_id: str, new_status: str):
     state["advisories"] = advisories
     save_state_validated(state)
     return target_advisory
+
+
+# ─────────────────────────────────────────────
+# KB Candidate Functions
+# ─────────────────────────────────────────────
+
+def update_kb_candidate_status(candidate_id: str, new_status: str) -> dict | None:
+    """Update KB candidate status (pending, queued, dismissed, drafted)."""
+    state = load_state()
+    candidates = state.get("proposals", {}).get("kb_candidates", [])
+
+    for candidate in candidates:
+        if candidate.get("id") == candidate_id:
+            candidate["status"] = new_status
+            save_state_validated(state)
+            return candidate
+
+    return None
+
+
+def get_kb_candidates() -> list:
+    """Get all KB candidates."""
+    state = load_state()
+    return state.get("proposals", {}).get("kb_candidates", [])
+
+
+# ─────────────────────────────────────────────
+# User Project Functions
+# ─────────────────────────────────────────────
+
+def create_user_project(project_data: dict) -> dict:
+    """Create a new user-defined project."""
+    import uuid
+    from datetime import datetime, timezone
+
+    state = load_state()
+    now = datetime.now(timezone.utc).isoformat()
+
+    project = {
+        "id": str(uuid.uuid4()),
+        "title": project_data.get("title", "Untitled Project"),
+        "summary": project_data.get("summary", ""),
+        "status": project_data.get("status", "active"),
+        "priority": project_data.get("priority", "medium"),
+        "created_at": now,
+        "updated_at": now,
+        "source": "user",
+        "timestamp": now,
+        "freshness": "current",
+        "confidence": 1.0,
+        "user_defined": True,
+    }
+
+    state["state_mutations"]["projects"].append(project)
+    save_state_validated(state)
+    return project
+
+
+def update_user_project(project_id: str, updates: dict) -> dict | None:
+    """Update an existing project."""
+    from datetime import datetime, timezone
+
+    state = load_state()
+    projects = state.get("state_mutations", {}).get("projects", [])
+
+    for project in projects:
+        if project.get("id") == project_id:
+            # Only update allowed fields
+            for key in ["title", "summary", "status", "priority"]:
+                if key in updates:
+                    project[key] = updates[key]
+            project["updated_at"] = datetime.now(timezone.utc).isoformat()
+            save_state_validated(state)
+            return project
+
+    return None
+
+
+def delete_user_project(project_id: str) -> bool:
+    """Delete a user-defined project."""
+    state = load_state()
+    projects = state.get("state_mutations", {}).get("projects", [])
+
+    for i, project in enumerate(projects):
+        if project.get("id") == project_id:
+            # Only allow deletion of user-defined projects
+            if project.get("user_defined"):
+                projects.pop(i)
+                save_state_validated(state)
+                return True
+            return False
+
+    return False
+
+
+# ─────────────────────────────────────────────
+# Advisory Investigate Function
+# ─────────────────────────────────────────────
+
+def set_advisory_investigating(advisory_id: str) -> dict | None:
+    """Mark an advisory as being investigated."""
+    from datetime import datetime, timezone
+
+    state = load_state()
+    advisories = state.get("advisories", {"open": [], "resolved": [], "dismissed": []})
+    if isinstance(advisories, list):
+        advisories = {"open": advisories, "resolved": [], "dismissed": []}
+
+    for advisory in advisories.get("open", []):
+        if advisory.get("id") == advisory_id:
+            advisory["investigating"] = True
+            advisory["investigation_started_at"] = datetime.now(timezone.utc).isoformat()
+            state["advisories"] = advisories
+            save_state_validated(state)
+            return advisory
+
+    return None
+
+
+# ─────────────────────────────────────────────
+# Work Log Functions
+# ─────────────────────────────────────────────
+
+def get_work_log() -> list:
+    """
+    Get work log entries filtered by actionable work types.
+    Auto-populated from: KB drafts, recommendations, advisories.
+    """
+    state = load_state()
+    action_log = state.get("state_mutations", {}).get("action_log", [])
+
+    work_types = {
+        "kb_draft_created",
+        "kb_draft_saved",
+        "recommendation_applied",
+        "advisory_resolved",
+        "advisory_dismissed",
+        "advisory_investigating",
+    }
+
+    return [
+        entry for entry in action_log
+        if entry.get("action_type") in work_types
+    ]

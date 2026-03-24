@@ -44,6 +44,7 @@ def generate_advisories(state: dict) -> list:
         if source_signal_id in existing_source_ids:
             continue
 
+        now = datetime.now(timezone.utc)
         advisory = {
             "id": str(uuid.uuid4()),
             "project_id": project.get("id"),
@@ -52,7 +53,13 @@ def generate_advisories(state: dict) -> list:
             "title": project.get("summary") or project.get("title") or "New Project",
             "recommendation": "Review and determine if KB update is required.",
             "status": "open",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": now.isoformat(),
+            # DATA TRUST LAYER FIELDS
+            "source": project.get("approved_by", "system"),
+            "timestamp": now.isoformat(),
+            "freshness": "current",
+            "confidence": 0.8,
+            "trigger_explanation": f"Generated from project promotion: {project.get('title', 'Unknown')}",
         }
 
         new_advisories.append(advisory)

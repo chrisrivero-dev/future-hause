@@ -35,12 +35,19 @@ def _get_existing_proposal_source_ids(state: dict) -> set:
 
 def _create_kb_candidate(signal: dict) -> dict:
     """Create a KB candidate proposal from a discussion signal."""
+    now = datetime.now(timezone.utc)
     return {
         "id": str(uuid.uuid4()),
         "source_signal_id": signal.get("id"),
         "title": signal.get("title", "Untitled Discussion"),
         "summary": signal.get("content", signal.get("summary", "")),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now.isoformat(),
+        # DATA TRUST LAYER FIELDS
+        "source": signal.get("source", "unknown"),
+        "timestamp": now.isoformat(),
+        "freshness": "current",
+        "confidence": 0.7,
+        "status": "pending",
     }
 
 
@@ -82,6 +89,7 @@ def _create_project_candidate(signal: dict) -> dict:
     else:
         project_title = title
 
+    now = datetime.now(timezone.utc)
     return {
         "id": str(uuid.uuid4()),
         "source_signal_id": signal.get("id"),
@@ -89,7 +97,12 @@ def _create_project_candidate(signal: dict) -> dict:
         "summary": content,
         "priority": "medium",
         "status": "candidate",
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now.isoformat(),
+        # DATA TRUST LAYER FIELDS
+        "source": signal.get("source", "unknown"),
+        "timestamp": now.isoformat(),
+        "freshness": "current",
+        "confidence": 0.7,
     }
 
 

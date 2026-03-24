@@ -163,11 +163,41 @@ def analyze_signals(signals: list[dict] | None = None) -> AnalysisResult:
         response_text = response.json().get("response", "")
         parsed = parse_llm_response(response_text)
 
-        # Validate and normalize the response structure
+        # Validate and normalize the response structure with trust layer fields
+        kb_opps = []
+        for opp in parsed.get("kb_opportunities", [])[:5]:
+            kb_opps.append({
+                **opp,
+                "source": "llm_analysis",
+                "timestamp": now,
+                "freshness": "current",
+                "confidence": 0.75,
+            })
+
+        projects = []
+        for proj in parsed.get("projects", [])[:5]:
+            projects.append({
+                **proj,
+                "source": "llm_analysis",
+                "timestamp": now,
+                "freshness": "current",
+                "confidence": 0.75,
+            })
+
+        recommendations = []
+        for rec in parsed.get("recommendations", [])[:5]:
+            recommendations.append({
+                **rec,
+                "source": "llm_analysis",
+                "timestamp": now,
+                "freshness": "current",
+                "confidence": 0.75,
+            })
+
         result: AnalysisResult = {
-            "kb_opportunities": parsed.get("kb_opportunities", [])[:5],
-            "projects": parsed.get("projects", [])[:5],
-            "recommendations": parsed.get("recommendations", [])[:5],
+            "kb_opportunities": kb_opps,
+            "projects": projects,
+            "recommendations": recommendations,
             "analyzed_at": now,
             "signal_count": len(signals),
         }

@@ -15,6 +15,13 @@ from engine.state_manager import (
     get_advisories,
     append_open_advisories,
     update_advisory_status,
+    update_kb_candidate_status,
+    get_kb_candidates,
+    create_user_project,
+    update_user_project,
+    delete_user_project,
+    set_advisory_investigating,
+    get_work_log,
 )
 from engine.signal_extraction import run_signal_extraction
 from engine.ingest import run_live_ingest, get_ingestion_status
@@ -526,6 +533,187 @@ def update_advisory_endpoint():
         "open": advisories.get("open", []),
         "resolved": advisories.get("resolved", []),
         "dismissed": advisories.get("dismissed", [])
+    })
+
+
+# ─────────────────────────────────────────────
+# KB Actions API
+# ─────────────────────────────────────────────
+@app.route("/api/kb/queue", methods=["POST"])
+def save_kb_to_queue():
+    """Save KB candidate to queue for later processing."""
+    data = request.get_json(force=True)
+    candidate_id = data.get("candidate_id")
+
+    if not candidate_id:
+        return jsonify({"status": "error", "message": "candidate_id required"}), 400
+
+    result = update_kb_candidate_status(candidate_id, "queued")
+    if not result:
+        return jsonify({"status": "error", "message": "Candidate not found"}), 404
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    append_action({
+        "id": f"kb-queue-{now}",
+        "action": "kb_queued",
+        "action_type": "kb_draft_saved",
+        "timestamp": now,
+        "rationale": f"KB candidate {candidate_id} saved to queue",
+        "metadata": {"candidate_id": candidate_id},
+    })
+
+    return jsonify({"status": "ok", "candidate": result})
+
+
+@app.route("/api/kb/dismiss", methods=["POST"])
+def dismiss_kb_candidate():
+    """Dismiss a KB candidate."""
+    data = request.get_json(force=True)
+    candidate_id = data.get("candidate_id")
+
+    if not candidate_id:
+        return jsonify({"status": "error", "message": "candidate_id required"}), 400
+
+    result = update_kb_candidate_status(candidate_id, "dismissed")
+    if not result:
+        return jsonify({"status": "error", "message": "Candidate not found"}), 404
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    append_action({
+        "id": f"kb-dismiss-{now}",
+        "action": "kb_dismissed",
+        "action_type": "kb_dismissed",
+        "timestamp": now,
+        "rationale": f"KB candidate {candidate_id} dismissed",
+        "metadata": {"candidate_id": candidate_id},
+    })
+
+    return jsonify({"status": "ok", "candidate": result})
+
+
+# ─────────────────────────────────────────────
+# User Projects API
+# ─────────────────────────────────────────────
+@app.route("/api/projects/create", methods=["POST"])
+def create_project():
+    """Create a new user-defined project."""
+    data = request.get_json(force=True)
+
+    if not data.get("title"):
+        return jsonify({"status": "error", "message": "title required"}), 400
+
+    project = create_user_project(data)
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    append_action({
+        "id": f"project-create-{now}",
+        "action": "project_created",
+        "action_type": "project_created",
+        "timestamp": now,
+        "rationale": f"User created project: {project['title']}",
+        "metadata": {"project_id": project["id"]},
+    })
+
+    return jsonify({"status": "ok", "project": project})
+
+
+@app.route("/api/projects/update", methods=["POST"])
+def update_project():
+    """Update an existing project."""
+    data = request.get_json(force=True)
+    project_id = data.get("project_id")
+
+    if not project_id:
+        return jsonify({"status": "error", "message": "project_id required"}), 400
+
+    result = update_user_project(project_id, data)
+    if not result:
+        return jsonify({"status": "error", "message": "Project not found"}), 404
+
+    return jsonify({"status": "ok", "project": result})
+
+
+@app.route("/api/projects/delete", methods=["POST"])
+def delete_project():
+    """Delete a user-defined project."""
+    data = request.get_json(force=True)
+    project_id = data.get("project_id")
+
+    if not project_id:
+        return jsonify({"status": "error", "message": "project_id required"}), 400
+
+    result = delete_user_project(project_id)
+    if not result:
+        return jsonify({"status": "error", "message": "Project not found or cannot be deleted"}), 404
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    append_action({
+        "id": f"project-delete-{now}",
+        "action": "project_deleted",
+        "action_type": "project_deleted",
+        "timestamp": now,
+        "rationale": f"User deleted project: {project_id}",
+        "metadata": {"project_id": project_id},
+    })
+
+    return jsonify({"status": "ok"})
+
+
+# ─────────────────────────────────────────────
+# Advisory Investigate API
+# ─────────────────────────────────────────────
+@app.route("/api/advisory-investigate", methods=["POST"])
+def investigate_advisory():
+    """Mark an advisory as being investigated."""
+    data = request.get_json(force=True)
+    advisory_id = data.get("advisory_id")
+
+    if not advisory_id:
+        return jsonify({"status": "error", "message": "advisory_id required"}), 400
+
+    result = set_advisory_investigating(advisory_id)
+    if not result:
+        return jsonify({"status": "error", "message": "Advisory not found"}), 404
+
+    # Log the action
+    now = datetime.now(timezone.utc).isoformat()
+    append_action({
+        "id": f"advisory-investigate-{now}",
+        "action": "advisory_investigating",
+        "action_type": "advisory_investigating",
+        "timestamp": now,
+        "rationale": f"Started investigation of advisory: {advisory_id}",
+        "metadata": {
+            "advisory_id": advisory_id,
+            "advisory_title": result.get("title", "Unknown"),
+        },
+    })
+
+    # Return updated advisories
+    advisories = get_advisories()
+    return jsonify({
+        "status": "ok",
+        "advisory": result,
+        "open": advisories.get("open", []),
+        "resolved": advisories.get("resolved", []),
+        "dismissed": advisories.get("dismissed", []),
+    })
+
+
+# ─────────────────────────────────────────────
+# Work Log API
+# ─────────────────────────────────────────────
+@app.route("/api/work-log", methods=["GET"])
+def get_work_log_endpoint():
+    """Get the draft work log (auto-populated from actions)."""
+    work_entries = get_work_log()
+    return jsonify({
+        "schema_version": "1.0",
+        "entries": work_entries,
     })
 
 
