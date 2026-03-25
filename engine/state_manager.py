@@ -23,28 +23,80 @@ BASELINE_SCHEMA = {
 }
 
 
+def _deep_repair(state, schema):
+    """
+    Recursively repair state to match schema structure.
+
+    - Backfills missing keys at ANY depth
+    - Fixes type mismatches (dict → dict, list → list)
+    - Does NOT overwrite valid existing values
+
+    Returns:
+        tuple: (repaired_state, was_modified)
+    """
+    modified = False
+
+    if not isinstance(schema, dict):
+        # Base case: schema is not a dict, return as-is
+        return state, False
+
+    # Ensure state is a dict if schema expects dict
+    if not isinstance(state, dict):
+        return _deep_copy_schema(schema), True
+
+    for key, default_value in schema.items():
+        if key not in state:
+            # Key missing: backfill from schema
+            state[key] = _deep_copy_schema(default_value)
+            modified = True
+        elif isinstance(default_value, dict):
+            # Schema expects dict
+            if not isinstance(state[key], dict):
+                # Type mismatch: replace with schema default
+                state[key] = _deep_copy_schema(default_value)
+                modified = True
+            else:
+                # Recurse into nested dict
+                state[key], nested_modified = _deep_repair(state[key], default_value)
+                modified = modified or nested_modified
+        elif isinstance(default_value, list):
+            # Schema expects list
+            if not isinstance(state[key], list):
+                # Type mismatch: replace with empty list (schema default)
+                state[key] = list(default_value)
+                modified = True
+            # Lists: don't recurse into items, just ensure it's a list
+
+    return state, modified
+
+
+def _deep_copy_schema(value):
+    """
+    Deep copy a schema value to avoid reference issues.
+    """
+    if isinstance(value, dict):
+        return {k: _deep_copy_schema(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [_deep_copy_schema(item) for item in value]
+    else:
+        return value
+
+
 def load_state():
-    """Load cognition state from disk. Auto-heals missing fields."""
+    """Load cognition state from disk. Auto-heals missing fields recursively."""
     if not STATE_PATH.exists():
         # Initialize with full baseline schema
-        _save_state_raw(BASELINE_SCHEMA)
-        return BASELINE_SCHEMA.copy()
+        initial_state = _deep_copy_schema(BASELINE_SCHEMA)
+        _save_state_raw(initial_state)
+        return initial_state
+
     with open(STATE_PATH, "r") as f:
         state = json.load(f)
 
-    # Auto-heal missing schema fields (never crash on missing fields)
-    repaired = False
-    for key, default in BASELINE_SCHEMA.items():
-        if key not in state:
-            state[key] = default if not isinstance(default, dict) else dict(default)
-            repaired = True
-        elif isinstance(default, dict):
-            for nested_key, nested_default in default.items():
-                if nested_key not in state[key]:
-                    state[key][nested_key] = nested_default if not isinstance(nested_default, list) else list(nested_default)
-                    repaired = True
+    # Deep recursive repair: fix missing keys and type mismatches at any depth
+    state, repaired = _deep_repair(state, BASELINE_SCHEMA)
 
-    # Save repaired state back to disk
+    # Persist repaired state to disk
     if repaired:
         _save_state_raw(state)
 
