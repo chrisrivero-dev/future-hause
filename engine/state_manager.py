@@ -62,8 +62,8 @@ def _deep_repair(state, schema):
         elif isinstance(default_value, list):
             # Schema expects list
             if not isinstance(state[key], list):
-                # Type mismatch: replace with empty list (schema default)
-                state[key] = list(default_value)
+                # Type mismatch: replace with deep copy of schema default
+                state[key] = _deep_copy_schema(default_value)
                 modified = True
             # Lists: don't recurse into items, just ensure it's a list
 
