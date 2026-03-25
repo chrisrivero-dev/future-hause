@@ -33,13 +33,20 @@ class ReviewEngineAdapter:
         - No agent spawning
         - No state mutation
         """
-        from engine.review.providers.ollama import OllamaReviewProvider
-
-        provider = OllamaReviewProvider()
-        return provider.review(
-            draft_text=payload.get("draft_text", ""),
-            draft_id=payload.get("draft_id", ""),
-        )
+        try:
+            from engine.review.providers.ollama import OllamaReviewProvider
+            provider = OllamaReviewProvider()
+            return provider.review(
+                draft_text=payload.get("draft_text", ""),
+                draft_id=payload.get("draft_id", ""),
+            )
+        except Exception as e:
+            return {
+                "response": "LLM error",
+                "error": str(e),
+                "confidence": 0,
+                "source": "fallback"
+            }
 
     def run(
         self,

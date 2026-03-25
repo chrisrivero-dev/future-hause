@@ -24,16 +24,30 @@ BASELINE_SCHEMA = {
 
 
 def load_state():
-    """Load cognition state from disk."""
+    """Load cognition state from disk. Auto-heals missing fields."""
     if not STATE_PATH.exists():
         # Initialize with full baseline schema
         _save_state_raw(BASELINE_SCHEMA)
         return BASELINE_SCHEMA.copy()
     with open(STATE_PATH, "r") as f:
         state = json.load(f)
-    # Validate schema integrity
-    if "state_mutations" not in state or "action_log" not in state.get("state_mutations", {}):
-        raise ValueError("cognition_state.json missing required schema fields (state_mutations.action_log)")
+
+    # Auto-heal missing schema fields (never crash on missing fields)
+    repaired = False
+    for key, default in BASELINE_SCHEMA.items():
+        if key not in state:
+            state[key] = default if not isinstance(default, dict) else dict(default)
+            repaired = True
+        elif isinstance(default, dict):
+            for nested_key, nested_default in default.items():
+                if nested_key not in state[key]:
+                    state[key][nested_key] = nested_default if not isinstance(nested_default, list) else list(nested_default)
+                    repaired = True
+
+    # Save repaired state back to disk
+    if repaired:
+        _save_state_raw(state)
+
     return state
 
 
