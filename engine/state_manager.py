@@ -151,6 +151,37 @@ def get_intel_signals():
     return state["perception"]["signals"]
 
 
+def append_signal(signal: dict) -> dict:
+    """
+    Append a new signal to perception.signals.
+
+    Args:
+        signal: Signal dict with at minimum 'text'. Will be normalized.
+
+    Returns:
+        The normalized signal object with generated id and timestamps.
+    """
+    import uuid
+
+    state = load_state()
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Normalize input into proper signal structure
+    normalized = {
+        "id": str(uuid.uuid4()),
+        "source": signal.get("source", "api"),
+        "category": signal.get("category", "discussion"),
+        "title": signal.get("title", signal.get("text", "")[:80]),
+        "content": signal.get("text", signal.get("content", "")),
+        "detected_at": now,
+    }
+
+    state["perception"]["signals"].append(normalized)
+    save_state_validated(state)
+
+    return normalized
+
+
 def replace_intel_signals(signals):
     """Replace intel signals in perception.signals."""
     state = load_state()

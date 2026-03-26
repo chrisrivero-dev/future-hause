@@ -8,6 +8,7 @@ from engine.state_manager import (
     load_state,
     save_state_validated,
     get_intel_signals,
+    append_signal,
     append_action,
     get_action_log,
     get_focus,
@@ -148,6 +149,64 @@ def get_signals():
     return jsonify({
         "schema_version": "1.0",
         "signals": get_intel_signals()
+    })
+
+
+@app.route("/api/signals", methods=["POST"])
+def post_signal():
+    """
+    Create a new signal and trigger downstream processing.
+
+    Input: {"text": string}
+    Output: {"success": true, "signal_id": string}
+    """
+    data = request.get_json(force=True)
+
+    if not data or not data.get("text"):
+        return jsonify({
+            "success": False,
+            "error": "text field is required"
+        }), 400
+
+    # Create and persist signal
+    signal = append_signal(data)
+    signal_id = signal["id"]
+
+    # Trigger downstream processing pipeline
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Step 1: Run proposal generation (creates kb_candidates/project_candidates)
+    proposal_result = run_proposal_generation()
+
+    # Step 2: Auto-promote project candidates
+    promotion_result = auto_promote_projects()
+
+    # Step 3: Generate advisories from promoted projects
+    state = load_state()
+    new_advisories = generate_advisories(state)
+    if new_advisories:
+        append_open_advisories(new_advisories)
+
+    # Step 4: Log the signal creation action
+    action_entry = {
+        "id": f"signal-created-{now}",
+        "action": "signal_created",
+        "action_type": "signal_created",
+        "timestamp": now,
+        "rationale": f"Signal created via API: {signal.get('title', '')[:50]}",
+        "metadata": {
+            "signal_id": signal_id,
+            "proposals_generated": proposal_result.get("kb_candidates_generated", 0)
+                + proposal_result.get("project_candidates_generated", 0),
+            "projects_promoted": promotion_result.get("promoted", 0),
+            "advisories_created": len(new_advisories),
+        },
+    }
+    append_action(action_entry)
+
+    return jsonify({
+        "success": True,
+        "signal_id": signal_id
     })
 
 
