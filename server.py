@@ -38,16 +38,49 @@ app = Flask(__name__)
 # ─────────────────────────────────────────────
 # Chat Context Assembly Helper
 # ─────────────────────────────────────────────
+# Keywords indicating operational/support issues
+_ISSUE_KEYWORDS = ("error", "issue", "fail", "cannot", "problem", "connect")
+
+
+def _is_operational_signal(signal: dict) -> bool:
+    """Check if signal is operational (support issue, API source, or contains issue keywords)."""
+    # API source signals are always operational
+    if signal.get("source") == "api":
+        return True
+    # Check text/title for issue keywords
+    text = (signal.get("text", "") + " " + signal.get("title", "")).lower()
+    return any(kw in text for kw in _ISSUE_KEYWORDS)
+
+
 def _assemble_chat_context() -> dict:
     """
     Assemble context for chat endpoint.
-    Returns last 5 signals, KB opportunities, open advisories, and active project focus.
+    Filters and prioritizes signals for actionable support context.
+    Returns max 5 signals (operational first), KB opportunities, open advisories, and active project focus.
     """
     state = load_state()
 
-    # Last 5 signals
-    signals = state.get("perception", {}).get("signals", [])
-    recent_signals = signals[-5:] if signals else []
+    # Get all signals
+    all_signals = state.get("perception", {}).get("signals", [])
+
+    # Filter and categorize signals
+    operational_signals = []
+    other_signals = []
+    for s in all_signals:
+        # Exclude news source entirely
+        if s.get("source") == "news":
+            continue
+        if _is_operational_signal(s):
+            operational_signals.append(s)
+        else:
+            other_signals.append(s)
+
+    # Sort: operational first, then others; most recent within each group
+    # Take max 5 signals total, prioritizing operational
+    filtered_signals = operational_signals[-5:]
+    remaining_slots = 5 - len(filtered_signals)
+    if remaining_slots > 0:
+        filtered_signals.extend(other_signals[-remaining_slots:])
 
     # KB opportunities (candidates)
     kb = state.get("proposals", {}).get("kb_candidates", [])
@@ -70,7 +103,7 @@ def _assemble_chat_context() -> dict:
                 break
 
     return {
-        "signals": recent_signals,
+        "signals": filtered_signals,
         "kb": kb,
         "advisories": open_advisories,
         "active_project": active_project,
@@ -224,7 +257,7 @@ def chat():
 {message}
 
 Context:
-Signals:
+Signals (operational issues prioritized):
 {signals_text}
 
 KB:
@@ -237,10 +270,10 @@ Active Project Focus:
 {project_text}
 
 Instructions:
-- Answer the question
-- Suggest relevant KB articles if applicable
-- Suggest actions or projects if relevant
-- Keep response concise and actionable"""
+- Focus on actionable issues affecting users or systems
+- Prioritize support problems over general news
+- Highlight the most critical issue first
+- Suggest concrete actions or troubleshooting steps"""
 
     # Call Ollama
     OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
