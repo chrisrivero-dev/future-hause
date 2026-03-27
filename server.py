@@ -31,8 +31,50 @@ from engine.promotion_engine import record_approval, run_promotion
 from engine.advisory_generator import generate_advisories
 from engine.kb_draft_generator import scaffold_from_signal
 from engine.signal_analyzer import analyze_signals
+import requests
 
 app = Flask(__name__)
+
+# ─────────────────────────────────────────────
+# Chat Context Assembly Helper
+# ─────────────────────────────────────────────
+def _assemble_chat_context() -> dict:
+    """
+    Assemble context for chat endpoint.
+    Returns last 5 signals, KB opportunities, open advisories, and active project focus.
+    """
+    state = load_state()
+
+    # Last 5 signals
+    signals = state.get("perception", {}).get("signals", [])
+    recent_signals = signals[-5:] if signals else []
+
+    # KB opportunities (candidates)
+    kb = state.get("proposals", {}).get("kb_candidates", [])
+
+    # Open advisories
+    advisories_data = state.get("advisories", {})
+    if isinstance(advisories_data, list):
+        advisories_data = {"open": advisories_data, "resolved": [], "dismissed": []}
+    open_advisories = advisories_data.get("open", [])
+
+    # Active project focus
+    focus = state.get("focus", {})
+    active_project_id = focus.get("active_project_id")
+    active_project = None
+    if active_project_id:
+        projects = state.get("state_mutations", {}).get("projects", [])
+        for p in projects:
+            if p.get("id") == active_project_id:
+                active_project = p
+                break
+
+    return {
+        "signals": recent_signals,
+        "kb": kb,
+        "advisories": open_advisories,
+        "active_project": active_project,
+    }
 
 # UI directory path
 UI_DIR = Path(__file__).parent / "ui"
@@ -130,6 +172,105 @@ def coach():
     )
 
     return jsonify(result)
+
+
+# ─────────────────────────────────────────────
+# Chat API
+# ─────────────────────────────────────────────
+@app.route("/api/chat", methods=["POST"])
+def chat():
+    """
+    Conversational endpoint for querying FutureHause context.
+
+    Input: {"message": string}
+    Output: {"success": true, "response": string, "confidence": number}
+    """
+    data = request.get_json(force=True)
+    message = data.get("message", "").strip()
+
+    if not message:
+        return jsonify({
+            "success": False,
+            "error": "message field is required",
+            "response": None,
+            "confidence": 0.0,
+        }), 400
+
+    # Assemble context
+    ctx = _assemble_chat_context()
+
+    # Format context for prompt
+    signals_text = "\n".join(
+        f"- [{s.get('id', 'unknown')}] {s.get('title', s.get('text', '')[:100])}"
+        for s in ctx["signals"]
+    ) or "No recent signals."
+
+    kb_text = "\n".join(
+        f"- [{k.get('id', 'unknown')}] {k.get('title', 'Untitled')}"
+        for k in ctx["kb"][:10]
+    ) or "No KB opportunities."
+
+    advisories_text = "\n".join(
+        f"- [{a.get('id', 'unknown')}] {a.get('title', 'Untitled')} (priority: {a.get('priority', 'unknown')})"
+        for a in ctx["advisories"]
+    ) or "No open advisories."
+
+    project_text = "None"
+    if ctx["active_project"]:
+        p = ctx["active_project"]
+        project_text = f"{p.get('title', 'Untitled')} (status: {p.get('status', 'unknown')})"
+
+    prompt = f"""User question:
+{message}
+
+Context:
+Signals:
+{signals_text}
+
+KB:
+{kb_text}
+
+Advisories:
+{advisories_text}
+
+Active Project Focus:
+{project_text}
+
+Instructions:
+- Answer the question
+- Suggest relevant KB articles if applicable
+- Suggest actions or projects if relevant
+- Keep response concise and actionable"""
+
+    # Call Ollama
+    OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
+    MODEL = "llama3.2:3b-instruct-q4_1"
+
+    try:
+        r = requests.post(
+            OLLAMA_URL,
+            json={"model": MODEL, "prompt": prompt, "stream": False},
+            timeout=60,
+        )
+        if r.status_code != 200:
+            raise RuntimeError(f"Ollama HTTP {r.status_code}")
+
+        response_text = r.json().get("response", "").strip()
+        confidence = 0.7 if response_text else 0.0
+
+        return jsonify({
+            "success": True,
+            "response": response_text,
+            "confidence": confidence,
+        })
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "response": None,
+            "confidence": 0.0,
+        }), 500
 
 
 # ─────────────────────────────────────────────
