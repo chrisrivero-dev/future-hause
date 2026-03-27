@@ -38,8 +38,11 @@ app = Flask(__name__)
 # ─────────────────────────────────────────────
 # Chat Context Assembly Helper
 # ─────────────────────────────────────────────
-# Keywords indicating operational/support issues
-_ISSUE_KEYWORDS = ("error", "issue", "fail", "cannot", "problem", "connect")
+# Keywords indicating operational/support issues (prioritize)
+_ISSUE_KEYWORDS = ("error", "issue", "fail", "cannot", "problem", "connect", "broken", "down", "offline", "timeout")
+
+# Keywords indicating low-priority content (de-prioritize)
+_NOISE_KEYWORDS = ("crypto", "bitcoin", "price", "market", "trading", "halving", "btc", "eth")
 
 
 def _is_operational_signal(signal: dict) -> bool:
@@ -49,6 +52,9 @@ def _is_operational_signal(signal: dict) -> bool:
         return True
     # Check text/title for issue keywords
     text = (signal.get("text", "") + " " + signal.get("title", "")).lower()
+    # De-prioritize if mostly noise (crypto/market chatter)
+    if any(kw in text for kw in _NOISE_KEYWORDS) and not any(kw in text for kw in _ISSUE_KEYWORDS):
+        return False
     return any(kw in text for kw in _ISSUE_KEYWORDS)
 
 
@@ -77,9 +83,10 @@ def _assemble_chat_context() -> dict:
 
     # Sort: operational first, then others; most recent within each group
     # Take max 5 signals total, prioritizing operational
-    filtered_signals = operational_signals[-5:]
-    remaining_slots = 5 - len(filtered_signals)
-    if remaining_slots > 0:
+    MAX_SIGNALS = 5
+    filtered_signals = operational_signals[-MAX_SIGNALS:]
+    remaining_slots = MAX_SIGNALS - len(filtered_signals)
+    if remaining_slots > 0 and other_signals:
         filtered_signals.extend(other_signals[-remaining_slots:])
 
     # KB opportunities (candidates)
@@ -256,24 +263,24 @@ def chat():
     prompt = f"""User question:
 {message}
 
-Context:
-Signals (operational issues prioritized):
+Context (filtered to actionable issues only):
+Signals:
 {signals_text}
 
-KB:
+KB Opportunities:
 {kb_text}
 
-Advisories:
+Open Advisories:
 {advisories_text}
 
-Active Project Focus:
+Active Project:
 {project_text}
 
 Instructions:
-- Focus on actionable issues affecting users or systems
-- Prioritize support problems over general news
-- Highlight the most critical issue first
-- Suggest concrete actions or troubleshooting steps"""
+Focus on actionable issues affecting users or systems.
+Prioritize support problems over general news.
+Highlight the most critical issue first.
+Suggest concrete actions or troubleshooting steps."""
 
     # Call Ollama
     OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
